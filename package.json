@@ -1,6 +1,9 @@
 {
-  "name": "react-native-webview",
+  "name": "@react-native-oh-library/react-native-webview",
   "description": "React Native WebView component for iOS, Android, macOS, and Windows",
+  "harmony": {
+    "alias": "react-native-webview"
+  },
   "main": "index.js",
   "main-internal": "src/index.ts",
   "typings": "index.d.ts",
@@ -9,7 +12,7 @@
     "Thibault Malbranche <malbranche.thibault@gmail.com>"
   ],
   "license": "MIT",
-  "version": "13.6.2",
+  "version": "13.6.2-0.0.1",
   "homepage": "https://github.com/react-native-webview/react-native-webview#readme",
   "scripts": {
     "android": "react-native run-android",

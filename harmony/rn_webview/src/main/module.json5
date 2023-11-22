@@ -1,0 +1,7 @@
+{
+  "module":{
+    "name":"rn_webview",
+    "type":"har",
+    deviceTypes:['default']
+  }
+}
