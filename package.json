@@ -75,7 +75,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/react-native-webview/react-native-webview.git"
+    "url": "https://github.com/react-native-oh-library/react-native-webview.git"
   },
   "files": [
     "android/src",
@@ -85,6 +85,7 @@
     "ios",
     "macos",
     "windows",
+    "harmony/rn_webview.har",
     "lib",
     "src",
     "index.js",
@@ -96,6 +97,9 @@
     "@react-native-community/cli": "10.2.4",
     "@react-native-community/cli-platform-android": "10.2.0",
     "@react-native-community/cli-platform-ios": "10.2.4"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "codegenConfig": {
     "name": "RNCWebViewSpec",
