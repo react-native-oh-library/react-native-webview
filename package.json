@@ -1,9 +1,6 @@
 {
-  "name": "@react-native-oh-library/react-native-webview",
+  "name": "@react-native-oh-tpl/react-native-webview",
   "description": "React Native WebView component for iOS, Android, macOS, and Windows",
-  "harmony": {
-    "alias": "react-native-webview"
-  },
   "main": "index.js",
   "main-internal": "src/index.ts",
   "typings": "index.d.ts",
