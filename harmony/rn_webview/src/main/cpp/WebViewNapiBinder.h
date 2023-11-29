@@ -26,35 +26,36 @@
 #include "RNOHCorePackage/ComponentBinders/ViewComponentNapiBinder.h"
 #include "Props.h"
 
-namespace rnoh{
+namespace rnoh {
 
-  class WebViewNapiBinder : public ViewComponentNapiBinder{
+  class WebViewNapiBinder : public ViewComponentNapiBinder {
     public:
-      napi_value createProps(napi_env env,facebook::react::ShadowView const shadowView) override
+      napi_value createProps(napi_env env, facebook::react::ShadowView const shadowView) override
       {
-        napi_value napiViewProps = ViewComponentNapiBinder::createProps(env,shadowView);
-        if(auto props = std::dynamic_pointer_cast<const facebook::react::WebViewProps>(shadowView.props)){
+        napi_value napiViewProps = ViewComponentNapiBinder::createProps(env, shadowView);
+        if (auto props = std::dynamic_pointer_cast<const facebook::react::WebViewProps>(shadowView.props)) {
           auto objectBuilder = ArkJS(env).getObjectBuilder(napiViewProps);
           auto sourceObject = ArkJS(env).createObjectBuilder();
-          sourceObject.addProperty("uri",props->newSource.uri);
-          sourceObject.addProperty("method",props->newSource.method);
-          sourceObject.addProperty("body",props->newSource.body);
-          sourceObject.addProperty("html",props->newSource.html);
-          sourceObject.addProperty("baseUrl",props->newSource.baseUrl);
-          sourceObject.addProperty("headers",props->newSource.headers);
-          return objectBuilder.addProperty("newSource",sourceObject.build())
-              .addProperty("javaScriptEnabled",props->javaScriptEnabled)
-              .addProperty("injectedJavaScript",props->injectedJavaScript)
-              .addProperty("messagingEnabled",props->messagingEnabled)
-              .addProperty("showsHorizontalScrollIndicator",props->showsHorizontalScrollIndicator)
-              .addProperty("showsVerticalScrollIndicator",props->showsVerticalScrollIndicator)
-              .addProperty("textZoom",props->textZoom)
-              .addProperty("cacheEnabled",props->cacheEnabled)
-              .addProperty("cacheMode",static_cast<int>(props->cacheMode))
-              .addProperty("domStorageEnabled",props->domStorageEnabled)
-              .addProperty("scalesPageToFit",props->scalesPageToFit)
-              .addProperty("messagingModuleName",props->messagingModuleName)
-              .addProperty("shouldStartLoadWithRequestEnabled",props->shouldStartLoadWithRequestEnabled)
+          sourceObject.addProperty("uri", props->newSource.uri);
+          sourceObject.addProperty("method", props->newSource.method);
+          sourceObject.addProperty("body", props->newSource.body);
+          sourceObject.addProperty("html", props->newSource.html);
+          sourceObject.addProperty("baseUrl", props->newSource.baseUrl);
+          sourceObject.addProperty("headers", props->newSource.headers);
+          return objectBuilder.addProperty("newSource", sourceObject.build())
+              .addProperty("javaScriptEnabled", props->javaScriptEnabled)
+              .addProperty("injectedJavaScript", props->injectedJavaScript)
+              .addProperty("messagingEnabled", props->messagingEnabled)
+              .addProperty("showsHorizontalScrollIndicator", props->showsHorizontalScrollIndicator)
+              .addProperty("showsVerticalScrollIndicator", props->showsVerticalScrollIndicator)
+              .addProperty("textZoom", props->textZoom)
+              .addProperty("cacheEnabled", props->cacheEnabled)
+              .addProperty("cacheMode", static_cast<int>(props->cacheMode))
+              .addProperty("domStorageEnabled", props->domStorageEnabled)
+              .addProperty("scalesPageToFit", props->scalesPageToFit)
+              .addProperty("messagingModuleName", props->messagingModuleName)
+              .addProperty("shouldStartLoadWithRequestEnabled", props->shouldStartLoadWithRequestEnabled)
+              .addProperty("webviewDebuggingEnabled", props->webviewDebuggingEnabled)
               .build();
         }
         return napiViewProps;

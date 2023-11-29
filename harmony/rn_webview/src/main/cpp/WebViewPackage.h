@@ -33,22 +33,22 @@
 using namespace rnoh;
 using namespace facebook;
 
-class WebViewTurboModuleFactoryDelegate : public TurboModuleFactoryDelegate{
+class WebViewTurboModuleFactoryDelegate : public TurboModuleFactoryDelegate {
   public:
-    SharedTurboModule createTurboModule(Context ctx,const std::string &name) const override
+    SharedTurboModule createTurboModule(Context ctx, const std::string &name) const override
     {
-      if(name == "RNCWebView"){
-        return std::make_shared<RNCWebViewTurboModule>(ctx,name);
+      if (name == "RNCWebView") {
+        return std::make_shared<RNCWebViewTurboModule>(ctx, name);
       }
       return nullptr;
     };
 };
 
-namespace rnoh{
+namespace rnoh {
 
-  class WebViewPackage : public Package{
+  class WebViewPackage : public Package {
     public:
-      WebViewPackage(Package::Context ctx) : Package(ctx){}
+      WebViewPackage(Package::Context ctx) : Package(ctx) {}
 
       std::unique_ptr<TurboModuleFactoryDelegate> createTurboModuleFactoryDelegate() override
       {
@@ -64,12 +64,12 @@ namespace rnoh{
 
       ComponentJSIBinderByString createComponentJSIBinderByName() override
       {
-        return {{"RNCWebView",std::make_shared<WebViewJSIBinder>()}};
+        return {{"RNCWebView", std::make_shared<WebViewJSIBinder>()}};
       };
 
       ComponentNapiBinderByString createComponentNapiBinderByName() override
       {
-        return {{"RNCWebView",std::make_shared<WebViewNapiBinder>()}};
+        return {{"RNCWebView", std::make_shared<WebViewNapiBinder>()}};
       };
 
       EventEmitRequestHandlers createEventEmitRequestHandlers() override

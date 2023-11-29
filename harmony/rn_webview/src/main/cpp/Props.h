@@ -352,19 +352,19 @@ struct WebViewNewSourceHeadersStruct {
   std::string value;
 };
 
-static inline std::string getValues(const PropsParserContext& context,const RawValue &value){
-  auto map = (butter::map<std::string,RawValue>)value;
+static inline std::string getValues(const PropsParserContext& context, const RawValue &value) {
+  auto map = (butter::map<std::string, RawValue>)value;
   std::string result = "";
   std::string itemValue1;
   auto tmp_name = map.find("name");
-  if(tmp_name != map.end()){
-    fromRawValue(context,tmp_name->second,itemValue1);
+  if (tmp_name != map.end()) {
+    fromRawValue(context, tmp_name->second, itemValue1);
     result += "\"" + itemValue1 + "\":\"";
   }
   auto tmp_value = map.find("value");
   std::string itemValue2;
-  if(tmp_value != map.end()){
-    fromRawValue(context,tmp_name->second,itemValue2);
+  if (tmp_value != map.end()) {
+    fromRawValue(context, tmp_name->second, itemValue2);
     result += itemValue2 + "\"";
   }
   return result;
@@ -377,8 +377,8 @@ static inline std::string toString(const WebViewNewSourceHeadersStruct &value) {
 static inline std::string getSourceHeaders(const PropsParserContext &context, const RawValue &value) {
   auto items = (std::vector<RawValue>)value;
   std::string headers = "{";
-  for(const auto &item : items){
-    std::string tmp = getValues(context,item);
+  for (const auto &item : items) {
+    std::string tmp = getValues(context, item);
     headers += tmp + ",";
   }
   headers += "}";
@@ -394,7 +394,8 @@ struct WebViewNewSourceStruct {
   std::string baseUrl;
 };
 
-static inline void fromRawValue(const PropsParserContext& context, const RawValue &value, WebViewNewSourceStruct &result) {
+static inline void fromRawValue(const PropsParserContext &context, const RawValue &value,
+  WebViewNewSourceStruct &result) {
   auto map = (butter::map<std::string, RawValue>)value;
 
   auto tmp_uri = map.find("uri");

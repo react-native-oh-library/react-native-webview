@@ -46,7 +46,7 @@ WebViewEventType getWebViewEventType(ArkJS &arkJs, napi_value eventObject) {
         return WebViewEventType::LOADING_FINISH;
     } else if (eventType == "onMessage") {
         return WebViewEventType::ON_MESSAGE;
-    } else if(eventType == "onShouldStartLoadWithRequest"){
+    } else if (eventType == "onShouldStartLoadWithRequest") {
         return WebViewEventType::SHOULD_START_LOAD_WITH_REQUEST;
     } else {
         throw std::runtime_error("Unknown Page event type");
@@ -55,7 +55,8 @@ WebViewEventType getWebViewEventType(ArkJS &arkJs, napi_value eventObject) {
 
 class WebViewEventEmitRequestHandler : public EventEmitRequestHandler {
     public:
-        void handleEvent(EventEmitRequestHandler::Context const &ctx) override {
+        void handleEvent(EventEmitRequestHandler::Context const &ctx) override
+{
             if (ctx.eventName != "RNCWebView") {
                 return;
             }
@@ -65,7 +66,7 @@ class WebViewEventEmitRequestHandler : public EventEmitRequestHandler {
                 return;
             }
 
-            switch (getWebViewEventType(arkJs,ctx.payload)){
+            switch (getWebViewEventType(arkJs, ctx.payload)) {
               case WebViewEventType::LOADING_ERROR: {
                 std::string url = arkJs.getString(arkJs.getObjectProperty(ctx.payload, "url"));
                 bool loading = arkJs.getBoolean(arkJs.getObjectProperty(ctx.payload, "loading"));
@@ -108,7 +109,7 @@ class WebViewEventEmitRequestHandler : public EventEmitRequestHandler {
                 eventEmitter->onMessage(event);
                 break;
               }
-              case WebViewEventType::SHOULD_START_LOAD_WITH_REQUEST:{
+              case WebViewEventType::SHOULD_START_LOAD_WITH_REQUEST: {
                 std::string url = arkJs.getString(arkJs.getObjectProperty(ctx.payload, "url"));
                 bool loading = arkJs.getBoolean(arkJs.getObjectProperty(ctx.payload, "loading"));
                 std::string title = arkJs.getString(arkJs.getObjectProperty(ctx.payload, "title"));
@@ -119,7 +120,7 @@ class WebViewEventEmitRequestHandler : public EventEmitRequestHandler {
                 std::string mainDocumentURL = arkJs.getString(arkJs.getObjectProperty(ctx.payload, "mainDocumentURL"));
                 bool isTopFrame = arkJs.getBoolean(arkJs.getObjectProperty(ctx.payload, "isTopFrame"));
                 react::WebViewEventEmitter::OnShouldStartLoadWithRequest event{url, loading, title, canGoBack,
-                    canGoForward, lockIdentifier, navigationType,mainDocumentURL,isTopFrame};
+                    canGoForward, lockIdentifier, navigationType, mainDocumentURL, isTopFrame};
                 eventEmitter->onShouldStartLoadWithRequest(event);
                 break;
               }

@@ -25,34 +25,35 @@
 #pragma once
 #include "RNOHCorePackage/ComponentBinders/ViewComponentJSIBinder.h"
 
-namespace rnoh{
-  class WebViewJSIBinder : public ViewComponentJSIBinder{
+namespace rnoh {
+  class WebViewJSIBinder : public ViewComponentJSIBinder {
     facebook::jsi::Object createNativeProps(facebook::jsi::Runtime &rt) override
     {
       auto object = ViewComponentJSIBinder::createNativeProps(rt);
-      object.setProperty(rt,"newSource","object");
-      object.setProperty(rt,"javaScriptEnabled","bool");
-      object.setProperty(rt,"injectedJavaScript","string");
-      object.setProperty(rt,"messagingEnabled","bool");
-      object.setProperty(rt,"showsHorizontalScrollIndicator","bool");
-      object.setProperty(rt,"showsVerticalScrollIndicator","bool");
-      object.setProperty(rt,"textZoom","int");
-      object.setProperty(rt,"cacheEnabled","bool");
-      object.setProperty(rt,"cacheMode","string");
-      object.setProperty(rt,"domStorageEnabled","bool");
-      object.setProperty(rt,"scalesPageToFit","bool");
-      object.setProperty(rt,"messagingModuleName","string");
-      object.setProperty(rt,"shouldStartLoadWithRequestEnabled","bool");
+      object.setProperty(rt, "newSource", "object");
+      object.setProperty(rt, "javaScriptEnabled", "bool");
+      object.setProperty(rt, "injectedJavaScript", "string");
+      object.setProperty(rt, "messagingEnabled", "bool");
+      object.setProperty(rt, "showsHorizontalScrollIndicator", "bool");
+      object.setProperty(rt, "showsVerticalScrollIndicator", "bool");
+      object.setProperty(rt, "textZoom", "int");
+      object.setProperty(rt, "cacheEnabled", "bool");
+      object.setProperty(rt, "cacheMode", "string");
+      object.setProperty(rt, "domStorageEnabled", "bool");
+      object.setProperty(rt, "scalesPageToFit", "bool");
+      object.setProperty(rt, "messagingModuleName", "string");
+      object.setProperty(rt, "shouldStartLoadWithRequestEnabled", "bool");
+      object.setProperty(rt, "webviewDebuggingEnabled", "bool");
       return object;
     }
 
     facebook::jsi::Object createDirectEventTypes(facebook::jsi::Runtime &rt) override
     {
       facebook::jsi::Object events(rt);
-      events.setProperty(rt,"topLoadingError",createDirectEvent(rt,"onLoadingError"));
-      events.setProperty(rt,"topLoadingFinish",createDirectEvent(rt,"onLoadingFinish"));
-      events.setProperty(rt,"topMessage",createDirectEvent(rt,"onMessage"));
-      events.setProperty(rt,"topShouldStartLoadWithRequest",createDirectEvent(rt,"onShouldStartLoadWithRequest"));
+      events.setProperty(rt, "topLoadingError", createDirectEvent(rt, "onLoadingError"));
+      events.setProperty(rt, "topLoadingFinish", createDirectEvent(rt, "onLoadingFinish"));
+      events.setProperty(rt, "topMessage", createDirectEvent(rt, "onMessage"));
+      events.setProperty(rt, "topShouldStartLoadWithRequest", createDirectEvent(rt, "onShouldStartLoadWithRequest"));
       return events;
     }
   };
