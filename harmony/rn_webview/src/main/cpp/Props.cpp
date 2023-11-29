@@ -114,7 +114,7 @@ WebViewProps::WebViewProps(
     showsVerticalScrollIndicator(convertRawProp(context, rawProps, "showsVerticalScrollIndicator", sourceProps.showsVerticalScrollIndicator, {true})),
     newSource(convertRawProp(context, rawProps, "newSource", sourceProps.newSource, {})),
     userAgent(convertRawProp(context, rawProps, "userAgent", sourceProps.userAgent, {})),
-    shouldStartLoadWithRequestEnabled(convertRawProp(context,rawProps,"shouldStartLoadWithRequestEnabled",sourceProps.shouldStartLoadWithRequestEnabled,{false}))
+    shouldStartLoadWithRequestEnabled(convertRawProp(context, rawProps, "shouldStartLoadWithRequestEnabled", sourceProps.shouldStartLoadWithRequestEnabled, {false}))
       {}
 
 } // namespace react

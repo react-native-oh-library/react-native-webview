@@ -22,26 +22,26 @@
  * SOFTWARE.
  */
 
-export class CustomReference{
-  private atomicValue:number;
-  private callBack!:Function;
-  constructor(init:number){
+export class CustomReference {
+  private atomicValue: number;
+  private callBack!: Function;
+  constructor(init: number) {
     this.atomicValue = init
   }
 
-  getValue(){
+  getValue() {
     return this.atomicValue
   }
 
-  setCallBack(callBack:Function){
+  setCallBack(callBack: Function) {
     this.callBack = callBack
   }
 
-  getCallBack(){
+  getCallBack() {
     return this.callBack
   }
 
-  setValue(newValue:number){
+  setValue(newValue: number) {
     this.atomicValue = newValue
     if (this.callBack) {
       this.callBack()

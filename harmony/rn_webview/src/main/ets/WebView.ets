@@ -29,99 +29,102 @@ import {
   ViewBaseProps
 } from 'rnoh'
 import webview from '@ohos.web.webview';
-import { CallbackState,ShouldRequestUrl } from './ShouldRequestUrl';
+import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
 import { RNViewBase } from 'rnoh';
 import Logger from './Logger'
 
-export class WebViewNewSource{
-  uri:string | Resource = ""
-  method?:string
-  body?:string
-  headers?:string
-  html?:string
-  baseUrl?:string
+export class WebViewNewSource {
+  uri: string | Resource = ""
+  method?: string
+  body?: string
+  headers?: string
+  html?: string
+  baseUrl?: string
 }
 const TAG = "WebView"
 export const WEB_VIEW = "RNCWebView"
 const JAVASCRIPT_INTERFACE = "ReactNativeWebView";
-export interface WebViewProps extends ViewBaseProps{
-  newSource:WebViewNewSource
-  javaScriptEnabled:boolean
-  injectedJavaScript:string
-  messagingEnabled:boolean
-  showsHorizontalScrollIndicator:boolean
-  showsVerticalScrollIndicator:boolean
-  textZoom:number
-  cacheEnabled:boolean
-  cacheMode:number
-  domStorageEnabled:boolean
-  scalesPageToFit:boolean
-  messagingModuleName:string
-  shouldStartLoadWithRequestEnabled:boolean
+export interface WebViewProps extends ViewBaseProps {
+  newSource: WebViewNewSource
+  javaScriptEnabled: boolean
+  injectedJavaScript: string
+  messagingEnabled: boolean
+  showsHorizontalScrollIndicator: boolean
+  showsVerticalScrollIndicator: boolean
+  textZoom: number
+  cacheEnabled: boolean
+  cacheMode: number
+  domStorageEnabled: boolean
+  scalesPageToFit: boolean
+  messagingModuleName: string
+  shouldStartLoadWithRequestEnabled: boolean
+  webviewDebuggingEnabled: boolean
 }
 export class RNCWebViewBridge{
-  postMessage!:(data:string) => void;
+  postMessage!: (data: string) => void;
 }
 
 export class WebViewEventParams{
-  type:string
-  url?:string
-  loading?:boolean
-  title?:string
-  canGoBack?:boolean
-  canGoForward?:boolean
-  lockIdentifier?:number
-  data?:string
+  type: string
+  url?: string
+  loading?: boolean
+  title?: string
+  canGoBack?: boolean
+  canGoForward?: boolean
+  lockIdentifier?: number
+  data?: string
 
-  constructor(type:string){
+  constructor(type: string) {
     this.type = type
   }
 }
 
-export type WebViewViewDescriptor = Descriptor<"RNCWebView",WebViewProps>
+export type WebViewViewDescriptor = Descriptor<"RNCWebView", WebViewProps>
 
 @Component
-export struct WebView{
-  ctx!:RNOHContext
-  tag:number = 0
-  @BuilderParam buildCustomComponent:(componentBuilderContext:ComponentBuilderContext) => void
-  @State descriptor:WebViewViewDescriptor = {} as WebViewViewDescriptor
-  @State source:WebViewNewSource = {uri:"",method:"",body:"",headers:"",html:"",baseUrl:""}
-  html:string | undefined = ""
-  private unregisterDescriptorChangesListener?:() => void = undefined
-  private cleanupCommandCallback?:() => void = undefined
-  controller:webview.WebviewController = new webview.WebviewController();
-  javaScriptEnable:boolean = true
-  progress:number = 0
-  cacheMode:number = CacheMode.Default
-  lockIdentifier:string = "";
-  requestUrl:string = "";
-  messagingEnabled:boolean = false;
-  hasRegisterJavaScriptProxy:boolean = false;
+export struct WebView {
+  ctx!: RNOHContext
+  tag: number = 0
+  @BuilderParam buildCustomComponent: (componentBuilderContext: ComponentBuilderContext) => void
+  @State descriptor: WebViewViewDescriptor = {} as WebViewViewDescriptor
+  @State source: WebViewNewSource = {uri: "", method: "", body: "", headers: "", html: "", baseUrl: ""}
+  html: string | undefined = ""
+  private unregisterDescriptorChangesListener?: () => void = undefined
+  private cleanupCommandCallback?: () => void = undefined
+  controller: webview.WebviewController = new webview.WebviewController();
+  javaScriptEnable: boolean = true
+  progress: number = 0
+  cacheMode: number = CacheMode.Default
+  lockIdentifier: string = "";
+  requestUrl: string = "";
+  messagingEnabled: boolean = false;
+  hasRegisterJavaScriptProxy: boolean = false;
 
-  aboutToAppear(){
+  aboutToAppear() {
     this.descriptor = this.ctx.descriptorRegistry.getDescriptor<WebViewViewDescriptor>(this.tag)
     this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
       (newDescriptor) => {
         this.descriptor = (newDescriptor as WebViewViewDescriptor)
-        Logger.debug(TAG,`[RNOH] newDescriptor props uri,${JSON.stringify(this.descriptor.props.newSource.uri)}`);
+        Logger.debug(TAG, `[RNOH] newDescriptor props uri, ${JSON.stringify(this.descriptor.props.newSource.uri)}`);
         this.source = this.descriptor.props.newSource
-        if(this.html != "" && this.html != this.source.html){
+        if (this.html != "" && this.html != this.source.html) {
           Logger.debug(TAG,"[RNOH] html is update")
           this.html = this.source.html
-          try{
-            this.controller.loadData(
+          try {
+            this.controller.loadData (
               this.source.html,
               "text/html",
               "UTF-8",
               this.source.baseUrl,
+              " "
             );
-          }catch(error){
-            Logger.error(TAG,"error:" + error)
+          } catch (error) {
+            Logger.error(TAG, "error: " + error)
           }
         }
       }
     )
+    webview.WebviewController.setWebDebuggingAccess(this.descriptor.props.webviewDebuggingEnabled)
     this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
     this.cacheMode = this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
     this.source = this.descriptor.props.newSource
@@ -135,25 +138,25 @@ export struct WebView{
     }
     this.messagingEnabled = this.descriptor.props.messagingEnabled;
     if (this.messagingEnabled) {
-      let bridge:RNCWebViewBridge = {
-        postMessage:(data:string) => {
-          Logger.debug(TAG,`[RNOH] bridge postMessage,${JSON.stringify(data)}`);
+      let bridge: RNCWebViewBridge = {
+        postMessage: (data: string) => {
+          Logger.debug(TAG, `[RNOH] bridge postMessage,  ${JSON.stringify(data)}`);
           if (this.controller != null) {
-            let result:WebViewEventParams = this.createWebViewEvent("onMessage")
+            let result: WebViewEventParams = this.createWebViewEvent("onMessage")
             result.data = data
             result.lockIdentifier = 0
-            this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag,WEB_VIEW,result);
+            this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, result);
           }
         }
       };
-      this.controller.registerJavaScriptProxy(bridge,JAVASCRIPT_INTERFACE,["postMessage"])
+      this.controller.registerJavaScriptProxy(bridge, JAVASCRIPT_INTERFACE, ["postMessage"])
       this.controller.refresh()
       this.hasRegisterJavaScriptProxy = true
     }
   }
 
-  createWebViewEvent(param:string):WebViewEventParams{
-    let result:WebViewEventParams = new WebViewEventParams(param);
+  createWebViewEvent(param: string): WebViewEventParams {
+    let result: WebViewEventParams = new WebViewEventParams(param);
     result.loading = this.progress != 100
     try {
       result.url = this.controller.getUrl();
@@ -161,7 +164,7 @@ export struct WebView{
       result.canGoBack = this.controller.accessBackward();
       result.canGoForward = this.controller.accessForward();
     } catch (error) {
-      Logger.error(TAG,`[RNOH]Errorcode:${error.code},Message:${error.message}`);
+      Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
       result.url = "";
       result.title = "";
       result.canGoBack = false;
@@ -173,17 +176,17 @@ export struct WebView{
   aboutToDisappear(){
     this.cleanupCommandCallback?.()
     this.unregisterDescriptorChangesListener?.()
-    Logger.debug(TAG,`[RNOH] aboutToDisappear`)
+    Logger.debug(TAG, `[RNOH] aboutToDisappear`)
     try {
       this.controller.deleteJavaScriptRegister(JAVASCRIPT_INTERFACE)
       this.controller.refresh()
       this.hasRegisterJavaScriptProxy = false
     } catch (error) {
-      Logger.error(TAG,`[RNOH]Errorcode:${error.code},Message:${error.message}`);
+      Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
     }
   }
 
-  transCacheMode(cacheMode:number):CacheMode{
+  transCacheMode(cacheMode: number):CacheMode {
     let mode = CacheMode.Default
     switch (cacheMode) {
       case 0:
@@ -297,10 +300,12 @@ export struct WebView{
   build(){
     RNViewBase({ ctx:this.ctx,tag:this.tag }){
       Web({ src:this.source.uri,controller:this.controller })
-        .width('100%').height('100%')
+        .width('100%').height('100%').constraintSize({minHeight:1})
+        .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
         .horizontalScrollBarAccess(this.descriptor.props.showsHorizontalScrollIndicator)
         .verticalScrollBarAccess(this.descriptor.props.showsVerticalScrollIndicator)
+        .overviewModeAccess(this.descriptor.props.scalesPageToFit)
         .textZoomRatio(this.descriptor.props.textZoom)
         .cacheMode(this.cacheMode)
         .domStorageAccess(this.descriptor.props.domStorageEnabled)
@@ -372,7 +377,8 @@ export struct WebView{
                 this.source.html,
                 "text/html",
                 "UTF-8",
-                baseUrl
+                baseUrl,
+                " "
               );
             } catch (error) {
               Logger.error(TAG,"error:" + error)
