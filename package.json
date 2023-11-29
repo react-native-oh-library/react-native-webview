@@ -97,7 +97,8 @@
     "@react-native-community/cli-platform-ios": "10.2.4"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
   },
   "codegenConfig": {
     "name": "RNCWebViewSpec",
