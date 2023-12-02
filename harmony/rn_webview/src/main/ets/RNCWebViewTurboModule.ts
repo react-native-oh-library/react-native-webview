@@ -26,7 +26,7 @@ import { TurboModule, TurboModuleContext } from 'rnoh/ts';
 import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
 import Logger from './Logger'
 
-export class RNCWebViewTurboModule extends TurboModule{
+export class RNCWebViewTurboModule extends TurboModule {
   constructor(protected ctx: TurboModuleContext) {
     super(ctx);
     Logger.debug('[RNOH]:RNCWebViewTurboModule constructor');
@@ -36,7 +36,7 @@ export class RNCWebViewTurboModule extends TurboModule{
     Logger.debug('[RNOH]:RNCWebViewTurboModule call getConstants');
   }
 
-  isFileUploadSupported(): Promise<void>{
+  isFileUploadSupported(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       Logger.debug('[RNOH]:RNCWebViewTurboModule call isFileUploadSupported');
       resolve()
@@ -44,8 +44,7 @@ export class RNCWebViewTurboModule extends TurboModule{
   }
 
   shouldStartLoadWithLockIdentifier(shouldStart: boolean, lockIdentifier: number) {
-    Logger.debug('[RNOH]: shouldStartLoadWithLockIdentifier shouldStart: ' + shouldStart);
-    Logger.debug('[RNOH]: shouldStartLoadWithLockIdentifier lockIdentifier: ' + lockIdentifier);
+    Logger.info("WebView",'shouldStartLoadWithLockIdentifier shouldStart: ' + shouldStart);
     ShouldRequestUrl.setValue(lockIdentifier, shouldStart ? CallbackState.DO_NOT_OVERRIDE : CallbackState.SHOULD_OVERRIDE)
   }
 }
