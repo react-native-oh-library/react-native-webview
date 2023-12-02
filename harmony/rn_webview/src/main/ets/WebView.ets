@@ -125,7 +125,7 @@ export struct WebView {
             Logger.error(TAG, "error: " + error)
           }
         } else if (this.source.uri != "" && this.url != this.source.uri) {
-          Logger.debug(TAG, `[RNOH] newDescriptor props update uri, this.source.uri`);
+          Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
           this.url = this.source.uri
           this.controller.loadUrl(this.descriptor.props.newSource.uri)
         } else {
