@@ -60,11 +60,11 @@ export interface WebViewProps extends ViewBaseProps {
   shouldStartLoadWithRequestEnabled: boolean
   webviewDebuggingEnabled: boolean
 }
-export class RNCWebViewBridge{
+export class RNCWebViewBridge {
   postMessage!: (data: string) => void;
 }
 
-export class WebViewEventParams{
+export class WebViewEventParams {
   type: string
   url?: string
   loading?: boolean
@@ -89,6 +89,7 @@ export struct WebView {
   @State descriptor: WebViewViewDescriptor = {} as WebViewViewDescriptor
   @State source: WebViewNewSource = {uri: "", method: "", body: "", headers: "", html: "", baseUrl: ""}
   html: string | undefined = ""
+  url: string | Resource = ""
   private unregisterDescriptorChangesListener?: () => void = undefined
   private cleanupCommandCallback?: () => void = undefined
   controller: webview.WebviewController = new webview.WebviewController();
@@ -106,12 +107,14 @@ export struct WebView {
       (newDescriptor) => {
         this.descriptor = (newDescriptor as WebViewViewDescriptor)
         Logger.debug(TAG, `[RNOH] newDescriptor props uri, ${JSON.stringify(this.descriptor.props.newSource.uri)}`);
+        this.cacheMode = this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
+        this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
         this.source = this.descriptor.props.newSource
         if (this.html != "" && this.html != this.source.html) {
-          Logger.debug(TAG,"[RNOH] html is update")
+          Logger.debug(TAG, "[RNOH] html is update")
           this.html = this.source.html
           try {
-            this.controller.loadData (
+            this.controller.loadData(
               this.source.html,
               "text/html",
               "UTF-8",
@@ -121,6 +124,13 @@ export struct WebView {
           } catch (error) {
             Logger.error(TAG, "error: " + error)
           }
+        } else if (this.source.uri != "" && this.url != this.source.uri) {
+          Logger.debug(TAG, `[RNOH] newDescriptor props update uri, this.source.uri`);
+          this.url = this.source.uri
+          this.controller.loadUrl(this.descriptor.props.newSource.uri)
+        } else {
+          Logger.debug(TAG, `[RNOH] newDescriptor props refresh`);
+          this.controller.refresh()
         }
       }
     )
@@ -129,10 +139,11 @@ export struct WebView {
     this.cacheMode = this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
     this.source = this.descriptor.props.newSource
     this.html = this.source.html
+    this.url = this.source.uri;
     this.registerCommandCallback()
   }
 
-  private registerPostMessage(){
+  private registerPostMessage() {
     if (this.messagingEnabled == this.descriptor.props.messagingEnabled) {
       return;
     }
@@ -173,7 +184,7 @@ export struct WebView {
     return result;
   }
 
-  aboutToDisappear(){
+  aboutToDisappear() {
     this.cleanupCommandCallback?.()
     this.unregisterDescriptorChangesListener?.()
     Logger.debug(TAG, `[RNOH] aboutToDisappear`)
@@ -219,87 +230,91 @@ export struct WebView {
           case "postMessage":
             Logger.debug(TAG,`[RNOH] postMessage,${JSON.stringify(args)}`)
             break
+          case "reload":
+            Logger.debug(TAG,`[RNOH] reload,${JSON.stringify(args)}`)
+            this.controller.refresh();
+            break
           default:
             break
         }
       });
   }
 
-  onLoadingFinish(){
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag,WEB_VIEW,{
-      type:"onLoadingFinish",
-      url:this.controller.getUrl(),
-      loading:this.progress != 100,
-      title:this.controller.getTitle(),
-      canGoBack:this.controller.accessBackward(),
-      canGoForward:this.controller.accessForward(),
-      lockIdentifier:0,
-      navigationType:"other",
-      mainDocumentURL:""})
+  onLoadingFinish() {
+    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
+      type: "onLoadingFinish",
+      url: this.controller.getUrl(),
+      loading: this.progress != 100,
+      title: this.controller.getTitle(),
+      canGoBack: this.controller.accessBackward(),
+      canGoForward: this.controller.accessForward(),
+      lockIdentifier: 0,
+      navigationType: "other",
+      mainDocumentURL: ""})
   }
 
-  onLoadingError(code:number,description:string){
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag,WEB_VIEW,{
-      type:"onLoadingError",
-      url:this.controller.getUrl(),
-      loading:false,
-      title:this.controller.getTitle(),
-      canGoBack:this.controller.accessBackward(),
-      canGoForward:this.controller.accessForward(),
-      lockIdentifier:0,
-      domain:"",
-      code:code,
-      description:description})
+  onLoadingError(code: number, description: string) {
+    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
+      type: "onLoadingError",
+      url: this.controller.getUrl(),
+      loading: false,
+      title: this.controller.getTitle(),
+      canGoBack: this.controller.accessBackward(),
+      canGoForward: this.controller.accessForward(),
+      lockIdentifier: 0,
+      domain: "",
+      code: code,
+      description: description})
   }
 
-  onShouldStartLoadWithRequest(){
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag,WEB_VIEW,{
-      type:"onShouldStartLoadWithRequest",
-      url:this.controller.getUrl(),
-      loading:this.progress != 100,
-      title:this.controller.getTitle(),
-      canGoBack:this.controller.accessBackward(),
-      canGoForward:this.controller.accessForward(),
-      lockIdentifier:0,
-      navigationType:"other",
-      mainDocumentURL:"",
-      isTopFrame:false})
+  onShouldStartLoadWithRequest() {
+    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
+      type: "onShouldStartLoadWithRequest",
+      url: this.controller.getUrl(),
+      loading: this.progress != 100,
+      title: this.controller.getTitle(),
+      canGoBack: this.controller.accessBackward(),
+      canGoForward: this.controller.accessForward(),
+      lockIdentifier: 0,
+      navigationType: "other",
+      mainDocumentURL: "",
+      isTopFrame: false})
   }
 
-  onShouldStartLoadCallFunction(lockIdentifier:number,data:WebResourceRequest){
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag,WEB_VIEW,{
-      type:"onShouldStartLoadWithRequest",
-      url:data.getRequestUrl(),
-      loading:this.progress != 100,
-      title:this.controller.getTitle(),
-      canGoBack:this.controller.accessBackward(),
-      canGoForward:this.controller.accessForward(),
-      lockIdentifier:lockIdentifier,
-      navigationType:"other",
-      mainDocumentURL:"",
-      isTopFrame:data.isMainFrame()})
+  onShouldStartLoadCallFunction(lockIdentifier: number, data: WebResourceRequest) {
+    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
+      type: "onShouldStartLoadWithRequest",
+      url: data.getRequestUrl(),
+      loading: this.progress != 100,
+      title: this.controller.getTitle(),
+      canGoBack: this.controller.accessBackward(),
+      canGoForward: this.controller.accessForward(),
+      lockIdentifier: lockIdentifier,
+      navigationType: "other",
+      mainDocumentURL: "",
+      isTopFrame: data.isMainFrame()})
   }
 
-  runInjectedJavaScript(){
+  runInjectedJavaScript() {
     let injectedJS = this.descriptor.props.injectedJavaScript
     if (this.javaScriptEnable && injectedJS != "") {
       try {
         this.controller.runJavaScript("(function() {\n" + injectedJS + ";\n})();")
           .then((result) => {
-            Logger.debug(TAG,'[RNOH] result:' + result);
+            Logger.debug(TAG, '[RNOH] result: ' + result);
           })
-          .catch((error:string | Error) => {
-            Logger.error(TAG,"[RNOH] error:" + error);
+          .catch((error: string | Error) => {
+            Logger.error(TAG, "[RNOH] error: " + error);
           })
       } catch (error) {
-        Logger.error(TAG,`[RNOH]Errorcode:${error.code},Message:${error.message}`);
+        Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
       }
     }
   }
 
-  build(){
-    RNViewBase({ ctx:this.ctx,tag:this.tag }){
-      Web({ src:this.source.uri,controller:this.controller })
+  build() {
+    RNViewBase({ ctx: this.ctx, tag: this.tag }) {
+      Web({ src: this.source.uri, controller: this.controller })
         .width('100%').height('100%').constraintSize({minHeight:1})
         .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
@@ -313,11 +328,11 @@ export struct WebView {
         .onProgressChange((event) => {
           if (event) {
             this.progress = event.newProgress
-            Logger.debug(TAG,"[RNOH] event progress:" + event.newProgress)
+            Logger.debug(TAG, "[RNOH] event progress: " + event.newProgress)
           }
         })
         .onPageEnd(() => {
-          Logger.debug(TAG,"[RNOH] onPageEnd")
+          Logger.debug(TAG, "[RNOH] onPageEnd")
           this.runInjectedJavaScript()
           this.onLoadingFinish()
         })
