@@ -1,19 +1,19 @@
-/**
+/*
  * MIT License
- * 
+ *
  * Copyright (C) 2023 Huawei Device Co., Ltd.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANT KIND, EXPRESS OR
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANy KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -40,249 +40,249 @@ class JSI_EXPORT WebViewEventEmitter : public ViewEventEmitter {
  public:
   using ViewEventEmitter::ViewEventEmitter;
 
-  struct OnContentSizeChange {
-      std::string url;
-    bool loading;
-    std::string title;
-    bool canGoBack;
-    bool canGoForward;
-    double lockIdentifier;
+    struct OnContentSizeChange {
+        std::string url;
+        bool loading;
+        std::string title;
+        bool canGoBack;
+        bool canGoForward;
+        double lockIdentifier;
     };
 
-  struct OnRenderProcessGone {
-      bool didCrash;
+    struct OnRenderProcessGone {
+        bool didCrash;
     };
 
-  struct OnContentProcessDidTerminate {
-      std::string url;
-    bool loading;
-    std::string title;
-    bool canGoBack;
-    bool canGoForward;
-    double lockIdentifier;
+    struct OnContentProcessDidTerminate {
+        std::string url;
+        bool loading;
+        std::string title;
+        bool canGoBack;
+        bool canGoForward;
+        double lockIdentifier;
     };
 
-  struct OnCustomMenuSelection {
-      std::string label;
-    std::string key;
-    std::string selectedText;
+    struct OnCustomMenuSelection {
+        std::string label;
+        std::string key;
+        std::string selectedText;
     };
 
-  struct OnFileDownload {
-      std::string downloadUrl;
+    struct OnFileDownload {
+        std::string downloadUrl;
     };
 
-  struct OnLoadingError {
-      std::string url;
-    bool loading;
-    std::string title;
-    bool canGoBack;
-    bool canGoForward;
-    double lockIdentifier;
-    std::string domain;
-    int code;
-    std::string description;
+    struct OnLoadingError {
+        std::string url;
+        bool loading;
+        std::string title;
+        bool canGoBack;
+        bool canGoForward;
+        double lockIdentifier;
+        std::string domain;
+        int code;
+        std::string description;
     };
 
-  enum class OnLoadingFinishNavigationType {
-    Click,
-    Formsubmit,
-    Backforward,
-    Reload,
-    Formresubmit,
-    Other
-  };
+    enum class OnLoadingFinishNavigationType {
+        Click,
+        Formsubmit,
+        Backforward,
+        Reload,
+        Formresubmit,
+        Other
+    };
 
-  static char const *toString(const OnLoadingFinishNavigationType value) {
-    switch (value) {
-      case OnLoadingFinishNavigationType::Click: return "click";
-      case OnLoadingFinishNavigationType::Formsubmit: return "formsubmit";
-      case OnLoadingFinishNavigationType::Backforward: return "backforward";
-      case OnLoadingFinishNavigationType::Reload: return "reload";
-      case OnLoadingFinishNavigationType::Formresubmit: return "formresubmit";
-      case OnLoadingFinishNavigationType::Other: return "other";
+    static char const *toString(const OnLoadingFinishNavigationType value) {
+        switch (value) {
+            case OnLoadingFinishNavigationType::Click: return "click";
+            case OnLoadingFinishNavigationType::Formsubmit: return "formsubmit";
+            case OnLoadingFinishNavigationType::Backforward: return "backforward";
+            case OnLoadingFinishNavigationType::Reload: return "reload";
+            case OnLoadingFinishNavigationType::Formresubmit: return "formresubmit";
+            case OnLoadingFinishNavigationType::Other: return "other";
+        }
     }
-  }
 
-  struct OnLoadingFinish {
-      std::string url;
-    bool loading;
-    std::string title;
-    bool canGoBack;
-    bool canGoForward;
-    double lockIdentifier;
-    std::string navigationType;
-    std::string mainDocumentURL;
+    struct OnLoadingFinish {
+        std::string url;
+        bool loading;
+        std::string title;
+        bool canGoBack;
+        bool canGoForward;
+        double lockIdentifier;
+        std::string navigationType;
+        std::string mainDocumentURL;
     };
 
-  struct OnLoadingProgress {
-      std::string url;
-    bool loading;
-    std::string title;
-    bool canGoBack;
-    bool canGoForward;
-    double lockIdentifier;
-    double progress;
+    struct OnLoadingProgress {
+        std::string url;
+        bool loading;
+        std::string title;
+        bool canGoBack;
+        bool canGoForward;
+        double lockIdentifier;
+        double progress;
     };
 
-  enum class OnLoadingStartNavigationType {
-    Click,
-    Formsubmit,
-    Backforward,
-    Reload,
-    Formresubmit,
-    Other
-  };
+    enum class OnLoadingStartNavigationType {
+        Click,
+        Formsubmit,
+        Backforward,
+        Reload,
+        Formresubmit,
+        Other
+    };
 
-  static char const *toString(const OnLoadingStartNavigationType value) {
-    switch (value) {
-      case OnLoadingStartNavigationType::Click: return "click";
-      case OnLoadingStartNavigationType::Formsubmit: return "formsubmit";
-      case OnLoadingStartNavigationType::Backforward: return "backforward";
-      case OnLoadingStartNavigationType::Reload: return "reload";
-      case OnLoadingStartNavigationType::Formresubmit: return "formresubmit";
-      case OnLoadingStartNavigationType::Other: return "other";
+    static char const *toString(const OnLoadingStartNavigationType value) {
+        switch (value) {
+            case OnLoadingStartNavigationType::Click: return "click";
+            case OnLoadingStartNavigationType::Formsubmit: return "formsubmit";
+            case OnLoadingStartNavigationType::Backforward: return "backforward";
+            case OnLoadingStartNavigationType::Reload: return "reload";
+            case OnLoadingStartNavigationType::Formresubmit: return "formresubmit";
+            case OnLoadingStartNavigationType::Other: return "other";
+        }
     }
-  }
 
-  struct OnLoadingStart {
-      std::string url;
-    bool loading;
-    std::string title;
-    bool canGoBack;
-    bool canGoForward;
-    double lockIdentifier;
-    OnLoadingStartNavigationType navigationType;
-    std::string mainDocumentURL;
+    struct OnLoadingStart {
+        std::string url;
+        bool loading;
+        std::string title;
+        bool canGoBack;
+        bool canGoForward;
+        double lockIdentifier;
+        OnLoadingStartNavigationType navigationType;
+        std::string mainDocumentURL;
     };
 
-  struct OnHttpError {
-      std::string url;
-    bool loading;
-    std::string title;
-    bool canGoBack;
-    bool canGoForward;
-    double lockIdentifier;
-    std::string description;
-    int statusCode;
+    struct OnHttpError {
+        std::string url;
+        bool loading;
+        std::string title;
+        bool canGoBack;
+        bool canGoForward;
+        double lockIdentifier;
+        std::string description;
+        int statusCode;
     };
 
-  struct OnMessage {
-      std::string url;
-    bool loading;
-    std::string title;
-    bool canGoBack;
-    bool canGoForward;
-    double lockIdentifier;
-    std::string data;
+    struct OnMessage {
+        std::string url;
+        bool loading;
+        std::string title;
+        bool canGoBack;
+        bool canGoForward;
+        double lockIdentifier;
+        std::string data;
     };
 
-  struct OnOpenWindow {
-      std::string targetUrl;
+    struct OnOpenWindow {
+        std::string targetUrl;
     };
 
-  struct OnScrollContentInset {
-      double bottom;
-    double left;
-    double right;
-    double top;
+    struct OnScrollContentInset {
+        double bottom;
+        double left;
+        double right;
+        double top;
     };
 
-  struct OnScrollContentOffset {
-      double y;
-    double x;
+    struct OnScrollContentOffset {
+        double y;
+        double x;
     };
 
-  struct OnScrollContentSize {
-      double height;
-    double width;
+    struct OnScrollContentSize {
+        double height;
+        double width;
     };
 
-  struct OnScrollLayoutMeasurement {
-      double height;
-    double width;
+    struct OnScrollLayoutMeasurement {
+        double height;
+        double width;
     };
 
-  struct OnScrollTargetContentOffset {
-      double y;
-    double x;
+    struct OnScrollTargetContentOffset {
+        double y;
+        double x;
     };
 
-  struct OnScrollVelocity {
-      double y;
-    double x;
+    struct OnScrollVelocity {
+        double y;
+        double x;
     };
 
-  struct OnScroll {
-      OnScrollContentInset contentInset;
-    OnScrollContentOffset contentOffset;
-    OnScrollContentSize contentSize;
-    OnScrollLayoutMeasurement layoutMeasurement;
-    OnScrollTargetContentOffset targetContentOffset;
-    OnScrollVelocity velocity;
-    double zoomScale;
-    bool responderIgnoreScroll;
+    struct OnScroll {
+        OnScrollContentInset contentInset;
+        OnScrollContentOffset contentOffset;
+        OnScrollContentSize contentSize;
+        OnScrollLayoutMeasurement layoutMeasurement;
+        OnScrollTargetContentOffset targetContentOffset;
+        OnScrollVelocity velocity;
+        double zoomScale;
+        bool responderIgnoreScroll;
     };
 
-  enum class OnShouldStartLoadWithRequestNavigationType {
-    Click,
-    Formsubmit,
-    Backforward,
-    Reload,
-    Formresubmit,
-    Other
-  };
+    enum class OnShouldStartLoadWithRequestNavigationType {
+        Click,
+        Formsubmit,
+        Backforward,
+        Reload,
+        Formresubmit,
+        Other
+    };
 
-  static char const *toString(const OnShouldStartLoadWithRequestNavigationType value) {
-    switch (value) {
-      case OnShouldStartLoadWithRequestNavigationType::Click: return "click";
-      case OnShouldStartLoadWithRequestNavigationType::Formsubmit: return "formsubmit";
-      case OnShouldStartLoadWithRequestNavigationType::Backforward: return "backforward";
-      case OnShouldStartLoadWithRequestNavigationType::Reload: return "reload";
-      case OnShouldStartLoadWithRequestNavigationType::Formresubmit: return "formresubmit";
-      case OnShouldStartLoadWithRequestNavigationType::Other: return "other";
+    static char const *toString(const OnShouldStartLoadWithRequestNavigationType value) {
+        switch (value) {
+            case OnShouldStartLoadWithRequestNavigationType::Click: return "click";
+            case OnShouldStartLoadWithRequestNavigationType::Formsubmit: return "formsubmit";
+            case OnShouldStartLoadWithRequestNavigationType::Backforward: return "backforward";
+            case OnShouldStartLoadWithRequestNavigationType::Reload: return "reload";
+            case OnShouldStartLoadWithRequestNavigationType::Formresubmit: return "formresubmit";
+            case OnShouldStartLoadWithRequestNavigationType::Other: return "other";
+        }
     }
-  }
 
-  struct OnShouldStartLoadWithRequest {
-      std::string url;
-    bool loading;
-    std::string title;
-    bool canGoBack;
-    bool canGoForward;
-    double lockIdentifier;
-    std::string navigationType;
-    std::string mainDocumentURL;
-    bool isTopFrame;
+    struct OnShouldStartLoadWithRequest {
+        std::string url;
+        bool loading;
+        std::string title;
+        bool canGoBack;
+        bool canGoForward;
+        double lockIdentifier;
+        std::string navigationType;
+        std::string mainDocumentURL;
+        bool isTopFrame;
     };
 
-  void onContentSizeChange(OnContentSizeChange value) const;
-
-  void onRenderProcessGone(OnRenderProcessGone value) const;
-
-  void onContentProcessDidTerminate(OnContentProcessDidTerminate value) const;
-
-  void onCustomMenuSelection(OnCustomMenuSelection value) const;
-
-  void onFileDownload(OnFileDownload value) const;
-
-  void onLoadingError(OnLoadingError value) const;
-
-  void onLoadingFinish(OnLoadingFinish value) const;
-
-  void onLoadingProgress(OnLoadingProgress value) const;
-
-  void onLoadingStart(OnLoadingStart value) const;
-
-  void onHttpError(OnHttpError value) const;
-
-  void onMessage(OnMessage value) const;
-
-  void onOpenWindow(OnOpenWindow value) const;
-
-  void onScroll(OnScroll value) const;
-
-  void onShouldStartLoadWithRequest(OnShouldStartLoadWithRequest value) const;
+    void onContentSizeChange(OnContentSizeChange value) const;
+    
+    void onRenderProcessGone(OnRenderProcessGone value) const;
+    
+    void onContentProcessDidTerminate(OnContentProcessDidTerminate value) const;
+    
+    void onCustomMenuSelection(OnCustomMenuSelection value) const;
+    
+    void onFileDownload(OnFileDownload value) const;
+    
+    void onLoadingError(OnLoadingError value) const;
+    
+    void onLoadingFinish(OnLoadingFinish value) const;
+    
+    void onLoadingProgress(OnLoadingProgress value) const;
+    
+    void onLoadingStart(OnLoadingStart value) const;
+    
+    void onHttpError(OnHttpError value) const;
+    
+    void onMessage(OnMessage value) const;
+    
+    void onOpenWindow(OnOpenWindow value) const;
+    
+    void onScroll(OnScroll value) const;
+    
+    void onShouldStartLoadWithRequest(OnShouldStartLoadWithRequest value) const;
 };
 
 } // namespace react
