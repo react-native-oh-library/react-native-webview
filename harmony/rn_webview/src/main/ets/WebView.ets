@@ -100,6 +100,7 @@ export struct WebView {
   requestUrl: string = "";
   messagingEnabled: boolean = false;
   hasRegisterJavaScriptProxy: boolean = false;
+  controllerAttached: boolean = false;
 
   aboutToAppear() {
     this.descriptor = this.ctx.descriptorRegistry.getDescriptor<WebViewViewDescriptor>(this.tag)
@@ -113,24 +114,30 @@ export struct WebView {
         if (this.html != "" && this.html != this.source.html) {
           Logger.debug(TAG, "[RNOH] html is update")
           this.html = this.source.html
-          try {
-            this.controller.loadData(
-              this.source.html,
-              "text/html",
-              "UTF-8",
-              this.source.baseUrl,
-              " "
-            );
-          } catch (error) {
-            Logger.error(TAG, "error: " + error)
+          if (this.controllerAttached) {
+            try {
+              this.controller.loadData(
+                this.source.html,
+                "text/html",
+                "UTF-8",
+                this.source.baseUrl,
+                " "
+              );
+            } catch (error) {
+              Logger.error(TAG, "error: " + error)
+            }
           }
         } else if (this.source.uri != "" && this.url != this.source.uri) {
           Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
           this.url = this.source.uri
-          this.controller.loadUrl(this.descriptor.props.newSource.uri)
+          if (this.controllerAttached) {
+            this.controller.loadUrl(this.descriptor.props.newSource.uri)
+          }
         } else {
           Logger.debug(TAG, `[RNOH] newDescriptor props refresh`);
-          this.controller.refresh()
+          if (this.controllerAttached) {
+            this.controller.refresh()
+          }
         }
       }
     )
@@ -225,14 +232,26 @@ export struct WebView {
         switch (command) {
           case "injectJavaScript":
             Logger.debug(TAG,`[RNOH] injectJavaScript,${JSON.stringify(args)}`)
-            this.controller.runJavaScript(args[0])
+            if (this.controllerAttached) {
+              try {
+                this.controller.runJavaScript(args[0])
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
             break
           case "postMessage":
             Logger.debug(TAG,`[RNOH] postMessage,${JSON.stringify(args)}`)
             break
           case "reload":
             Logger.debug(TAG,`[RNOH] reload,${JSON.stringify(args)}`)
-            this.controller.refresh();
+            if (this.controllerAttached) {
+              try {
+                this.controller.refresh();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
             break
           default:
             break
@@ -297,7 +316,7 @@ export struct WebView {
 
   runInjectedJavaScript() {
     let injectedJS = this.descriptor.props.injectedJavaScript
-    if (this.javaScriptEnable && injectedJS != "") {
+    if (this.javaScriptEnable && injectedJS != "" && this.controllerAttached) {
       try {
         this.controller.runJavaScript("(function() {\n" + injectedJS + ";\n})();")
           .then((result) => {
@@ -383,6 +402,7 @@ export struct WebView {
           return true
         })
         .onControllerAttached(() => {
+          this.controllerAttached = true;
           Logger.debug(TAG,"[RNOH] onControllerAttached")
           let baseUrl = this.source.baseUrl
           let uri = this.source.uri
