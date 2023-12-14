@@ -19,6 +19,7 @@
 				<filteritem type="filename" name="hvigorfile.ts" desc="hvigor构建脚本，DevEco Studio自动生成，不需要添加许可证头"/>
 				<filteritem type="filename" name="*.json5" desc="hvigor工程配置文件，DevEco Studio自动生成，不需要添加许可证头"/>
 				<filteritem type="filename" name="LICENSE" desc="原三方库证书文件无需更改，因此添加过滤"/>
+				<filteritem type="filename" name="NOTICE" desc="NOTICE文件，因此添加过滤"/>
 				<filteritem type="filename" name="*.proto" desc="资源文件，不需要添加许可证头"/>
 				<filteritem type="filename" name="*.json" desc="资源文件，不需要添加许可证头"/>
 				<filteritem type="filepath" name="hvigorw" desc="工程模板，不修改版权头，以防有修改版权风险"/>
