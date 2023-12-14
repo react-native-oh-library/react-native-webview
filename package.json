@@ -100,7 +100,7 @@
     "@react-native-community/cli-platform-ios": "10.2.4"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.org",
+    "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
   "codegenConfig": {
