@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import { IOSWebViewProps, AndroidWebViewProps, WindowsWebViewProps } from './WebViewTypes';
+import { IOSWebViewProps, AndroidWebViewProps, WindowsWebViewProps } from 'react-native-webview/src/WebViewTypes';
 
 export type WebViewProps = IOSWebViewProps & AndroidWebViewProps & WindowsWebViewProps;
 

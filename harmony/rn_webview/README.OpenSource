@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "react-native-webview",
+        "License": "MIT License",
+        "License File": "https://github.com/react-native-webview/react-native-webview/blob/master/LICENSE",
+        "Version Number": "13.6.2",
+        "Owner" : "Jamon Holmgren <jamon@infinite.red>"
+        "Upstream URL": "https://github.com/react-native-webview/react-native-webview",
+        "Description": "React Native WebView component for iOS, Android, macOS, and Windows"
+    }
+]

@@ -1,5 +1,5 @@
 {
-  "name": "react-native-webview",
+  "name": "@react-native-oh-tpl/react-native-webview",
   "description": "React Native WebView component for iOS, Android, macOS, and Windows",
   "main": "index.js",
   "main-internal": "src/index.ts",
@@ -10,22 +10,12 @@
     "Thibault Malbranche <malbranche.thibault@gmail.com>"
   ],
   "license": "MIT",
-  "version": "13.6.3",
+  "version": "13.6.3-0.0.1",
   "homepage": "https://github.com/react-native-webview/react-native-webview#readme",
   "scripts": {
-    "android": "react-native run-android",
-    "ios": "react-native run-ios",
-    "macos": "react-native run-macos --scheme WebviewExample --project-path example/macos",
-    "start": "cd example && react-native start",
-    "windows": "install-windows-test-app --project-directory example/windows && react-native run-windows --root example --arch x64",
-    "ci": "CI=true && yarn lint",
-    "ci:publish": "yarn semantic-release",
     "lint": "yarn tsc --noEmit && yarn eslint ./src --ext .ts,.tsx",
     "build": "yarn tsc",
-    "prepare": "yarn build",
-    "appium": "appium",
-    "test:windows": "yarn jest --setupFiles=./jest-setups/jest.setup.js",
-    "add:macos": "yarn add react-native-macos@0.71.33"
+    "prepare": "yarn build"
   },
   "rn-docs": {
     "title": "Webview",
@@ -37,7 +27,8 @@
   },
   "dependencies": {
     "escape-string-regexp": "2.0.0",
-    "invariant": "2.2.4"
+    "invariant": "2.2.4",
+    "react-native-webview": "13.6.3"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
@@ -71,29 +62,29 @@
     "typescript": "^4.0.0",
     "winappdriver": "^0.0.7"
   },
+  "harmony": {
+    "alias": "react-native-webview"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/react-native-webview/react-native-webview.git"
+    "url": "https://github.com/react-native-oh-library/react-native-webview.git"
   },
   "files": [
-    "android/src",
-    "android/build.gradle",
-    "android/gradle.properties",
-    "apple",
-    "ios",
-    "macos",
-    "windows",
+    "harmony/rn_webview",
+    "harmony/rn_webview.har",
     "lib",
     "src",
     "index.js",
-    "index.d.ts",
-    "react-native-webview.podspec",
-    "react-native.config.js"
+    "index.d.ts"
   ],
   "resolutions": {
     "@react-native-community/cli": "10.2.4",
     "@react-native-community/cli-platform-android": "10.2.0",
     "@react-native-community/cli-platform-ios": "10.2.4"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "codegenConfig": {
     "name": "RNCWebViewSpec",
