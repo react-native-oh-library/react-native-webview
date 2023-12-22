@@ -133,11 +133,6 @@ export struct WebView {
           if (this.controllerAttached) {
             this.controller.loadUrl(this.descriptor.props.newSource.uri)
           }
-        } else {
-          Logger.debug(TAG, `[RNOH] newDescriptor props refresh`);
-          if (this.controllerAttached) {
-            this.controller.refresh()
-          }
         }
       }
     )
