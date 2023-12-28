@@ -6,7 +6,7 @@
   "author": "",
   "name": "rn_webview",
   "description": "Please describe the basic information.",
-  "main": "Index.ets",
+  "main": "index.ets",
   "version": "1.0.0",
   "dependencies": {}
 }
