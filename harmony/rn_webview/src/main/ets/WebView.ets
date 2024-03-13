@@ -85,7 +85,6 @@ export type WebViewViewDescriptor = Descriptor<"RNCWebView", WebViewProps>
 export struct WebView {
   ctx!: RNOHContext
   tag: number = 0
-  @BuilderParam buildCustomComponent: (componentBuilderContext: ComponentBuilderContext) => void
   @State descriptor: WebViewViewDescriptor = {} as WebViewViewDescriptor
   @State source: WebViewNewSource = {uri: "", method: "", body: "", headers: "", html: "", baseUrl: ""}
   html: string | undefined = ""

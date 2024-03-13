@@ -3,10 +3,10 @@
   "devDependencies": {
   },
   "author": "",
-  "name": "rn_webview",
+  "name": "rnoh-webview",
   "description": "Please describe the basic information.",
   "main": "index.ets",
-  "version": "1.0.0",
+  "version": "13.6.3-0.1.0",
   "dependencies": {
     "rnoh": "file:../rnoh"
   }
