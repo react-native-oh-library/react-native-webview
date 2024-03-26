@@ -44,6 +44,7 @@ namespace rnoh {
         object.setProperty(rt, "messagingModuleName", "string");
         object.setProperty(rt, "shouldStartLoadWithRequestEnabled", "bool");
         object.setProperty(rt, "webviewDebuggingEnabled", "bool");
+        object.setProperty(rt, "nestedScrollEnabled", "bool");
         return object;
     }
 

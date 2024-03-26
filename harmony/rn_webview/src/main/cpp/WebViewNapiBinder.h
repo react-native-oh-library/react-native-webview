@@ -43,20 +43,21 @@ namespace rnoh {
                 sourceObject.addProperty("baseUrl", props->newSource.baseUrl);
                 sourceObject.addProperty("headers", props->newSource.headers);
                 return objectBuilder.addProperty("newSource", sourceObject.build())
-                  .addProperty("javaScriptEnabled", props->javaScriptEnabled)
-                  .addProperty("injectedJavaScript", props->injectedJavaScript)
-                  .addProperty("messagingEnabled", props->messagingEnabled)
-                  .addProperty("showsHorizontalScrollIndicator", props->showsHorizontalScrollIndicator)
-                  .addProperty("showsVerticalScrollIndicator", props->showsVerticalScrollIndicator)
-                  .addProperty("textZoom", props->textZoom)
-                  .addProperty("cacheEnabled", props->cacheEnabled)
-                  .addProperty("cacheMode", static_cast<int>(props->cacheMode))
-                  .addProperty("domStorageEnabled", props->domStorageEnabled)
-                  .addProperty("scalesPageToFit", props->scalesPageToFit)
-                  .addProperty("messagingModuleName", props->messagingModuleName)
-                  .addProperty("shouldStartLoadWithRequestEnabled", props->shouldStartLoadWithRequestEnabled)
-                  .addProperty("webviewDebuggingEnabled", props->webviewDebuggingEnabled)
-                  .build();
+                    .addProperty("javaScriptEnabled", props->javaScriptEnabled)
+                    .addProperty("injectedJavaScript", props->injectedJavaScript)
+                    .addProperty("messagingEnabled", props->messagingEnabled)
+                    .addProperty("showsHorizontalScrollIndicator", props->showsHorizontalScrollIndicator)
+                    .addProperty("showsVerticalScrollIndicator", props->showsVerticalScrollIndicator)
+                    .addProperty("textZoom", props->textZoom)
+                    .addProperty("cacheEnabled", props->cacheEnabled)
+                    .addProperty("cacheMode", static_cast<int>(props->cacheMode))
+                    .addProperty("domStorageEnabled", props->domStorageEnabled)
+                    .addProperty("scalesPageToFit", props->scalesPageToFit)
+                    .addProperty("messagingModuleName", props->messagingModuleName)
+                    .addProperty("shouldStartLoadWithRequestEnabled", props->shouldStartLoadWithRequestEnabled)
+                    .addProperty("webviewDebuggingEnabled", props->webviewDebuggingEnabled)
+                    .addProperty("nestedScrollEnabled", props->nestedScrollEnabled)
+                    .build();
             }
             return napiViewProps;
         };
