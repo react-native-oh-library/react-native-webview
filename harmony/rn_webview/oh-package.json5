@@ -6,7 +6,7 @@
   "name": "rnoh-webview",
   "description": "Please describe the basic information.",
   "main": "index.ets",
-  "version": "13.6.3-0.1.2",
+  "version": "13.6.3-0.1.3",
   "dependencies": {
     "rnoh": "file:../rnoh"
   }
