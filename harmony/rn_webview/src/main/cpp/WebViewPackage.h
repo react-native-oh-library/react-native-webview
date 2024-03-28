@@ -29,9 +29,22 @@
 #include "WebViewNapiBinder.h"
 #include "WebViewEventEmitRequestHandler.h"
 #include "RNCWebViewTurboModule.h"
+#include "RNOH/ArkTSComponentInstance.h"
 
 using namespace rnoh;
 using namespace facebook;
+
+class WebViewComponentInstanceFactoryDelegate : public ComponentInstanceFactoryDelegate {
+public:
+    using ComponentInstanceFactoryDelegate::ComponentInstanceFactoryDelegate;
+
+    ComponentInstance::Shared create(ComponentInstance::Context ctx) override {
+        if (ctx.componentName == "RNCWebView") {
+            return std::make_shared<ArkTSComponentInstance>(ctx);
+        }
+        return nullptr;
+    }
+};
 
 class WebViewTurboModuleFactoryDelegate : public TurboModuleFactoryDelegate {
 public:
@@ -49,6 +62,10 @@ namespace rnoh {
 class WebViewPackage : public Package {
 public:
     WebViewPackage(Package::Context ctx) : Package(ctx) {}
+
+    ComponentInstanceFactoryDelegate::Shared createComponentInstanceFactoryDelegate() override {
+            return std::make_shared<WebViewComponentInstanceFactoryDelegate>(m_ctx);
+    }
 
     std::unique_ptr<TurboModuleFactoryDelegate> createTurboModuleFactoryDelegate() override
     {
