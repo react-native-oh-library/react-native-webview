@@ -3,10 +3,10 @@
   "devDependencies": {
   },
   "author": "",
-  "name": "rnoh-webview",
+  "name": "@react-native-oh-tpl/react-native-webview",
   "description": "c-api-foundation",
   "main": "index.ets",
-  "version": "13.6.3-0.1.0",
+  "version": "13.6.3-0.1.1",
   "dependencies": {
     "rnoh": "file:../rnoh"
   }
