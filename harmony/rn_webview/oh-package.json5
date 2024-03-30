@@ -3,10 +3,10 @@
   "devDependencies": {
   },
   "author": "",
-  "name": "rnoh-webview",
-  "description": "Please describe the basic information.",
+  "name": "@react-native-oh-tpl/react-native-webview",
+  "description": "main cpai architecture",
   "main": "index.ets",
-  "version": "13.6.3-0.1.3",
+  "version": "13.6.3-0.1.4",
   "dependencies": {
     "rnoh": "file:../rnoh"
   }
