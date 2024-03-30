@@ -236,8 +236,27 @@ export struct WebView {
             }
             break
           case "postMessage":
-            Logger.debug(TAG,`[RNOH] postMessage,${JSON.stringify(args)}`)
-            break
+            Logger.debug(TAG, `[RNOH] postMessage,${JSON.stringify(args)}`)
+            let data = JSON.stringify({data : args[0]})
+            let result: string = "(function () {" +
+                    "var event;" +
+                    "var data = " + data.toString() + ";" +
+                    "try {" +
+                    "event = new MessageEvent('message', data);" +
+                    "} catch (e) {" +
+                    "event = document.createEvent('MessageEvent');" +
+                    "event.initMessageEvent('message', true, true, data.data, data.origin, data.lastEventId, data.source);" +
+                    "}" +
+                    "document.dispatchEvent(event);" +
+                    "})();"
+            if (this.controllerAttached) {
+              try {
+                this.controller.runJavaScript(result)
+              } catch (error) {
+                Logger.error(TAG, "error:" + error)
+              }
+            }
+            break;
           case "reload":
             Logger.debug(TAG,`[RNOH] reload,${JSON.stringify(args)}`)
             if (this.controllerAttached) {
