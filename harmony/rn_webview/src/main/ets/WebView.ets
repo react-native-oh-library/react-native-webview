@@ -232,7 +232,7 @@ export struct WebView {
   }
 
   registerCommandCallback() {
-    this.cleanupCommandCallback = this.ctx.commandDispatcher.registerCommandCallback(
+    this.cleanupCommandCallback = this.ctx.componentCommandReceiver.registerCommandCallback(
       this.tag,
       (command, args: string[]) => {
         switch (command) {
