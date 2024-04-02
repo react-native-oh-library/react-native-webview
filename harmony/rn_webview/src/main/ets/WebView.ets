@@ -109,7 +109,7 @@ export struct WebView {
   hasRegisterJavaScriptProxy: boolean = false;
   controllerAttached: boolean = false;
   nestedScrollFlag: boolean = false;
-  renderMode: RenderMode = RenderMode.ASYNC_RENDER;
+  //renderMode: RenderMode = RenderMode.ASYNC_RENDER;
 
   aboutToAppear() {
     this.descriptor = this.ctx.descriptorRegistry.getDescriptor<WebViewViewDescriptor>(this.tag)
@@ -152,7 +152,7 @@ export struct WebView {
     this.html = this.source.html
     this.url = this.source.uri;
     this.nestedScrollFlag = this.descriptor.props.nestedScrollEnabled;
-    this.renderMode = this.nestedScrollFlag ? RenderMode.SYNC_RENDER : RenderMode.ASYNC_RENDER;
+    //this.renderMode = this.nestedScrollFlag ? RenderMode.SYNC_RENDER : RenderMode.ASYNC_RENDER;
     this.registerCommandCallback()
   }
 
@@ -248,7 +248,26 @@ export struct WebView {
             break
           case "postMessage":
             Logger.debug(TAG, `[RNOH] postMessage,${JSON.stringify(args)}`)
-            break
+            let data = JSON.stringify({data : args[0]})
+            let result: string = "(function () {" +
+              "var event;" +
+              "var data = " + data.toString() + ";" +
+              "try {" +
+              "event = new MessageEvent('message', data);" +
+              "} catch (e) {" +
+              "event = document.createEvent('MessageEvent');" +
+              "event.initMessageEvent('message', true, true, data.data, data.origin, data.lastEventId, data.source);" +
+              "}" +
+              "document.dispatchEvent(event);" +
+              "})();"
+            if (this.controllerAttached) {
+              try {
+                this.controller.runJavaScript(result)
+              } catch (error) {
+                Logger.error(TAG, "error:" + error)
+              }
+            }
+            break;
           case "reload":
             Logger.debug(TAG, `[RNOH] reload,${JSON.stringify(args)}`)
             if (this.controllerAttached) {
@@ -342,8 +361,10 @@ export struct WebView {
   }
 
   build() {
-    RNViewBase({ ctx: this.ctx, tag: this.tag }) {
-      Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
+    //RNViewBase({ ctx: this.ctx, tag: this.tag }) {
+    //Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
+    Stack() {
+      Web({ src: this.source.uri, controller: this.controller })
         .width('100%')
         .height('100%')
         .constraintSize({ minHeight: 1 })
@@ -356,11 +377,13 @@ export struct WebView {
         .cacheMode(this.cacheMode)
         .domStorageAccess(this.descriptor.props.domStorageEnabled)
         .zoomAccess(this.descriptor.props.scalesPageToFit)
-        .layoutMode(this.nestedScrollFlag ? WebLayoutMode.FIT_CONTENT : WebLayoutMode.NONE)
+        //.layoutMode(this.nestedScrollFlag ? WebLayoutMode.FIT_CONTENT : WebLayoutMode.NONE)
+        // nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
         .nestedScroll(this.nestedScrollFlag ? {
-          scrollForward: NestedScrollMode.SELF_FIRST,
-          scrollBackward: NestedScrollMode.SELF_FIRST
-        } : { scrollForward: NestedScrollMode.SELF_ONLY, scrollBackward: NestedScrollMode.SELF_ONLY })
+          scrollForward: NestedScrollMode.SELF_ONLY,
+          scrollBackward: NestedScrollMode.SELF_ONLY
+        } : { scrollForward: NestedScrollMode.PARENT_FIRST, scrollBackward: NestedScrollMode.PARENT_FIRST })
+        .overScrollMode(OverScrollMode.NEVER)
         .onProgressChange((event) => {
           if (event) {
             this.progress = event.newProgress
@@ -450,5 +473,8 @@ export struct WebView {
           }
         })
     }
+    .width(this.descriptor.layoutMetrics.frame.size.width)
+    .height(this.descriptor.layoutMetrics.frame.size.height)
+    .position({x:this.descriptor.layoutMetrics.frame.origin.x,y:this.descriptor.layoutMetrics.frame.origin.y})
   }
 }
