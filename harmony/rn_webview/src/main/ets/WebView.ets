@@ -109,7 +109,7 @@ export struct WebView {
   hasRegisterJavaScriptProxy: boolean = false;
   controllerAttached: boolean = false;
   nestedScrollFlag: boolean = false;
-  //renderMode: RenderMode = RenderMode.ASYNC_RENDER;
+  renderMode: RenderMode = RenderMode.SYNC_RENDER;
 
   aboutToAppear() {
     this.descriptor = this.ctx.descriptorRegistry.getDescriptor<WebViewViewDescriptor>(this.tag)
@@ -152,7 +152,6 @@ export struct WebView {
     this.html = this.source.html
     this.url = this.source.uri;
     this.nestedScrollFlag = this.descriptor.props.nestedScrollEnabled;
-    //this.renderMode = this.nestedScrollFlag ? RenderMode.SYNC_RENDER : RenderMode.ASYNC_RENDER;
     this.registerCommandCallback()
   }
 
@@ -362,11 +361,10 @@ export struct WebView {
 
   build() {
     //RNViewBase({ ctx: this.ctx, tag: this.tag }) {
-    //Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
     Stack() {
-      Web({ src: this.source.uri, controller: this.controller })
-        .width('100%')
-        .height('100%')
+      Web({ src: this.source.uri, controller: this.controller,renderMode: this.renderMode })
+        .width(this.descriptor.layoutMetrics.frame.size.width)
+        .height(this.descriptor.layoutMetrics.frame.size.height)
         .constraintSize({ minHeight: 1 })
         .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
@@ -384,6 +382,9 @@ export struct WebView {
           scrollBackward: NestedScrollMode.SELF_ONLY
         } : { scrollForward: NestedScrollMode.PARENT_FIRST, scrollBackward: NestedScrollMode.PARENT_FIRST })
         .overScrollMode(OverScrollMode.NEVER)
+        .onSizeChange((event)=>{
+          Logger.info(TAG, "[RNOH] event width: " + event.width + "[RNOH] event height: " + event.height)
+        })
         .onProgressChange((event) => {
           if (event) {
             this.progress = event.newProgress
