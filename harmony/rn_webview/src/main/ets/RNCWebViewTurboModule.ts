@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import { TurboModule, TurboModuleContext } from 'rnoh/ts';
+import { TurboModule, TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
 import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
 import Logger from './Logger'
 

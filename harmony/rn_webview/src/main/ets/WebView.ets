@@ -22,10 +22,10 @@
  * SOFTWARE.
  */
 
-import { Descriptor, ComponentBuilderContext, RNOHContext, ViewBaseProps } from 'rnoh'
+import { Descriptor, ComponentBuilderContext, RNOHContext, ViewBaseProps } from '@rnoh/react-native-openharmony'
 import webview from '@ohos.web.webview';
 import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
-import { RNViewBase } from 'rnoh';
+import { RNViewBase } from '@rnoh/react-native-openharmony';
 import Logger from './Logger'
 
 export class WebViewNewSource {
@@ -152,6 +152,8 @@ export struct WebView {
     this.html = this.source.html
     this.url = this.source.uri;
     this.nestedScrollFlag = this.descriptor.props.nestedScrollEnabled;
+    // nestedScrollEnabled true表示可嵌套滚动，不需要自适应和web统一渲染，默认是false
+    this.renderMode = this.nestedScrollFlag?RenderMode.ASYNC_RENDER:RenderMode.SYNC_RENDER
     this.registerCommandCallback()
   }
 
@@ -239,7 +241,7 @@ export struct WebView {
             Logger.debug(TAG, `[RNOH] injectJavaScript,${JSON.stringify(args)}`)
             if (this.controllerAttached) {
               try {
-                this.controller.runJavaScript(args[0])
+                this.controller.runJavaScript("(function() {\n" + args[0] + ";\n})();")
               } catch (error) {
                 Logger.error(TAG, "error: " + error)
               }
@@ -375,15 +377,16 @@ export struct WebView {
         .cacheMode(this.cacheMode)
         .domStorageAccess(this.descriptor.props.domStorageEnabled)
         .zoomAccess(this.descriptor.props.scalesPageToFit)
-        //.layoutMode(this.nestedScrollFlag ? WebLayoutMode.FIT_CONTENT : WebLayoutMode.NONE)
-        // nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
+         // nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
+        .layoutMode(this.nestedScrollFlag ? WebLayoutMode.NONE : WebLayoutMode.FIT_CONTENT)
+
         .nestedScroll(this.nestedScrollFlag ? {
           scrollForward: NestedScrollMode.SELF_ONLY,
           scrollBackward: NestedScrollMode.SELF_ONLY
         } : { scrollForward: NestedScrollMode.PARENT_FIRST, scrollBackward: NestedScrollMode.PARENT_FIRST })
         .overScrollMode(OverScrollMode.NEVER)
         .onSizeChange((event)=>{
-          Logger.info(TAG, "[RNOH] event width: " + event.width + "[RNOH] event height: " + event.height)
+          Logger.debug(TAG, "[RNOH] event width: " + event.width + "[RNOH] event height: " + event.height)
         })
         .onProgressChange((event) => {
           if (event) {
