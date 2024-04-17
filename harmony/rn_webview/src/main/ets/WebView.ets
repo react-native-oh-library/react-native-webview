@@ -58,7 +58,7 @@ export interface WebViewProps extends ViewBaseProps {
   messagingModuleName: string
   shouldStartLoadWithRequestEnabled: boolean
   webviewDebuggingEnabled: boolean
-  nestedScrollEnabled: boolean
+  // nestedScrollEnabled: boolean
 }
 
 export class RNCWebViewBridge {
@@ -108,7 +108,7 @@ export struct WebView {
   messagingEnabled: boolean = false;
   hasRegisterJavaScriptProxy: boolean = false;
   controllerAttached: boolean = false;
-  nestedScrollFlag: boolean = false;
+  // nestedScrollFlag: boolean = false;
   renderMode: RenderMode = RenderMode.SYNC_RENDER;
 
   aboutToAppear() {
@@ -151,9 +151,9 @@ export struct WebView {
     this.source = this.descriptor.props.newSource
     this.html = this.source.html
     this.url = this.source.uri;
-    this.nestedScrollFlag = this.descriptor.props.nestedScrollEnabled;
+    // this.nestedScrollFlag = this.descriptor.props.nestedScrollEnabled;
     // nestedScrollEnabled true表示可嵌套滚动，不需要自适应和web统一渲染，默认是false
-    this.renderMode = this.nestedScrollFlag?RenderMode.ASYNC_RENDER:RenderMode.SYNC_RENDER
+    // this.renderMode = this.nestedScrollFlag?RenderMode.ASYNC_RENDER:RenderMode.SYNC_RENDER
     this.registerCommandCallback()
   }
 
@@ -378,16 +378,16 @@ export struct WebView {
         .domStorageAccess(this.descriptor.props.domStorageEnabled)
         .zoomAccess(this.descriptor.props.scalesPageToFit)
          // nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
-        .layoutMode(this.nestedScrollFlag ? WebLayoutMode.NONE : WebLayoutMode.FIT_CONTENT)
+        // .layoutMode(this.nestedScrollFlag ? WebLayoutMode.NONE : WebLayoutMode.FIT_CONTENT)
 
-        .nestedScroll(this.nestedScrollFlag ? {
-          scrollForward: NestedScrollMode.SELF_ONLY,
-          scrollBackward: NestedScrollMode.SELF_ONLY
-        } : { scrollForward: NestedScrollMode.PARENT_FIRST, scrollBackward: NestedScrollMode.PARENT_FIRST })
-        .overScrollMode(OverScrollMode.NEVER)
-        .onSizeChange((event)=>{
-          Logger.debug(TAG, "[RNOH] event width: " + event.width + "[RNOH] event height: " + event.height)
-        })
+        // .nestedScroll(this.nestedScrollFlag ? {
+        //   scrollForward: NestedScrollMode.SELF_ONLY,
+        //   scrollBackward: NestedScrollMode.SELF_ONLY
+        // } : { scrollForward: NestedScrollMode.PARENT_FIRST, scrollBackward: NestedScrollMode.PARENT_FIRST })
+        // .overScrollMode(OverScrollMode.NEVER)
+        // .onSizeChange((event)=>{
+        //   Logger.debug(TAG, "[RNOH] event width: " + event.width + "[RNOH] event height: " + event.height)
+        // })
         .onProgressChange((event) => {
           if (event) {
             this.progress = event.newProgress
