@@ -49,7 +49,7 @@ namespace rnoh {
 class WebViewPackage : public Package {
 public:
     WebViewPackage(Package::Context ctx) : Package(ctx) {}
-    
+
     std::unique_ptr<TurboModuleFactoryDelegate> createTurboModuleFactoryDelegate() override
     {
         return std::make_unique<WebViewTurboModuleFactoryDelegate>();
