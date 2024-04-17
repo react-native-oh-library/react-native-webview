@@ -21,11 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-import { Descriptor, ComponentBuilderContext, RNOHContext, ViewBaseProps } from '@rnoh/react-native-openharmony'
+ 
+import {
+  Descriptor,
+  ComponentBuilderContext,
+  RNOHContext,
+  ViewBaseProps
+} from 'rnoh'
 import webview from '@ohos.web.webview';
 import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
-import { RNViewBase } from '@rnoh/react-native-openharmony';
+import { RNViewBase } from 'rnoh';
 import Logger from './Logger'
 
 export class WebViewNewSource {
@@ -36,13 +41,9 @@ export class WebViewNewSource {
   html?: string
   baseUrl?: string
 }
-
 const TAG = "WebView"
-
 export const WEB_VIEW = "RNCWebView"
-
 const JAVASCRIPT_INTERFACE = "ReactNativeWebView";
-
 export interface WebViewProps extends ViewBaseProps {
   newSource: WebViewNewSource
   javaScriptEnabled: boolean
@@ -58,9 +59,7 @@ export interface WebViewProps extends ViewBaseProps {
   messagingModuleName: string
   shouldStartLoadWithRequestEnabled: boolean
   webviewDebuggingEnabled: boolean
-  // nestedScrollEnabled: boolean
 }
-
 export class RNCWebViewBridge {
   postMessage!: (data: string) => void;
 }
@@ -86,15 +85,9 @@ export type WebViewViewDescriptor = Descriptor<"RNCWebView", WebViewProps>
 export struct WebView {
   ctx!: RNOHContext
   tag: number = 0
+  @BuilderParam buildCustomComponent: (componentBuilderContext: ComponentBuilderContext) => void
   @State descriptor: WebViewViewDescriptor = {} as WebViewViewDescriptor
-  @State source: WebViewNewSource = {
-    uri: "",
-    method: "",
-    body: "",
-    headers: "",
-    html: "",
-    baseUrl: ""
-  }
+  @State source: WebViewNewSource = {uri: "", method: "", body: "", headers: "", html: "", baseUrl: ""}
   html: string | undefined = ""
   url: string | Resource = ""
   private unregisterDescriptorChangesListener?: () => void = undefined
@@ -108,8 +101,6 @@ export struct WebView {
   messagingEnabled: boolean = false;
   hasRegisterJavaScriptProxy: boolean = false;
   controllerAttached: boolean = false;
-  // nestedScrollFlag: boolean = false;
-  renderMode: RenderMode = RenderMode.SYNC_RENDER;
 
   aboutToAppear() {
     this.descriptor = this.ctx.descriptorRegistry.getDescriptor<WebViewViewDescriptor>(this.tag)
@@ -151,9 +142,6 @@ export struct WebView {
     this.source = this.descriptor.props.newSource
     this.html = this.source.html
     this.url = this.source.uri;
-    // this.nestedScrollFlag = this.descriptor.props.nestedScrollEnabled;
-    // nestedScrollEnabled true表示可嵌套滚动，不需要自适应和web统一渲染，默认是false
-    // this.renderMode = this.nestedScrollFlag?RenderMode.ASYNC_RENDER:RenderMode.SYNC_RENDER
     this.registerCommandCallback()
   }
 
@@ -211,7 +199,7 @@ export struct WebView {
     }
   }
 
-  transCacheMode(cacheMode: number): CacheMode {
+  transCacheMode(cacheMode: number):CacheMode {
     let mode = CacheMode.Default
     switch (cacheMode) {
       case 0:
@@ -232,16 +220,16 @@ export struct WebView {
     return mode
   }
 
-  registerCommandCallback() {
-    this.cleanupCommandCallback = this.ctx.componentCommandReceiver.registerCommandCallback(
+  registerCommandCallback(){
+    this.cleanupCommandCallback = this.ctx.commandDispatcher.registerCommandCallback(
       this.tag,
-      (command, args: string[]) => {
+      (command,args:string[]) => {
         switch (command) {
           case "injectJavaScript":
-            Logger.debug(TAG, `[RNOH] injectJavaScript,${JSON.stringify(args)}`)
+            Logger.debug(TAG,`[RNOH] injectJavaScript,${JSON.stringify(args)}`)
             if (this.controllerAttached) {
               try {
-                this.controller.runJavaScript("(function() {\n" + args[0] + ";\n})();")
+                this.controller.runJavaScript(args[0])
               } catch (error) {
                 Logger.error(TAG, "error: " + error)
               }
@@ -251,16 +239,16 @@ export struct WebView {
             Logger.debug(TAG, `[RNOH] postMessage,${JSON.stringify(args)}`)
             let data = JSON.stringify({data : args[0]})
             let result: string = "(function () {" +
-              "var event;" +
-              "var data = " + data.toString() + ";" +
-              "try {" +
-              "event = new MessageEvent('message', data);" +
-              "} catch (e) {" +
-              "event = document.createEvent('MessageEvent');" +
-              "event.initMessageEvent('message', true, true, data.data, data.origin, data.lastEventId, data.source);" +
-              "}" +
-              "document.dispatchEvent(event);" +
-              "})();"
+                    "var event;" +
+                    "var data = " + data.toString() + ";" +
+                    "try {" +
+                    "event = new MessageEvent('message', data);" +
+                    "} catch (e) {" +
+                    "event = document.createEvent('MessageEvent');" +
+                    "event.initMessageEvent('message', true, true, data.data, data.origin, data.lastEventId, data.source);" +
+                    "}" +
+                    "document.dispatchEvent(event);" +
+                    "})();"
             if (this.controllerAttached) {
               try {
                 this.controller.runJavaScript(result)
@@ -270,7 +258,7 @@ export struct WebView {
             }
             break;
           case "reload":
-            Logger.debug(TAG, `[RNOH] reload,${JSON.stringify(args)}`)
+            Logger.debug(TAG,`[RNOH] reload,${JSON.stringify(args)}`)
             if (this.controllerAttached) {
               try {
                 this.controller.refresh();
@@ -295,8 +283,7 @@ export struct WebView {
       canGoForward: this.controller.accessForward(),
       lockIdentifier: 0,
       navigationType: "other",
-      mainDocumentURL: ""
-    })
+      mainDocumentURL: ""})
   }
 
   onLoadingError(code: number, description: string) {
@@ -310,8 +297,7 @@ export struct WebView {
       lockIdentifier: 0,
       domain: "",
       code: code,
-      description: description
-    })
+      description: description})
   }
 
   onShouldStartLoadWithRequest() {
@@ -325,8 +311,7 @@ export struct WebView {
       lockIdentifier: 0,
       navigationType: "other",
       mainDocumentURL: "",
-      isTopFrame: false
-    })
+      isTopFrame: false})
   }
 
   onShouldStartLoadCallFunction(lockIdentifier: number, data: WebResourceRequest) {
@@ -340,8 +325,7 @@ export struct WebView {
       lockIdentifier: lockIdentifier,
       navigationType: "other",
       mainDocumentURL: "",
-      isTopFrame: data.isMainFrame()
-    })
+      isTopFrame: data.isMainFrame()})
   }
 
   runInjectedJavaScript() {
@@ -362,12 +346,9 @@ export struct WebView {
   }
 
   build() {
-    //RNViewBase({ ctx: this.ctx, tag: this.tag }) {
-    Stack() {
-      Web({ src: this.source.uri, controller: this.controller,renderMode: this.renderMode })
-        .width(this.descriptor.layoutMetrics.frame.size.width)
-        .height(this.descriptor.layoutMetrics.frame.size.height)
-        .constraintSize({ minHeight: 1 })
+    RNViewBase({ ctx: this.ctx, tag: this.tag }) {
+      Web({ src: this.source.uri, controller: this.controller })
+        .width('100%').height('100%').constraintSize({minHeight:1})
         .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
         .horizontalScrollBarAccess(this.descriptor.props.showsHorizontalScrollIndicator)
@@ -377,17 +358,6 @@ export struct WebView {
         .cacheMode(this.cacheMode)
         .domStorageAccess(this.descriptor.props.domStorageEnabled)
         .zoomAccess(this.descriptor.props.scalesPageToFit)
-         // nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
-        // .layoutMode(this.nestedScrollFlag ? WebLayoutMode.NONE : WebLayoutMode.FIT_CONTENT)
-
-        // .nestedScroll(this.nestedScrollFlag ? {
-        //   scrollForward: NestedScrollMode.SELF_ONLY,
-        //   scrollBackward: NestedScrollMode.SELF_ONLY
-        // } : { scrollForward: NestedScrollMode.PARENT_FIRST, scrollBackward: NestedScrollMode.PARENT_FIRST })
-        // .overScrollMode(OverScrollMode.NEVER)
-        // .onSizeChange((event)=>{
-        //   Logger.debug(TAG, "[RNOH] event width: " + event.width + "[RNOH] event height: " + event.height)
-        // })
         .onProgressChange((event) => {
           if (event) {
             this.progress = event.newProgress
@@ -401,39 +371,39 @@ export struct WebView {
         })
         .onErrorReceive((event) => {
           if (event) {
-            let errorInfo: string = event.error.getErrorInfo();
-            let errorCode: number = event.error.getErrorCode();
-            if (errorInfo == "ERR_INTERNET_DISCONNECTED" || errorInfo == "ERR_CACHE_MISS" || !event.request.isMainFrame()) {
-              Logger.debug(TAG, "[RNOH] ERR_INTERNET_DISCONNECTED:OR ERR_CACHE_MISS")
+            let errorInfo:string = event.error.getErrorInfo();
+            let errorCode:number = event.error.getErrorCode();
+            if (errorInfo == "ERR_INTERNET_DISCONNECTED" || errorInfo == "ERR_CACHE_MISS") {
+              Logger.debug(TAG,"[RNOH] ERR_INTERNET_DISCONNECTED:OR ERR_CACHE_MISS")
               return
             }
-            Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
-            Logger.debug(TAG, "[RNOH] errorCode:" + errorCode)
-            this.onLoadingError(errorCode, errorInfo)
+            Logger.debug(TAG,"[RNOH] errorInfo:" + errorInfo)
+            Logger.debug(TAG,"[RNOH] errorCode:" + errorCode)
+            this.onLoadingError(errorCode,errorInfo)
           }
         })
         .onLoadIntercept((event) => {
           if (!this.descriptor.props.shouldStartLoadWithRequestEnabled) {
-            Logger.debug(TAG, "[RNOH]:shouldStartLoadWithRequestEnabled:" + this.descriptor.props.shouldStartLoadWithRequestEnabled)
+            Logger.debug(TAG,"[RNOH]:shouldStartLoadWithRequestEnabled:" + this.descriptor.props.shouldStartLoadWithRequestEnabled)
             return false
           }
           if (this.source.html != undefined && this.source.html != '') {
-            Logger.debug(TAG, "[RNOH]: load html not intercept")
+            Logger.debug(TAG,"[RNOH]: load html not intercept")
             return false;
           }
           if (event.data.getRequestUrl() == this.source.uri || this.requestUrl != "") {
-            Logger.debug(TAG, "[RNOH] first load not intercept")
+            Logger.debug(TAG,"[RNOH] first load not intercept")
             this.requestUrl = ""
             return false
           }
           this.requestUrl = event.data.getRequestUrl()
           let lockIdentifier = ShouldRequestUrl.getNewData();
           this.lockIdentifier = lockIdentifier
-          Logger.debug(TAG, "[RNOH]:lockIdentifier:" + lockIdentifier)
-          ShouldRequestUrl.setCallBack(lockIdentifier, () => {
-            let data: CallbackState = ShouldRequestUrl.getValue(this.lockIdentifier);
-            let should: boolean = data == CallbackState.SHOULD_OVERRIDE
-            Logger.debug(TAG, "[RNOH] should:" + should)
+          Logger.debug(TAG,"[RNOH]:lockIdentifier:" + lockIdentifier)
+          ShouldRequestUrl.setCallBack(lockIdentifier,() => {
+            let data:CallbackState = ShouldRequestUrl.getValue(this.lockIdentifier);
+            let should:boolean = data == CallbackState.SHOULD_OVERRIDE
+            Logger.debug(TAG,"[RNOH] should:" + should)
             ShouldRequestUrl.removeData(this.lockIdentifier)
             this.lockIdentifier = ""
             if (!should) {
@@ -442,12 +412,12 @@ export struct WebView {
               this.requestUrl = ""
             }
           })
-          this.onShouldStartLoadCallFunction(Number(this.lockIdentifier), event.data)
+          this.onShouldStartLoadCallFunction(Number(this.lockIdentifier),event.data)
           return true
         })
         .onControllerAttached(() => {
           this.controllerAttached = true;
-          Logger.debug(TAG, "[RNOH] onControllerAttached")
+          Logger.debug(TAG,"[RNOH] onControllerAttached")
           let baseUrl = this.source.baseUrl
           let uri = this.source.uri
           if (this.source.html != undefined && this.source.html != "") {
@@ -460,16 +430,16 @@ export struct WebView {
                 " "
               );
             } catch (error) {
-              Logger.error(TAG, "error:" + error)
+              Logger.error(TAG,"error:" + error)
             }
-          } else if (uri != undefined && uri != "") {
+          } else if(uri != undefined && uri != "") {
             let header = this.source.headers
             if (header != undefined && header != "") {
-              let headers: Array<webview.WebHeader> = [];
-              JSON.parse(header, (key: string, value: string) => {
-                headers.push({ headerKey: key, headerValue: value })
+              let headers:Array<webview.WebHeader> = [];
+              JSON.parse(header,(key:string,value:string) => {
+                headers.push({headerKey:key,headerValue:value})
               })
-              this.controller.loadUrl(uri, headers);
+              this.controller.loadUrl(uri,headers);
             }
           }
           if (!this.hasRegisterJavaScriptProxy) {
@@ -477,8 +447,5 @@ export struct WebView {
           }
         })
     }
-    .width(this.descriptor.layoutMetrics.frame.size.width)
-    .height(this.descriptor.layoutMetrics.frame.size.height)
-    .position({x:this.descriptor.layoutMetrics.frame.origin.x,y:this.descriptor.layoutMetrics.frame.origin.y})
   }
 }

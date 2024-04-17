@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-import {RNPackage,TurboModulesFactory} from '@rnoh/react-native-openharmony/ts';
-import type {TurboModule,TurboModuleContext} from '@rnoh/react-native-openharmony/ts';
+import {RNPackage,TurboModulesFactory} from 'rnoh/ts';
+import type {TurboModule,TurboModuleContext} from 'rnoh/ts';
 import {RNCWebViewTurboModule} from './RNCWebViewTurboModule';
 
 class WebViewTurboModulesFactory extends TurboModulesFactory{
@@ -36,7 +36,6 @@ class WebViewTurboModulesFactory extends TurboModulesFactory{
 
   hasTurboModule(name:string):boolean{
     return name === 'RNCWebView';
-
   }
 }
 

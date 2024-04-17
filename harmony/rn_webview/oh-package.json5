@@ -4,10 +4,10 @@
   },
   "author": "",
   "name": "@react-native-oh-tpl/react-native-webview",
-  "description": "main cpai architecture",
+  "description": "Please describe the basic information.",
   "main": "index.ets",
-  "version": "13.6.3-0.1.2",
+  "version": "13.6.3-0.0.7",
   "dependencies": {
-    "@rnoh/react-native-openharmony": "file:../react_native_openharmony"
+    "rnoh": "file:../rnoh"
   }
 }
