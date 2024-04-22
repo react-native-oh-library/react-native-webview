@@ -23,3 +23,4 @@
  */
 
 export * from './src/main/ets/WebView'
+export * from './ts'
