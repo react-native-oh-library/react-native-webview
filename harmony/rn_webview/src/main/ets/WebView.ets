@@ -463,11 +463,14 @@ export struct WebView {
               Logger.error(TAG, "error:" + error)
             }
           } else if (uri != undefined && uri != "") {
-            let header = this.source.headers
+            let header = this.source.headers;
             if (header != undefined && header != "") {
               let headers: Array<webview.WebHeader> = [];
-              JSON.parse(header, (key: string, value: string) => {
-                headers.push({ headerKey: key, headerValue: value })
+              JSON.parse(header,( key: string, value: string) => {
+                if(key && value){
+                  headers.push({ headerKey: key, headerValue: value })
+                }
+                return undefined;
               })
               this.controller.loadUrl(uri, headers);
             }
