@@ -387,8 +387,7 @@ static inline std::string toString(const WebViewBasicAuthCredentialStruct &value
 {
     return "[Object WebViewBasicAuthCredentialStruct]";
 }
-static inline std::string getValues(const PropsParserContext &context, const RawValue &value)
-{
+static inline std::string getValues(const PropsParserContext &context, const RawValue &value) {
     auto map = (butter::map<std::string, RawValue>)value;
     std::string result = "";
     std::string itemValue1;
@@ -400,7 +399,7 @@ static inline std::string getValues(const PropsParserContext &context, const Raw
     auto tmp_value = map.find("value");
     std::string itemValue2;
     if (tmp_value != map.end()) {
-        fromRawValue(context, tmp_name->second, itemValue2);
+        fromRawValue(context, tmp_value->second, itemValue2);
         result += itemValue2 + "\"";
     }
     return result;
@@ -411,17 +410,22 @@ static inline std::string toString(const WebViewNewSourceHeadersStruct &value)
     return "[Object WebViewNewSourceHeadersStruct]";
 }
 
-static inline std::string getSourceHeaders(const PropsParserContext &context, const RawValue &value)
-{
+static inline std::string getSourceHeaders(const PropsParserContext &context, const RawValue &value) {
     auto items = (std::vector<RawValue>)value;
     std::string headers = "{";
+    bool isFirst = true;
     for (const auto &item : items) {
         std::string tmp = getValues(context, item);
-        headers += tmp + ",";
+        if (!isFirst) {
+            headers += ",";
+        }
+        headers += tmp;
+        isFirst = false;
     }
     headers += "}";
     return headers;
 }
+
 static inline void fromRawValue(const PropsParserContext &context, const RawValue &value,
     WebViewNewSourceStruct &result)
 {
