@@ -25,7 +25,7 @@
 import { Descriptor, ComponentBuilderContext, RNOHContext, ViewBaseProps } from '@rnoh/react-native-openharmony'
 import webview from '@ohos.web.webview';
 import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
-import { RNViewBase } from '@rnoh/react-native-openharmony';
+import { RNViewBase,RNViewBaseAttributeModifier,ViewDescriptorWrapperBase,RNComponentContext } from '@rnoh/react-native-openharmony';
 import Logger from './Logger'
 
 export class WebViewNewSource {
@@ -110,6 +110,8 @@ export struct WebView {
   controllerAttached: boolean = false;
   // nestedScrollFlag: boolean = false;
   renderMode: RenderMode = RenderMode.SYNC_RENDER;
+  @State private rnViewAttributeModifier: RNViewBaseAttributeModifier | undefined = undefined
+
 
   aboutToAppear() {
     this.descriptor = this.ctx.descriptorRegistry.getDescriptor<WebViewViewDescriptor>(this.tag)
@@ -155,6 +157,15 @@ export struct WebView {
     // nestedScrollEnabled true表示可嵌套滚动，不需要自适应和web统一渲染，默认是false
     // this.renderMode = this.nestedScrollFlag?RenderMode.ASYNC_RENDER:RenderMode.SYNC_RENDER
     this.registerCommandCallback()
+    let descriptorWrapper = this.ctx.descriptorRegistry.findDescriptorWrapperByTag<ViewDescriptorWrapperBase>(this.descriptor.tag)
+    if (!descriptorWrapper || !(descriptorWrapper instanceof ViewDescriptorWrapperBase)) {
+      descriptorWrapper = new ViewDescriptorWrapperBase(this.descriptor)
+    }
+    if (this.ctx instanceof RNComponentContext) {
+      this.rnViewAttributeModifier = new RNViewBaseAttributeModifier(descriptorWrapper, this.ctx)
+    }
+    // this.rnViewAttributeModifier = new RNViewBaseAttributeModifier(descriptorWrapper, this.ctx)
+
   }
 
   private registerPostMessage() {
@@ -362,7 +373,7 @@ export struct WebView {
   }
 
   build() {
-    //RNViewBase({ ctx: this.ctx, tag: this.tag }) {
+    // RNViewBase({ ctx: this.ctx, tag: this.tag }) {
     Stack() {
       Web({ src: this.source.uri, controller: this.controller,renderMode: this.renderMode })
         .width(this.descriptor.layoutMetrics.frame.size.width)
@@ -377,6 +388,7 @@ export struct WebView {
         .cacheMode(this.cacheMode)
         .domStorageAccess(this.descriptor.props.domStorageEnabled)
         .zoomAccess(this.descriptor.props.scalesPageToFit)
+        .overScrollMode(OverScrollMode.NEVER)
          // nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
         // .layoutMode(this.nestedScrollFlag ? WebLayoutMode.NONE : WebLayoutMode.FIT_CONTENT)
 
@@ -483,5 +495,6 @@ export struct WebView {
     .width(this.descriptor.layoutMetrics.frame.size.width)
     .height(this.descriptor.layoutMetrics.frame.size.height)
     .position({x:this.descriptor.layoutMetrics.frame.origin.x,y:this.descriptor.layoutMetrics.frame.origin.y})
+    .attributeModifier(this.rnViewAttributeModifier)
   }
 }
