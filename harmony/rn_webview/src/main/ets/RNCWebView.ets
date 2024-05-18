@@ -59,6 +59,7 @@ export interface WebViewProps extends ViewBaseProps {
   shouldStartLoadWithRequestEnabled: boolean
   webviewDebuggingEnabled: boolean
   // nestedScrollEnabled: boolean
+  scrollEnabled: boolean
 }
 
 export class RNCWebViewBridge {
@@ -111,6 +112,7 @@ export struct RNCWebView {
   controllerAttached: boolean = false;
   // nestedScrollFlag: boolean = false;
   renderMode: RenderMode = RenderMode.SYNC_RENDER;
+  scrollEnabled = true;
 
   aboutToAppear() {
     this.descriptor = this.ctx.descriptorRegistry.getDescriptor<WebViewViewDescriptor>(this.tag)
@@ -148,6 +150,7 @@ export struct RNCWebView {
       }
     )
     webview.WebviewController.setWebDebuggingAccess(this.descriptor.props.webviewDebuggingEnabled)
+    this.scrollEnabled = this.descriptor.props.scrollEnabled;
     this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
     this.cacheMode =
       this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
@@ -395,6 +398,9 @@ export struct RNCWebView {
             this.progress = event.newProgress
             Logger.debug(TAG, "[RNOH] event progress: " + event.newProgress)
           }
+        })
+        .onPageBegin(() => {
+          this.controller.setScrollable(this.scrollEnabled)
         })
         .onPageEnd(() => {
           Logger.debug(TAG, "[RNOH] onPageEnd")
