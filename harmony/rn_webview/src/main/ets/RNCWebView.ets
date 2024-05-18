@@ -411,11 +411,6 @@ export struct RNCWebView {
           if (event) {
             let errorInfo: string = event.error.getErrorInfo();
             let errorCode: number = event.error.getErrorCode();
-            if (errorInfo == "ERR_INTERNET_DISCONNECTED" || errorInfo == "ERR_CACHE_MISS" ||
-              !event.request.isMainFrame()) {
-              Logger.debug(TAG, "[RNOH] ERR_INTERNET_DISCONNECTED:OR ERR_CACHE_MISS")
-              return
-            }
             Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
             Logger.debug(TAG, "[RNOH] errorCode:" + errorCode)
             this.onLoadingError(errorCode, errorInfo)
