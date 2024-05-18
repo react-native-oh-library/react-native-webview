@@ -254,7 +254,7 @@ export interface NativeProps extends ViewProps {
     html?: string;
     baseUrl?: string;
   }>;
-  userAgent?: string;
+  userAgent?: string; 
 }
 
 export interface NativeCommands {

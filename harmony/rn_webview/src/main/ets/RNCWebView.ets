@@ -1,7 +1,7 @@
-/*
+/**
  * MIT License
  *
- * Copyright (C) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,11 +22,11 @@
  * SOFTWARE.
  */
 
-import { Descriptor, ComponentBuilderContext, RNOHContext, ViewBaseProps } from '@rnoh/react-native-openharmony'
+import { Descriptor, RNOHContext, ViewBaseProps } from '@rnoh/react-native-openharmony';
 import webview from '@ohos.web.webview';
 import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
-import { RNViewBase } from '@rnoh/react-native-openharmony';
-import Logger from './Logger'
+import { RNC } from '@rnoh/react-native-openharmony/generated';
+import Logger from './Logger';
 
 export class WebViewNewSource {
   uri: string | Resource = ""
@@ -83,7 +83,8 @@ export class WebViewEventParams {
 export type WebViewViewDescriptor = Descriptor<"RNCWebView", WebViewProps>
 
 @Component
-export struct WebView {
+export struct RNCWebView {
+  public static readonly NAME = RNC.RNCWebView.NAME
   ctx!: RNOHContext
   tag: number = 0
   @State descriptor: WebViewViewDescriptor = {} as WebViewViewDescriptor
@@ -117,7 +118,8 @@ export struct WebView {
       (newDescriptor) => {
         this.descriptor = (newDescriptor as WebViewViewDescriptor)
         Logger.debug(TAG, `[RNOH] newDescriptor props uri, ${JSON.stringify(this.descriptor.props.newSource.uri)}`);
-        this.cacheMode = this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
+        this.cacheMode =
+          this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
         this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
         this.source = this.descriptor.props.newSource
         if (this.html != "" && this.html != this.source.html) {
@@ -147,7 +149,8 @@ export struct WebView {
     )
     webview.WebviewController.setWebDebuggingAccess(this.descriptor.props.webviewDebuggingEnabled)
     this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
-    this.cacheMode = this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
+    this.cacheMode =
+      this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
     this.source = this.descriptor.props.newSource
     this.html = this.source.html
     this.url = this.source.uri;
@@ -249,7 +252,7 @@ export struct WebView {
             break
           case "postMessage":
             Logger.debug(TAG, `[RNOH] postMessage,${JSON.stringify(args)}`)
-            let data = JSON.stringify({data : args[0]})
+            let data = JSON.stringify({ data: args[0] })
             let result: string = "(function () {" +
               "var event;" +
               "var data = " + data.toString() + ";" +
@@ -364,7 +367,7 @@ export struct WebView {
   build() {
     //RNViewBase({ ctx: this.ctx, tag: this.tag }) {
     Stack() {
-      Web({ src: this.source.uri, controller: this.controller,renderMode: this.renderMode })
+      Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
         .width(this.descriptor.layoutMetrics.frame.size.width)
         .height(this.descriptor.layoutMetrics.frame.size.height)
         .constraintSize({ minHeight: 1 })
@@ -376,18 +379,17 @@ export struct WebView {
         .textZoomRatio(this.descriptor.props.textZoom)
         .cacheMode(this.cacheMode)
         .domStorageAccess(this.descriptor.props.domStorageEnabled)
-        .zoomAccess(this.descriptor.props.scalesPageToFit)
-         // nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
-        // .layoutMode(this.nestedScrollFlag ? WebLayoutMode.NONE : WebLayoutMode.FIT_CONTENT)
+        .zoomAccess(this.descriptor.props.scalesPageToFit)// nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
+          // .layoutMode(this.nestedScrollFlag ? WebLayoutMode.NONE : WebLayoutMode.FIT_CONTENT)
 
-        // .nestedScroll(this.nestedScrollFlag ? {
-        //   scrollForward: NestedScrollMode.SELF_ONLY,
-        //   scrollBackward: NestedScrollMode.SELF_ONLY
-        // } : { scrollForward: NestedScrollMode.PARENT_FIRST, scrollBackward: NestedScrollMode.PARENT_FIRST })
-        // .overScrollMode(OverScrollMode.NEVER)
-        // .onSizeChange((event)=>{
-        //   Logger.debug(TAG, "[RNOH] event width: " + event.width + "[RNOH] event height: " + event.height)
-        // })
+          // .nestedScroll(this.nestedScrollFlag ? {
+          //   scrollForward: NestedScrollMode.SELF_ONLY,
+          //   scrollBackward: NestedScrollMode.SELF_ONLY
+          // } : { scrollForward: NestedScrollMode.PARENT_FIRST, scrollBackward: NestedScrollMode.PARENT_FIRST })
+          // .overScrollMode(OverScrollMode.NEVER)
+          // .onSizeChange((event)=>{
+          //   Logger.debug(TAG, "[RNOH] event width: " + event.width + "[RNOH] event height: " + event.height)
+          // })
         .onProgressChange((event) => {
           if (event) {
             this.progress = event.newProgress
@@ -403,7 +405,8 @@ export struct WebView {
           if (event) {
             let errorInfo: string = event.error.getErrorInfo();
             let errorCode: number = event.error.getErrorCode();
-            if (errorInfo == "ERR_INTERNET_DISCONNECTED" || errorInfo == "ERR_CACHE_MISS" || !event.request.isMainFrame()) {
+            if (errorInfo == "ERR_INTERNET_DISCONNECTED" || errorInfo == "ERR_CACHE_MISS" ||
+              !event.request.isMainFrame()) {
               Logger.debug(TAG, "[RNOH] ERR_INTERNET_DISCONNECTED:OR ERR_CACHE_MISS")
               return
             }
@@ -414,7 +417,8 @@ export struct WebView {
         })
         .onLoadIntercept((event) => {
           if (!this.descriptor.props.shouldStartLoadWithRequestEnabled) {
-            Logger.debug(TAG, "[RNOH]:shouldStartLoadWithRequestEnabled:" + this.descriptor.props.shouldStartLoadWithRequestEnabled)
+            Logger.debug(TAG,
+              "[RNOH]:shouldStartLoadWithRequestEnabled:" + this.descriptor.props.shouldStartLoadWithRequestEnabled)
             return false
           }
           if (this.source.html != undefined && this.source.html != '') {
@@ -466,8 +470,8 @@ export struct WebView {
             let header = this.source.headers;
             if (header != undefined && header != "") {
               let headers: Array<webview.WebHeader> = [];
-              JSON.parse(header,( key: string, value: string) => {
-                if(key && value){
+              JSON.parse(header, (key: string, value: string) => {
+                if (key && value) {
                   headers.push({ headerKey: key, headerValue: value })
                 }
                 return undefined;
@@ -482,6 +486,6 @@ export struct WebView {
     }
     .width(this.descriptor.layoutMetrics.frame.size.width)
     .height(this.descriptor.layoutMetrics.frame.size.height)
-    .position({x:this.descriptor.layoutMetrics.frame.origin.x,y:this.descriptor.layoutMetrics.frame.origin.y})
+    .position({ x: this.descriptor.layoutMetrics.frame.origin.x, y: this.descriptor.layoutMetrics.frame.origin.y })
   }
 }

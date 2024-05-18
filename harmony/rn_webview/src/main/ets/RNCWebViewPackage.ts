@@ -1,7 +1,7 @@
-/*
+/**
  * MIT License
  *
- * Copyright (C) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,17 @@
  * SOFTWARE.
  */
 
-import { TurboModule, TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
-import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
-import Logger from './Logger'
+import type {
+  DescriptorWrapperFactoryByDescriptorType,
+  DescriptorWrapperFactoryByDescriptorTypeCtx
+} from '@rnoh/react-native-openharmony/ts';
+import { RNPackage } from '@rnoh/react-native-openharmony/ts';
+import { RNC } from '@rnoh/react-native-openharmony/generated/ts';
 
-export class RNCWebViewTurboModule extends TurboModule {
-  constructor(protected ctx: TurboModuleContext) {
-    super(ctx);
-    Logger.debug('[RNOH]:RNCWebViewTurboModule constructor');
-  }
-
-  getConstants() {
-    Logger.debug('[RNOH]:RNCWebViewTurboModule call getConstants');
-  }
-
-  isFileUploadSupported(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      Logger.debug('[RNOH]:RNCWebViewTurboModule call isFileUploadSupported');
-      resolve()
-    });
-  }
-
-  shouldStartLoadWithLockIdentifier(shouldStart: boolean, lockIdentifier: number) {
-    Logger.info("WebView",'shouldStartLoadWithLockIdentifier shouldStart: ' + shouldStart);
-    ShouldRequestUrl.setValue(lockIdentifier, shouldStart ? CallbackState.DO_NOT_OVERRIDE : CallbackState.SHOULD_OVERRIDE)
+export class RNCWebViewPackage extends RNPackage {
+  createDescriptorWrapperFactoryByDescriptorType(ctx: DescriptorWrapperFactoryByDescriptorTypeCtx): DescriptorWrapperFactoryByDescriptorType {
+    return {
+      [RNC.RNCWebView.NAME]: (ctx) => new RNC.RNCWebView.DescriptorWrapper(ctx.descriptor)
+    }
   }
 }
