@@ -291,6 +291,20 @@ export struct RNCWebView {
       });
   }
 
+  onLoadingStart() {
+    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
+      type: "onLoadingStart",
+      url: this.controller.getUrl(),
+      loading: this.progress != 100,
+      title: this.controller.getTitle(),
+      canGoBack: this.controller.accessBackward(),
+      canGoForward: this.controller.accessForward(),
+      lockIdentifier: 0,
+      navigationType: "other",
+      mainDocumentURL: ""
+    })
+  }
+
   onLoadingFinish() {
     this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
       type: "onLoadingFinish",
@@ -400,6 +414,7 @@ export struct RNCWebView {
           }
         })
         .onPageBegin(() => {
+          this.onLoadingStart()
           this.controller.setScrollable(this.scrollEnabled)
         })
         .onPageEnd(() => {
