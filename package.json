@@ -1,6 +1,6 @@
 {
   "name": "@react-native-oh-tpl/react-native-webview",
-  "description": "React Native WebView component for iOS, Android, macOS, and Windows",
+  "description": "React Native WebView component for iOS, Android, macOS and Windows",
   "react-native": "src/index",
   "source": "src/index",
   "typings": "index.d.ts",
