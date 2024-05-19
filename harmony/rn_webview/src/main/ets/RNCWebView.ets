@@ -28,11 +28,16 @@ import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
 import { RNC } from '@rnoh/react-native-openharmony/generated';
 import Logger from './Logger';
 
+export class WebViewNewSourceHeader {
+  name?: string
+  value?: string
+}
+
 export class WebViewNewSource {
-  uri: string | Resource = ""
+  uri?: string
   method?: string
   body?: string
-  headers?: string
+  headers?: WebViewNewSourceHeader[]
   html?: string
   baseUrl?: string
 }
@@ -65,7 +70,6 @@ export interface WebViewProps extends ViewBaseProps {
 export class RNCWebViewBridge {
   postMessage!: (data: string) => void;
 }
-
 export class WebViewEventParams {
   type: string
   url?: string
@@ -88,12 +92,10 @@ export struct RNCWebView {
   public static readonly NAME = RNC.RNCWebView.NAME
   ctx!: RNOHContext
   tag: number = 0
-  @State descriptor: WebViewViewDescriptor = {} as WebViewViewDescriptor
   @State source: WebViewNewSource = {
     uri: "",
     method: "",
     body: "",
-    headers: "",
     html: "",
     baseUrl: ""
   }
@@ -113,50 +115,64 @@ export struct RNCWebView {
   // nestedScrollFlag: boolean = false;
   renderMode: RenderMode = RenderMode.SYNC_RENDER;
   scrollEnabled = true;
+  private eventEmitter: RNC.RNCWebView.EventEmitter | undefined = undefined
+  private cleanUpCallbacks: (() => void)[] = []
+  @State private descriptorWrapper: RNC.RNCWebView.DescriptorWrapper = {} as RNC.RNCWebView.DescriptorWrapper
+
+  private onDescriptorWrapperChange(descriptorWrapper: RNC.RNCWebView.DescriptorWrapper) {
+    this.descriptorWrapper = descriptorWrapper
+  }
 
   aboutToAppear() {
-    this.descriptor = this.ctx.descriptorRegistry.getDescriptor<WebViewViewDescriptor>(this.tag)
-    this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
-      (newDescriptor) => {
-        this.descriptor = (newDescriptor as WebViewViewDescriptor)
-        Logger.debug(TAG, `[RNOH] newDescriptor props uri, ${JSON.stringify(this.descriptor.props.newSource.uri)}`);
-        this.cacheMode =
-          this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
-        this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
-        this.source = this.descriptor.props.newSource
-        if (this.html != "" && this.html != this.source.html) {
-          Logger.debug(TAG, "[RNOH] html is update")
-          this.html = this.source.html
-          if (this.controllerAttached) {
-            try {
-              this.controller.loadData(
-                this.source.html,
-                "text/html",
-                "UTF-8",
-                this.source.baseUrl,
-                " "
-              );
-            } catch (error) {
-              Logger.error(TAG, "error: " + error)
-            }
-          }
-        } else if (this.source.uri != "" && this.url != this.source.uri) {
-          Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
-          this.url = this.source.uri
-          if (this.controllerAttached) {
-            this.controller.loadUrl(this.descriptor.props.newSource.uri)
-          }
-        }
+    this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
+    this.onDescriptorWrapperChange(this.ctx.descriptorRegistry.findDescriptorWrapperByTag<RNC.RNCWebView.DescriptorWrapper>(this.tag)!)
+    this.cleanUpCallbacks.push(this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
+      (_descriptor, newDescriptorWrapper) => {
+        this.onDescriptorWrapperChange(newDescriptorWrapper! as RNC.RNCWebView.DescriptorWrapper)
       }
-    )
-    webview.WebviewController.setWebDebuggingAccess(this.descriptor.props.webviewDebuggingEnabled)
-    this.scrollEnabled = this.descriptor.props.scrollEnabled;
-    this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
-    this.cacheMode =
-      this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
-    this.source = this.descriptor.props.newSource
+    ))
+
+    // this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
+    //   (newDescriptor) => {
+    //     this.descriptor = (newDescriptor as WebViewViewDescriptor)
+    //     Logger.debug(TAG, `[RNOH] newDescriptor props uri, ${JSON.stringify(this.descriptor.props.newSource.uri)}`);
+    //     this.cacheMode =
+    //       this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
+    //     this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
+    //     this.source = this.descriptor.props.newSource
+    //     if (this.html != "" && this.html != this.source.html) {
+    //       Logger.debug(TAG, "[RNOH] html is update")
+    //       this.html = this.source.html
+    //       if (this.controllerAttached) {
+    //         try {
+    //           this.controller.loadData(
+    //             this.source.html,
+    //             "text/html",
+    //             "UTF-8",
+    //             this.source.baseUrl,
+    //             " "
+    //           );
+    //         } catch (error) {
+    //           Logger.error(TAG, "error: " + error)
+    //         }
+    //       }
+    //     } else if (this.source.uri != "" && this.url != this.source.uri) {
+    //       Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
+    //       this.url = this.source.uri
+    //       if (this.controllerAttached) {
+    //         this.controller.loadUrl(this.descriptor.props.newSource.uri)
+    //       }
+    //     }
+    // })
+
+    // webview.WebviewController.setWebDebuggingAccess(this.descriptor.props.webviewDebuggingEnabled)
+    this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
+    this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
+    // this.cacheMode =
+    //   this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode) : CacheMode.Online;
+    this.source = this.descriptorWrapper.props.newSource
     this.html = this.source.html
-    this.url = this.source.uri;
+    this.url = this.source.uri as string;
     // this.nestedScrollFlag = this.descriptor.props.nestedScrollEnabled;
     // nestedScrollEnabled true表示可嵌套滚动，不需要自适应和web统一渲染，默认是false
     // this.renderMode = this.nestedScrollFlag?RenderMode.ASYNC_RENDER:RenderMode.SYNC_RENDER
@@ -164,10 +180,10 @@ export struct RNCWebView {
   }
 
   private registerPostMessage() {
-    if (this.messagingEnabled == this.descriptor.props.messagingEnabled) {
+    if (this.messagingEnabled == this.descriptorWrapper.props.messagingEnabled) {
       return;
     }
-    this.messagingEnabled = this.descriptor.props.messagingEnabled;
+    this.messagingEnabled = this.descriptorWrapper.props.messagingEnabled;
     if (this.messagingEnabled) {
       let bridge: RNCWebViewBridge = {
         postMessage: (data: string) => {
@@ -176,7 +192,8 @@ export struct RNCWebView {
             let result: WebViewEventParams = this.createWebViewEvent("onMessage")
             result.data = data
             result.lockIdentifier = 0
-            this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, result);
+            // todo
+            // this.eventEmitter!.emit("message", result);
           }
         }
       };
@@ -208,6 +225,7 @@ export struct RNCWebView {
     this.cleanupCommandCallback?.()
     this.unregisterDescriptorChangesListener?.()
     Logger.debug(TAG, `[RNOH] aboutToDisappear`)
+    this.cleanUpCallbacks.forEach(cb => cb())
     try {
       this.controller.deleteJavaScriptRegister(JAVASCRIPT_INTERFACE)
       this.controller.refresh()
@@ -292,8 +310,7 @@ export struct RNCWebView {
   }
 
   onLoadingStart() {
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
-      type: "onLoadingStart",
+    this.eventEmitter!.emit('loadingStart', {
       url: this.controller.getUrl(),
       loading: this.progress != 100,
       title: this.controller.getTitle(),
@@ -306,8 +323,7 @@ export struct RNCWebView {
   }
 
   onLoadingFinish() {
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
-      type: "onLoadingFinish",
+    this.eventEmitter!.emit('loadingFinish', {
       url: this.controller.getUrl(),
       loading: this.progress != 100,
       title: this.controller.getTitle(),
@@ -320,8 +336,7 @@ export struct RNCWebView {
   }
 
   onLoadingError(code: number, description: string) {
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
-      type: "onLoadingError",
+    this.eventEmitter!.emit('loadingError', {
       url: this.controller.getUrl(),
       loading: false,
       title: this.controller.getTitle(),
@@ -335,8 +350,7 @@ export struct RNCWebView {
   }
 
   onShouldStartLoadWithRequest() {
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
-      type: "onShouldStartLoadWithRequest",
+    this.eventEmitter!.emit('shouldStartLoadWithRequest', {
       url: this.controller.getUrl(),
       loading: this.progress != 100,
       title: this.controller.getTitle(),
@@ -350,8 +364,7 @@ export struct RNCWebView {
   }
 
   onShouldStartLoadCallFunction(lockIdentifier: number, data: WebResourceRequest) {
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
-      type: "onShouldStartLoadWithRequest",
+    this.eventEmitter!.emit("shouldStartLoadWithRequest", {
       url: data.getRequestUrl(),
       loading: this.progress != 100,
       title: this.controller.getTitle(),
@@ -365,7 +378,7 @@ export struct RNCWebView {
   }
 
   runInjectedJavaScript() {
-    let injectedJS = this.descriptor.props.injectedJavaScript
+    let injectedJS = this.descriptorWrapper.props.injectedJavaScript
     if (this.javaScriptEnable && injectedJS != "" && this.controllerAttached) {
       try {
         this.controller.runJavaScript("(function() {\n" + injectedJS + ";\n})();")
@@ -385,18 +398,20 @@ export struct RNCWebView {
     //RNViewBase({ ctx: this.ctx, tag: this.tag }) {
     Stack() {
       Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
-        .width(this.descriptor.layoutMetrics.frame.size.width)
-        .height(this.descriptor.layoutMetrics.frame.size.height)
+        // .width(this.descriptorWrapper.layoutMetrics.frame.size.width)
+        // .height(this.descriptorWrapper.layoutMetrics.frame.size.height)
+        .width('100%')
+        .height('100%')
         .constraintSize({ minHeight: 1 })
         .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
-        .horizontalScrollBarAccess(this.descriptor.props.showsHorizontalScrollIndicator)
-        .verticalScrollBarAccess(this.descriptor.props.showsVerticalScrollIndicator)
-        .overviewModeAccess(this.descriptor.props.scalesPageToFit)
-        .textZoomRatio(this.descriptor.props.textZoom)
+        .horizontalScrollBarAccess(this.descriptorWrapper.props.showsHorizontalScrollIndicator)
+        .verticalScrollBarAccess(this.descriptorWrapper.props.showsVerticalScrollIndicator)
+        .overviewModeAccess(this.descriptorWrapper.props.scalesPageToFit)
+        .textZoomRatio(this.descriptorWrapper.props.textZoom)
         .cacheMode(this.cacheMode)
-        .domStorageAccess(this.descriptor.props.domStorageEnabled)
-        .zoomAccess(this.descriptor.props.scalesPageToFit)// nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
+        .domStorageAccess(this.descriptorWrapper.props.domStorageEnabled)
+        .zoomAccess(this.descriptorWrapper.props.scalesPageToFit)// nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
           // .layoutMode(this.nestedScrollFlag ? WebLayoutMode.NONE : WebLayoutMode.FIT_CONTENT)
 
           // .nestedScroll(this.nestedScrollFlag ? {
@@ -432,9 +447,9 @@ export struct RNCWebView {
           }
         })
         .onLoadIntercept((event) => {
-          if (!this.descriptor.props.shouldStartLoadWithRequestEnabled) {
+          if (!this.descriptorWrapper.props.shouldStartLoadWithRequestEnabled) {
             Logger.debug(TAG,
-              "[RNOH]:shouldStartLoadWithRequestEnabled:" + this.descriptor.props.shouldStartLoadWithRequestEnabled)
+              "[RNOH]:shouldStartLoadWithRequestEnabled:" + this.descriptorWrapper.props.shouldStartLoadWithRequestEnabled)
             return false
           }
           if (this.source.html != undefined && this.source.html != '') {
@@ -484,24 +499,27 @@ export struct RNCWebView {
             }
           } else if (uri != undefined && uri != "") {
             let header = this.source.headers;
-            if (header != undefined && header != "") {
-              let headers: Array<webview.WebHeader> = [];
-              JSON.parse(header, (key: string, value: string) => {
-                if (key && value) {
-                  headers.push({ headerKey: key, headerValue: value })
-                }
-                return undefined;
-              })
-              this.controller.loadUrl(uri, headers);
-            }
+            // if (header != undefined && header != "") {
+            //   let headers: Array<webview.WebHeader> = [];
+            //   JSON.parse(header, (key: string, value: string) => {
+            //     if (key && value) {
+            //       headers.push({ headerKey: key, headerValue: value })
+            //     }
+            //     return undefined;
+            //   })
+            //   this.controller.loadUrl(uri, headers);
+            // }
           }
           if (!this.hasRegisterJavaScriptProxy) {
             this.registerPostMessage()
           }
         })
     }
-    .width(this.descriptor.layoutMetrics.frame.size.width)
-    .height(this.descriptor.layoutMetrics.frame.size.height)
-    .position({ x: this.descriptor.layoutMetrics.frame.origin.x, y: this.descriptor.layoutMetrics.frame.origin.y })
+    .width('100%')
+    .height('100%')
+    .position({x: 0, y: 0})
+    // .width(this.descriptorWrapper.layoutMetrics.frame.size.width)
+    // .height(this.descriptorWrapper.layoutMetrics.frame.size.height)
+    // .position({ x: this.descriptorWrapper.layoutMetrics.frame.origin.x, y: this.descriptorWrapper.layoutMetrics.frame.origin.y })
   }
 }
