@@ -309,6 +309,57 @@ export struct RNCWebView {
               }
             }
             break
+          case "goBack":
+            Logger.debug(TAG, `[RNOH] goBack,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.backward();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
+          case "goForward":
+            Logger.debug(TAG, `[RNOH] goForward,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.forward();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
+          case "requestFocus":
+            Logger.debug(TAG, `[RNOH] requestFocus,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.requestFocus();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
+          case "clearCache":
+            Logger.debug(TAG, `[RNOH] clearCache,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                const removeFlag = !!args[0] === true;
+                this.controller.removeCache(removeFlag);
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
+          case "clearHistory":
+            Logger.debug(TAG, `[RNOH] clearHistory,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.clearHistory();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break            
           default:
             break
         }
@@ -417,10 +468,8 @@ export struct RNCWebView {
     //RNViewBase({ ctx: this.ctx, tag: this.tag }) {
     Stack() {
       Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
-        // .width(this.descriptorWrapper.layoutMetrics.frame.size.width)
-        // .height(this.descriptorWrapper.layoutMetrics.frame.size.height)
-        .width('100%')
-        .height('100%')
+        .width(this.descriptorWrapper.width)
+        .height(this.descriptorWrapper.height)
         .constraintSize({ minHeight: 1 })
         .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
@@ -545,11 +594,8 @@ export struct RNCWebView {
           }
         })
     }
-    .width('100%')
-    .height('100%')
-    .position({x: 0, y: 0})
-    // .width(this.descriptorWrapper.layoutMetrics.frame.size.width)
-    // .height(this.descriptorWrapper.layoutMetrics.frame.size.height)
-    // .position({ x: this.descriptorWrapper.layoutMetrics.frame.origin.x, y: this.descriptorWrapper.layoutMetrics.frame.origin.y })
+    .width(this.descriptorWrapper.width)
+    .height(this.descriptorWrapper.height)
+    .position({ x: this.descriptorWrapper.positionRelativeToParent.x, y: this.descriptorWrapper.positionRelativeToParent.y })
   }
 }
