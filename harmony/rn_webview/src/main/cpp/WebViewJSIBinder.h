@@ -31,6 +31,7 @@ namespace rnoh {
     {
         auto object = ViewComponentJSIBinder::createNativeProps(rt);
         object.setProperty(rt, "newSource", "object");
+        object.setProperty(rt, "bounces", "bool");
         object.setProperty(rt, "javaScriptEnabled", "bool");
         object.setProperty(rt, "injectedJavaScript", "string");
         object.setProperty(rt, "messagingEnabled", "bool");
@@ -38,6 +39,7 @@ namespace rnoh {
         object.setProperty(rt, "showsVerticalScrollIndicator", "bool");
         object.setProperty(rt, "textZoom", "int");
         object.setProperty(rt, "cacheEnabled", "bool");
+        object.setProperty(rt, "dataDetectorTypes", "Array");
         object.setProperty(rt, "cacheMode", "string");
         object.setProperty(rt, "domStorageEnabled", "bool");
         object.setProperty(rt, "scalesPageToFit", "bool");
