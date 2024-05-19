@@ -118,6 +118,7 @@ export struct RNCWebView {
   private eventEmitter: RNC.RNCWebView.EventEmitter | undefined = undefined
   private cleanUpCallbacks: (() => void)[] = []
   @State private descriptorWrapper: RNC.RNCWebView.DescriptorWrapper = {} as RNC.RNCWebView.DescriptorWrapper
+  overScrollMode: OverScrollMode = OverScrollMode.NEVER
 
   private onDescriptorWrapperChange(descriptorWrapper: RNC.RNCWebView.DescriptorWrapper) {
     this.descriptorWrapper = descriptorWrapper
@@ -131,6 +132,11 @@ export struct RNCWebView {
         this.onDescriptorWrapperChange(newDescriptorWrapper! as RNC.RNCWebView.DescriptorWrapper)
       }
     ))
+    if(this.descriptorWrapper.props.overScrollMode === 'always') {
+      this.overScrollMode = OverScrollMode.ALWAYS
+    } else if(this.descriptorWrapper.props.overScrollMode === 'never') {
+      this.overScrollMode = OverScrollMode.NEVER
+    }
 
     // this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
     //   (newDescriptor) => {
@@ -349,6 +355,19 @@ export struct RNCWebView {
     })
   }
 
+  onHttpError(code: number,description: string) {
+    this.eventEmitter!.emit('httpError', {
+      url: this.controller.getUrl(),
+      loading: false,
+      title: this.controller.getTitle(),
+      canGoBack: this.controller.accessBackward(),
+      canGoForward: this.controller.accessForward(),
+      lockIdentifier: 0,
+      description: description,
+      statusCode: code
+    })
+  }
+
   onShouldStartLoadWithRequest() {
     this.eventEmitter!.emit('shouldStartLoadWithRequest', {
       url: this.controller.getUrl(),
@@ -412,6 +431,7 @@ export struct RNCWebView {
         .cacheMode(this.cacheMode)
         .domStorageAccess(this.descriptorWrapper.props.domStorageEnabled)
         .zoomAccess(this.descriptorWrapper.props.scalesPageToFit)// nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
+        .overScrollMode(this.overScrollMode)
           // .layoutMode(this.nestedScrollFlag ? WebLayoutMode.NONE : WebLayoutMode.FIT_CONTENT)
 
           // .nestedScroll(this.nestedScrollFlag ? {
@@ -444,6 +464,16 @@ export struct RNCWebView {
             Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
             Logger.debug(TAG, "[RNOH] errorCode:" + errorCode)
             this.onLoadingError(errorCode, errorInfo)
+          }
+        })
+        .onHttpErrorReceive((event) => {
+          console.log('onHttpErrorReceiveevent',event)
+          if (event) {
+            let errorInfo: string = event.response.getResponseData();
+            let code: number = event.response.getResponseCode()
+            console.log('onHttpErrorReceive',errorInfo)
+            Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
+            this.onHttpError(code,errorInfo)
           }
         })
         .onLoadIntercept((event) => {
