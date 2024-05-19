@@ -105,6 +105,7 @@ export struct RNCWebView {
   private cleanupCommandCallback?: () => void = undefined
   controller: webview.WebviewController = new webview.WebviewController();
   javaScriptEnable: boolean = true
+  overScrollMode: OverScrollMode = OverScrollMode.NEVER
   progress: number = 0
   cacheMode: number = CacheMode.Default
   lockIdentifier: string = "";
@@ -176,6 +177,7 @@ export struct RNCWebView {
     // this.nestedScrollFlag = this.descriptor.props.nestedScrollEnabled;
     // nestedScrollEnabled true表示可嵌套滚动，不需要自适应和web统一渲染，默认是false
     // this.renderMode = this.nestedScrollFlag?RenderMode.ASYNC_RENDER:RenderMode.SYNC_RENDER
+    this.overScrollMode = this.descriptorWrapper.props.bounces ? OverScrollMode.ALWAYS : OverScrollMode.NEVER
     this.registerCommandCallback()
   }
 
@@ -403,6 +405,7 @@ export struct RNCWebView {
         .width('100%')
         .height('100%')
         .constraintSize({ minHeight: 1 })
+        .overScrollMode(this.overScrollMode)
         .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
         .horizontalScrollBarAccess(this.descriptorWrapper.props.showsHorizontalScrollIndicator)
