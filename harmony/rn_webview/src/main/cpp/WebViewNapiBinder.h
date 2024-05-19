@@ -45,6 +45,7 @@ namespace rnoh {
                 return objectBuilder.addProperty("newSource", sourceObject.build())
                   .addProperty("javaScriptEnabled", props->javaScriptEnabled)
                   .addProperty("injectedJavaScript", props->injectedJavaScript)
+                  .addProperty("bounces", props->bounces)
                   .addProperty("messagingEnabled", props->messagingEnabled)
                   .addProperty("showsHorizontalScrollIndicator", props->showsHorizontalScrollIndicator)
                   .addProperty("showsVerticalScrollIndicator", props->showsVerticalScrollIndicator)

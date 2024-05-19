@@ -1,7 +1,7 @@
-/*
+/**
  * MIT License
  *
- * Copyright (C) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,17 +22,22 @@
  * SOFTWARE.
  */
 
-import { Descriptor, ComponentBuilderContext, RNOHContext, ViewBaseProps } from '@rnoh/react-native-openharmony'
+import { Descriptor, RNOHContext, ViewBaseProps } from '@rnoh/react-native-openharmony';
 import webview from '@ohos.web.webview';
 import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
-import { RNViewBase } from '@rnoh/react-native-openharmony';
-import Logger from './Logger'
+import { RNC } from '@rnoh/react-native-openharmony/generated';
+import Logger from './Logger';
+
+export class WebViewNewSourceHeader {
+  name?: string
+  value?: string
+}
 
 export class WebViewNewSource {
-  uri: string | Resource = ""
+  uri?: string
   method?: string
   body?: string
-  headers?: string
+  headers?: WebViewNewSourceHeader[]
   html?: string
   baseUrl?: string
 }
@@ -59,12 +64,12 @@ export interface WebViewProps extends ViewBaseProps {
   shouldStartLoadWithRequestEnabled: boolean
   webviewDebuggingEnabled: boolean
   // nestedScrollEnabled: boolean
+  scrollEnabled: boolean
 }
 
 export class RNCWebViewBridge {
   postMessage!: (data: string) => void;
 }
-
 export class WebViewEventParams {
   type: string
   url?: string
@@ -80,18 +85,44 @@ export class WebViewEventParams {
   }
 }
 
+export enum  CACHE_MODE {
+  'LOAD_DEFAULT' = 'LOAD_DEFAULT',
+  'LOAD_CACHE_ELSE_NETWORK' = 'LOAD_CACHE_ELSE_NETWORK' ,
+  'LOAD_NO_CACHE' = 'LOAD_NO_CACHE' ,
+  'LOAD_CACHE_ONLY' = 'LOAD_CACHE_ONLY',
+}
+
+export class ResultType {
+  url: string
+  loading: boolean
+  title: string
+  canGoBack: boolean
+  canGoForward: boolean
+  lockIdentifier: number
+  data: string
+
+  constructor(url: string, loading: boolean, title: string, canGoBack: boolean, canGoForward: boolean, lockIdentifier: number, data: string) {
+    this.url = url
+    this.loading = loading
+    this.title = title
+    this.canGoBack = canGoBack
+    this.canGoForward = canGoForward
+    this.lockIdentifier = lockIdentifier
+    this.data = data
+  }
+}
+
 export type WebViewViewDescriptor = Descriptor<"RNCWebView", WebViewProps>
 
 @Component
-export struct WebView {
+export struct RNCWebView {
+  public static readonly NAME = RNC.RNCWebView.NAME
   ctx!: RNOHContext
   tag: number = 0
-  @State descriptor: WebViewViewDescriptor = {} as WebViewViewDescriptor
   @State source: WebViewNewSource = {
     uri: "",
     method: "",
     body: "",
-    headers: "",
     html: "",
     baseUrl: ""
   }
@@ -101,6 +132,7 @@ export struct WebView {
   private cleanupCommandCallback?: () => void = undefined
   controller: webview.WebviewController = new webview.WebviewController();
   javaScriptEnable: boolean = true
+  overScrollMode: OverScrollMode = OverScrollMode.NEVER
   progress: number = 0
   cacheMode: number = CacheMode.Default
   lockIdentifier: string = "";
@@ -110,58 +142,112 @@ export struct WebView {
   controllerAttached: boolean = false;
   // nestedScrollFlag: boolean = false;
   renderMode: RenderMode = RenderMode.SYNC_RENDER;
+  scrollEnabled = true;
+  private eventEmitter: RNC.RNCWebView.EventEmitter | undefined = undefined
+  private cleanUpCallbacks: (() => void)[] = []
+  @State private descriptorWrapper: RNC.RNCWebView.DescriptorWrapper = {} as RNC.RNCWebView.DescriptorWrapper
+  overScrollMode: OverScrollMode = OverScrollMode.NEVER
 
-  aboutToAppear() {
-    this.descriptor = this.ctx.descriptorRegistry.getDescriptor<WebViewViewDescriptor>(this.tag)
-    this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
-      (newDescriptor) => {
-        this.descriptor = (newDescriptor as WebViewViewDescriptor)
-        Logger.debug(TAG, `[RNOH] newDescriptor props uri, ${JSON.stringify(this.descriptor.props.newSource.uri)}`);
-        this.cacheMode = this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
-        this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
-        this.source = this.descriptor.props.newSource
-        if (this.html != "" && this.html != this.source.html) {
-          Logger.debug(TAG, "[RNOH] html is update")
-          this.html = this.source.html
-          if (this.controllerAttached) {
-            try {
-              this.controller.loadData(
-                this.source.html,
-                "text/html",
-                "UTF-8",
-                this.source.baseUrl,
-                " "
-              );
-            } catch (error) {
-              Logger.error(TAG, "error: " + error)
-            }
-          }
-        } else if (this.source.uri != "" && this.url != this.source.uri) {
-          Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
-          this.url = this.source.uri
-          if (this.controllerAttached) {
-            this.controller.loadUrl(this.descriptor.props.newSource.uri)
-          }
+  private onDescriptorWrapperChange(descriptorWrapper: RNC.RNCWebView.DescriptorWrapper) {
+    this.descriptorWrapper = descriptorWrapper
+
+    Logger.debug(TAG, `[RNOH] newDescriptor props uri, ${JSON.stringify(this.descriptorWrapper.props.newSource.uri)}`);
+    this.cacheMode =
+      this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) : CacheMode.Online;
+    this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
+    this.source = this.descriptorWrapper.props.newSource
+    this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
+    if (this.html != "" && this.html != this.source.html) {
+      Logger.debug(TAG, "[RNOH] html is update")
+      this.html = this.source.html
+      if (this.controllerAttached) {
+        try {
+          this.controller.loadData(
+            this.source.html,
+            "text/html",
+            "UTF-8",
+            this.source.baseUrl,
+            " "
+          );
+        } catch (error) {
+          Logger.error(TAG, "error: " + error)
         }
       }
-    )
-    webview.WebviewController.setWebDebuggingAccess(this.descriptor.props.webviewDebuggingEnabled)
-    this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
-    this.cacheMode = this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
-    this.source = this.descriptor.props.newSource
+    } else if (this.source.uri != "" && this.url != this.source.uri) {
+      Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
+      this.url = this.source.uri as string;
+      if (this.controllerAttached) {
+        this.controller.loadUrl(this.descriptorWrapper.props.newSource.uri)
+      }
+    }
+  }
+
+  aboutToAppear() {
+    this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
+    this.onDescriptorWrapperChange(this.ctx.descriptorRegistry.findDescriptorWrapperByTag<RNC.RNCWebView.DescriptorWrapper>(this.tag)!)
+    this.cleanUpCallbacks.push(this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
+      (_descriptor, newDescriptorWrapper) => {
+        this.onDescriptorWrapperChange(newDescriptorWrapper! as RNC.RNCWebView.DescriptorWrapper)
+      }
+    ))
+    if(this.descriptorWrapper.props.overScrollMode === 'always') {
+      this.overScrollMode = OverScrollMode.ALWAYS
+    } else if(this.descriptorWrapper.props.overScrollMode === 'never') {
+      this.overScrollMode = OverScrollMode.NEVER
+    }
+
+    // this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
+    //   (newDescriptor) => {
+    //     this.descriptor = (newDescriptor as WebViewViewDescriptor)
+    //     Logger.debug(TAG, `[RNOH] newDescriptor props uri, ${JSON.stringify(this.descriptor.props.newSource.uri)}`);
+    //     this.cacheMode =
+    //       this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
+    //     this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
+    //     this.source = this.descriptor.props.newSource
+    //     if (this.html != "" && this.html != this.source.html) {
+    //       Logger.debug(TAG, "[RNOH] html is update")
+    //       this.html = this.source.html
+    //       if (this.controllerAttached) {
+    //         try {
+    //           this.controller.loadData(
+    //             this.source.html,
+    //             "text/html",
+    //             "UTF-8",
+    //             this.source.baseUrl,
+    //             " "
+    //           );
+    //         } catch (error) {
+    //           Logger.error(TAG, "error: " + error)
+    //         }
+    //       }
+    //     } else if (this.source.uri != "" && this.url != this.source.uri) {
+    //       Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
+    //       this.url = this.source.uri
+    //       if (this.controllerAttached) {
+    //         this.controller.loadUrl(this.descriptor.props.newSource.uri)
+    //       }
+    //     }
+    // })
+    // webview.WebviewController.setWebDebuggingAccess(this.descriptor.props.webviewDebuggingEnabled)
+    this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
+    this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
+    this.cacheMode =
+      this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) : CacheMode.Online;
+    this.source = this.descriptorWrapper.props.newSource
     this.html = this.source.html
-    this.url = this.source.uri;
+    this.url = this.source.uri as string;
     // this.nestedScrollFlag = this.descriptor.props.nestedScrollEnabled;
     // nestedScrollEnabled true表示可嵌套滚动，不需要自适应和web统一渲染，默认是false
     // this.renderMode = this.nestedScrollFlag?RenderMode.ASYNC_RENDER:RenderMode.SYNC_RENDER
+    this.overScrollMode = this.descriptorWrapper.props.bounces ? OverScrollMode.ALWAYS : OverScrollMode.NEVER
     this.registerCommandCallback()
   }
 
   private registerPostMessage() {
-    if (this.messagingEnabled == this.descriptor.props.messagingEnabled) {
+    if (this.messagingEnabled == this.descriptorWrapper.props.messagingEnabled) {
       return;
     }
-    this.messagingEnabled = this.descriptor.props.messagingEnabled;
+    this.messagingEnabled = this.descriptorWrapper.props.messagingEnabled;
     if (this.messagingEnabled) {
       let bridge: RNCWebViewBridge = {
         postMessage: (data: string) => {
@@ -170,7 +256,7 @@ export struct WebView {
             let result: WebViewEventParams = this.createWebViewEvent("onMessage")
             result.data = data
             result.lockIdentifier = 0
-            this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, result);
+            this.eventEmitter!.emit("message", result as ResultType);
           }
         }
       };
@@ -202,6 +288,7 @@ export struct WebView {
     this.cleanupCommandCallback?.()
     this.unregisterDescriptorChangesListener?.()
     Logger.debug(TAG, `[RNOH] aboutToDisappear`)
+    this.cleanUpCallbacks.forEach(cb => cb())
     try {
       this.controller.deleteJavaScriptRegister(JAVASCRIPT_INTERFACE)
       this.controller.refresh()
@@ -211,19 +298,19 @@ export struct WebView {
     }
   }
 
-  transCacheMode(cacheMode: number): CacheMode {
+  transCacheMode(cacheMode: CACHE_MODE): CacheMode {
     let mode = CacheMode.Default
     switch (cacheMode) {
-      case 0:
+      case CACHE_MODE.LOAD_DEFAULT:
         mode = CacheMode.Default
         break;
-      case 1:
+      case CACHE_MODE.LOAD_CACHE_ELSE_NETWORK:
         mode = CacheMode.None
         break;
-      case 2:
+      case CACHE_MODE.LOAD_NO_CACHE:
         mode = CacheMode.Online
         break;
-      case 3:
+      case CACHE_MODE.LOAD_CACHE_ONLY:
         mode = CacheMode.Only
         break;
       default:
@@ -249,7 +336,7 @@ export struct WebView {
             break
           case "postMessage":
             Logger.debug(TAG, `[RNOH] postMessage,${JSON.stringify(args)}`)
-            let data = JSON.stringify({data : args[0]})
+            let data = JSON.stringify({ data: args[0] })
             let result: string = "(function () {" +
               "var event;" +
               "var data = " + data.toString() + ";" +
@@ -279,15 +366,78 @@ export struct WebView {
               }
             }
             break
+          case "goBack":
+            Logger.debug(TAG, `[RNOH] goBack,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.backward();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
+          case "goForward":
+            Logger.debug(TAG, `[RNOH] goForward,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.forward();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
+          case "requestFocus":
+            Logger.debug(TAG, `[RNOH] requestFocus,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.requestFocus();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
+          case "clearCache":
+            Logger.debug(TAG, `[RNOH] clearCache,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                const removeFlag = !!args[0] === true;
+                this.controller.removeCache(removeFlag);
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
+          case "clearHistory":
+            Logger.debug(TAG, `[RNOH] clearHistory,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.clearHistory();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
           default:
             break
         }
       });
   }
 
+  onLoadingStart() {
+    this.eventEmitter!.emit('loadingStart', {
+      url: this.controller.getUrl(),
+      loading: this.progress != 100,
+      title: this.controller.getTitle(),
+      canGoBack: this.controller.accessBackward(),
+      canGoForward: this.controller.accessForward(),
+      lockIdentifier: 0,
+      navigationType: "other",
+      mainDocumentURL: ""
+    })
+  }
+
   onLoadingFinish() {
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
-      type: "onLoadingFinish",
+    this.eventEmitter!.emit('loadingFinish', {
       url: this.controller.getUrl(),
       loading: this.progress != 100,
       title: this.controller.getTitle(),
@@ -300,8 +450,7 @@ export struct WebView {
   }
 
   onLoadingError(code: number, description: string) {
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
-      type: "onLoadingError",
+    this.eventEmitter!.emit('loadingError', {
       url: this.controller.getUrl(),
       loading: false,
       title: this.controller.getTitle(),
@@ -314,9 +463,21 @@ export struct WebView {
     })
   }
 
+  onHttpError(code: number,description: string) {
+    this.eventEmitter!.emit('httpError', {
+      url: this.controller.getUrl(),
+      loading: false,
+      title: this.controller.getTitle(),
+      canGoBack: this.controller.accessBackward(),
+      canGoForward: this.controller.accessForward(),
+      lockIdentifier: 0,
+      description: description,
+      statusCode: code
+    })
+  }
+
   onShouldStartLoadWithRequest() {
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
-      type: "onShouldStartLoadWithRequest",
+    this.eventEmitter!.emit('shouldStartLoadWithRequest', {
       url: this.controller.getUrl(),
       loading: this.progress != 100,
       title: this.controller.getTitle(),
@@ -330,8 +491,7 @@ export struct WebView {
   }
 
   onShouldStartLoadCallFunction(lockIdentifier: number, data: WebResourceRequest) {
-    this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
-      type: "onShouldStartLoadWithRequest",
+    this.eventEmitter!.emit("shouldStartLoadWithRequest", {
       url: data.getRequestUrl(),
       loading: this.progress != 100,
       title: this.controller.getTitle(),
@@ -345,7 +505,7 @@ export struct WebView {
   }
 
   runInjectedJavaScript() {
-    let injectedJS = this.descriptor.props.injectedJavaScript
+    let injectedJS = this.descriptorWrapper.props.injectedJavaScript
     if (this.javaScriptEnable && injectedJS != "" && this.controllerAttached) {
       try {
         this.controller.runJavaScript("(function() {\n" + injectedJS + ";\n})();")
@@ -364,35 +524,40 @@ export struct WebView {
   build() {
     //RNViewBase({ ctx: this.ctx, tag: this.tag }) {
     Stack() {
-      Web({ src: this.source.uri, controller: this.controller,renderMode: this.renderMode })
-        .width(this.descriptor.layoutMetrics.frame.size.width)
-        .height(this.descriptor.layoutMetrics.frame.size.height)
+      Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
+        .width(this.descriptorWrapper.width)
+        .height(this.descriptorWrapper.height)
         .constraintSize({ minHeight: 1 })
+        .overScrollMode(this.overScrollMode)
         .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
-        .horizontalScrollBarAccess(this.descriptor.props.showsHorizontalScrollIndicator)
-        .verticalScrollBarAccess(this.descriptor.props.showsVerticalScrollIndicator)
-        .overviewModeAccess(this.descriptor.props.scalesPageToFit)
-        .textZoomRatio(this.descriptor.props.textZoom)
+        .horizontalScrollBarAccess(this.descriptorWrapper.props.showsHorizontalScrollIndicator)
+        .verticalScrollBarAccess(this.descriptorWrapper.props.showsVerticalScrollIndicator)
+        .overviewModeAccess(this.descriptorWrapper.props.scalesPageToFit)
+        .textZoomRatio(this.descriptorWrapper.props.textZoom)
         .cacheMode(this.cacheMode)
-        .domStorageAccess(this.descriptor.props.domStorageEnabled)
-        .zoomAccess(this.descriptor.props.scalesPageToFit)
-         // nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
-        // .layoutMode(this.nestedScrollFlag ? WebLayoutMode.NONE : WebLayoutMode.FIT_CONTENT)
+        .domStorageAccess(this.descriptorWrapper.props.domStorageEnabled)
+        .zoomAccess(this.descriptorWrapper.props.scalesPageToFit)// nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
+        .overScrollMode(this.overScrollMode)
+          // .layoutMode(this.nestedScrollFlag ? WebLayoutMode.NONE : WebLayoutMode.FIT_CONTENT)
 
-        // .nestedScroll(this.nestedScrollFlag ? {
-        //   scrollForward: NestedScrollMode.SELF_ONLY,
-        //   scrollBackward: NestedScrollMode.SELF_ONLY
-        // } : { scrollForward: NestedScrollMode.PARENT_FIRST, scrollBackward: NestedScrollMode.PARENT_FIRST })
-        // .overScrollMode(OverScrollMode.NEVER)
-        // .onSizeChange((event)=>{
-        //   Logger.debug(TAG, "[RNOH] event width: " + event.width + "[RNOH] event height: " + event.height)
-        // })
+          // .nestedScroll(this.nestedScrollFlag ? {
+          //   scrollForward: NestedScrollMode.SELF_ONLY,
+          //   scrollBackward: NestedScrollMode.SELF_ONLY
+          // } : { scrollForward: NestedScrollMode.PARENT_FIRST, scrollBackward: NestedScrollMode.PARENT_FIRST })
+          // .overScrollMode(OverScrollMode.NEVER)
+          // .onSizeChange((event)=>{
+          //   Logger.debug(TAG, "[RNOH] event width: " + event.width + "[RNOH] event height: " + event.height)
+          // })
         .onProgressChange((event) => {
           if (event) {
             this.progress = event.newProgress
             Logger.debug(TAG, "[RNOH] event progress: " + event.newProgress)
           }
+        })
+        .onPageBegin(() => {
+          this.onLoadingStart()
+          this.controller.setScrollable(this.scrollEnabled)
         })
         .onPageEnd(() => {
           Logger.debug(TAG, "[RNOH] onPageEnd")
@@ -403,18 +568,25 @@ export struct WebView {
           if (event) {
             let errorInfo: string = event.error.getErrorInfo();
             let errorCode: number = event.error.getErrorCode();
-            if (errorInfo == "ERR_INTERNET_DISCONNECTED" || errorInfo == "ERR_CACHE_MISS" || !event.request.isMainFrame()) {
-              Logger.debug(TAG, "[RNOH] ERR_INTERNET_DISCONNECTED:OR ERR_CACHE_MISS")
-              return
-            }
             Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
             Logger.debug(TAG, "[RNOH] errorCode:" + errorCode)
             this.onLoadingError(errorCode, errorInfo)
           }
         })
+        .onHttpErrorReceive((event) => {
+          console.log('onHttpErrorReceiveevent',event)
+          if (event) {
+            let errorInfo: string = event.response.getResponseData();
+            let code: number = event.response.getResponseCode()
+            console.log('onHttpErrorReceive',errorInfo)
+            Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
+            this.onHttpError(code,errorInfo)
+          }
+        })
         .onLoadIntercept((event) => {
-          if (!this.descriptor.props.shouldStartLoadWithRequestEnabled) {
-            Logger.debug(TAG, "[RNOH]:shouldStartLoadWithRequestEnabled:" + this.descriptor.props.shouldStartLoadWithRequestEnabled)
+          if (!this.descriptorWrapper.props.shouldStartLoadWithRequestEnabled) {
+            Logger.debug(TAG,
+              "[RNOH]:shouldStartLoadWithRequestEnabled:" + this.descriptorWrapper.props.shouldStartLoadWithRequestEnabled)
             return false
           }
           if (this.source.html != undefined && this.source.html != '') {
@@ -464,13 +636,12 @@ export struct WebView {
             }
           } else if (uri != undefined && uri != "") {
             let header = this.source.headers;
-            if (header != undefined && header != "") {
+            if (header != undefined) {
               let headers: Array<webview.WebHeader> = [];
-              JSON.parse(header,( key: string, value: string) => {
-                if(key && value){
-                  headers.push({ headerKey: key, headerValue: value })
+              header.forEach(item => {
+                if (item.name && item.value) {
+                  headers.push({ headerKey: item.name, headerValue: item.value })
                 }
-                return undefined;
               })
               this.controller.loadUrl(uri, headers);
             }
@@ -480,8 +651,8 @@ export struct WebView {
           }
         })
     }
-    .width(this.descriptor.layoutMetrics.frame.size.width)
-    .height(this.descriptor.layoutMetrics.frame.size.height)
-    .position({x:this.descriptor.layoutMetrics.frame.origin.x,y:this.descriptor.layoutMetrics.frame.origin.y})
+    .width(this.descriptorWrapper.width)
+    .height(this.descriptorWrapper.height)
+    .position({ x: this.descriptorWrapper.positionRelativeToParent.x, y: this.descriptorWrapper.positionRelativeToParent.y })
   }
 }
