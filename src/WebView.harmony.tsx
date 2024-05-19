@@ -9,21 +9,20 @@ import { Double } from 'react-native/Libraries/Types/CodegenTypes';
 import invariant from 'invariant';
 
 import RNCWebView, { Commands, NativeProps } from './RNCWebViewNativeComponent';
-import RNCWebViewModule from './NativeRNCWebView';
 
 import {
   defaultOriginWhitelist,
   defaultRenderError,
   defaultRenderLoading,
   useWebViewLogic,
-} from './WebViewShared';
+} from 'react-native-webview/src/WebViewShared';
 import {
   IOSWebViewProps,
   DecelerationRateConstant,
   WebViewSourceUri,
-} from './WebViewTypes';
+} from 'react-native-webview/src/WebViewTypes';
 
-import styles from './WebView.styles';
+import styles from 'react-native-webview/src/WebView.styles';
 
 const { resolveAssetSource } = Image;
 const processDecelerationRate = (
@@ -51,7 +50,7 @@ const useWarnIfChanges = <T extends unknown>(value: T, name: string) => {
 const shouldStartLoadWithLockIdentifier:(
   shouldStart: boolean,
   lockIdentifier: Double
-) => void = (shouldStart, lockIdentifier) => {}
+) => void = () => {}
 
 const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
   (
