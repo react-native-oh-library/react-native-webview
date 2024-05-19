@@ -302,6 +302,57 @@ export struct RNCWebView {
               }
             }
             break
+          case "goBack":
+            Logger.debug(TAG, `[RNOH] goBack,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.backward();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
+          case "goForward":
+            Logger.debug(TAG, `[RNOH] goForward,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.forward();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
+          case "requestFocus":
+            Logger.debug(TAG, `[RNOH] requestFocus,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.requestFocus();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
+          case "clearCache":
+            Logger.debug(TAG, `[RNOH] clearCache,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                const removeFlag = !!args[0] === true;
+                this.controller.removeCache(removeFlag);
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
+          case "clearHistory":
+            Logger.debug(TAG, `[RNOH] clearHistory,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.clearHistory();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break            
           default:
             break
         }
