@@ -131,7 +131,6 @@ export struct RNCWebView {
         this.onDescriptorWrapperChange(newDescriptorWrapper! as RNC.RNCWebView.DescriptorWrapper)
       }
     ))
-
     // this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
     //   (newDescriptor) => {
     //     this.descriptor = (newDescriptor as WebViewViewDescriptor)
@@ -398,10 +397,8 @@ export struct RNCWebView {
     //RNViewBase({ ctx: this.ctx, tag: this.tag }) {
     Stack() {
       Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
-        // .width(this.descriptorWrapper.layoutMetrics.frame.size.width)
-        // .height(this.descriptorWrapper.layoutMetrics.frame.size.height)
-        .width('100%')
-        .height('100%')
+        .width(this.descriptorWrapper.width)
+        .height(this.descriptorWrapper.height)
         .constraintSize({ minHeight: 1 })
         .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
@@ -515,11 +512,8 @@ export struct RNCWebView {
           }
         })
     }
-    .width('100%')
-    .height('100%')
-    .position({x: 0, y: 0})
-    // .width(this.descriptorWrapper.layoutMetrics.frame.size.width)
-    // .height(this.descriptorWrapper.layoutMetrics.frame.size.height)
-    // .position({ x: this.descriptorWrapper.layoutMetrics.frame.origin.x, y: this.descriptorWrapper.layoutMetrics.frame.origin.y })
+    .width(this.descriptorWrapper.width)
+    .height(this.descriptorWrapper.height)
+    .position({ x: this.descriptorWrapper.positionRelativeToParent.x, y: this.descriptorWrapper.positionRelativeToParent.y })
   }
 }
