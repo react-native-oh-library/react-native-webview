@@ -234,6 +234,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
       <NativeWebView
         key="webViewKey"
         {...otherProps}
+        scrollEnabled={otherProps.scrollEnabled ?? true}
         fraudulentWebsiteWarningEnabled={fraudulentWebsiteWarningEnabled}
         javaScriptEnabled={javaScriptEnabled}
         cacheEnabled={cacheEnabled}
