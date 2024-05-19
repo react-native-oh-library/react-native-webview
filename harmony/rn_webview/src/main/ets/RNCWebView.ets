@@ -85,6 +85,33 @@ export class WebViewEventParams {
   }
 }
 
+export enum  CACHE_MODE {
+  'LOAD_DEFAULT' = 'LOAD_DEFAULT',
+  'LOAD_CACHE_ELSE_NETWORK' = 'LOAD_CACHE_ELSE_NETWORK' ,
+  'LOAD_NO_CACHE' = 'LOAD_NO_CACHE' ,
+  'LOAD_CACHE_ONLY' = 'LOAD_CACHE_ONLY',
+}
+
+export class ResultType {
+  url: string
+  loading: boolean
+  title: string
+  canGoBack: boolean
+  canGoForward: boolean
+  lockIdentifier: number
+  data: string
+
+  constructor(url: string, loading: boolean, title: string, canGoBack: boolean, canGoForward: boolean, lockIdentifier: number, data: string) {
+    this.url = url
+    this.loading = loading
+    this.title = title
+    this.canGoBack = canGoBack
+    this.canGoForward = canGoForward
+    this.lockIdentifier = lockIdentifier
+    this.data = data
+  }
+}
+
 export type WebViewViewDescriptor = Descriptor<"RNCWebView", WebViewProps>
 
 @Component
@@ -121,6 +148,36 @@ export struct RNCWebView {
 
   private onDescriptorWrapperChange(descriptorWrapper: RNC.RNCWebView.DescriptorWrapper) {
     this.descriptorWrapper = descriptorWrapper
+
+    Logger.debug(TAG, `[RNOH] newDescriptor props uri, ${JSON.stringify(this.descriptorWrapper.props.newSource.uri)}`);
+    this.cacheMode =
+      this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) : CacheMode.Online;
+    this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
+    this.source = this.descriptorWrapper.props.newSource
+    this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
+    if (this.html != "" && this.html != this.source.html) {
+      Logger.debug(TAG, "[RNOH] html is update")
+      this.html = this.source.html
+      if (this.controllerAttached) {
+        try {
+          this.controller.loadData(
+            this.source.html,
+            "text/html",
+            "UTF-8",
+            this.source.baseUrl,
+            " "
+          );
+        } catch (error) {
+          Logger.error(TAG, "error: " + error)
+        }
+      }
+    } else if (this.source.uri != "" && this.url != this.source.uri) {
+      Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
+      this.url = this.source.uri as string;
+      if (this.controllerAttached) {
+        this.controller.loadUrl(this.descriptorWrapper.props.newSource.uri)
+      }
+    }
   }
 
   aboutToAppear() {
@@ -163,12 +220,11 @@ export struct RNCWebView {
     //       }
     //     }
     // })
-
     // webview.WebviewController.setWebDebuggingAccess(this.descriptor.props.webviewDebuggingEnabled)
     this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
     this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
-    // this.cacheMode =
-    //   this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode) : CacheMode.Online;
+    this.cacheMode =
+      this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) : CacheMode.Online;
     this.source = this.descriptorWrapper.props.newSource
     this.html = this.source.html
     this.url = this.source.uri as string;
@@ -191,8 +247,7 @@ export struct RNCWebView {
             let result: WebViewEventParams = this.createWebViewEvent("onMessage")
             result.data = data
             result.lockIdentifier = 0
-            // todo
-            // this.eventEmitter!.emit("message", result);
+            this.eventEmitter!.emit("message", result as ResultType);
           }
         }
       };
@@ -234,19 +289,19 @@ export struct RNCWebView {
     }
   }
 
-  transCacheMode(cacheMode: number): CacheMode {
+  transCacheMode(cacheMode: CACHE_MODE): CacheMode {
     let mode = CacheMode.Default
     switch (cacheMode) {
-      case 0:
+      case CACHE_MODE.LOAD_DEFAULT:
         mode = CacheMode.Default
         break;
-      case 1:
+      case CACHE_MODE.LOAD_CACHE_ELSE_NETWORK:
         mode = CacheMode.None
         break;
-      case 2:
+      case CACHE_MODE.LOAD_NO_CACHE:
         mode = CacheMode.Online
         break;
-      case 3:
+      case CACHE_MODE.LOAD_CACHE_ONLY:
         mode = CacheMode.Only
         break;
       default:
@@ -352,7 +407,7 @@ export struct RNCWebView {
                 Logger.error(TAG, "error: " + error)
               }
             }
-            break            
+            break
           default:
             break
         }
@@ -547,16 +602,15 @@ export struct RNCWebView {
             }
           } else if (uri != undefined && uri != "") {
             let header = this.source.headers;
-            // if (header != undefined && header != "") {
-            //   let headers: Array<webview.WebHeader> = [];
-            //   JSON.parse(header, (key: string, value: string) => {
-            //     if (key && value) {
-            //       headers.push({ headerKey: key, headerValue: value })
-            //     }
-            //     return undefined;
-            //   })
-            //   this.controller.loadUrl(uri, headers);
-            // }
+            if (header != undefined) {
+              let headers: Array<webview.WebHeader> = [];
+              header.forEach(item => {
+                if (item.name && item.value) {
+                  headers.push({ headerKey: item.name, headerValue: item.value })
+                }
+              })
+              this.controller.loadUrl(uri, headers);
+            }
           }
           if (!this.hasRegisterJavaScriptProxy) {
             this.registerPostMessage()
