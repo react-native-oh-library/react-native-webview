@@ -119,7 +119,7 @@ export struct RNCWebView {
   public static readonly NAME = RNC.RNCWebView.NAME
   ctx!: RNOHContext
   tag: number = 0
-  @State source: WebViewNewSource = {
+  source: WebViewNewSource = {
     uri: "",
     method: "",
     body: "",
@@ -145,8 +145,7 @@ export struct RNCWebView {
   scrollEnabled = true;
   private eventEmitter: RNC.RNCWebView.EventEmitter | undefined = undefined
   private cleanUpCallbacks: (() => void)[] = []
-  @State private descriptorWrapper: RNC.RNCWebView.DescriptorWrapper = {} as RNC.RNCWebView.DescriptorWrapper
-  overScrollMode: OverScrollMode = OverScrollMode.NEVER
+  private descriptorWrapper: RNC.RNCWebView.DescriptorWrapper = {} as RNC.RNCWebView.DescriptorWrapper
 
   private onDescriptorWrapperChange(descriptorWrapper: RNC.RNCWebView.DescriptorWrapper) {
     this.descriptorWrapper = descriptorWrapper
@@ -156,7 +155,6 @@ export struct RNCWebView {
       this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) : CacheMode.Online;
     this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
     this.source = this.descriptorWrapper.props.newSource
-    this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
     if (this.html != "" && this.html != this.source.html) {
       Logger.debug(TAG, "[RNOH] html is update")
       this.html = this.source.html
@@ -179,6 +177,9 @@ export struct RNCWebView {
       if (this.controllerAttached) {
         this.controller.loadUrl(this.descriptorWrapper.props.newSource.uri)
       }
+    }
+    if (this.controllerAttached) {
+      this.controller?.setScrollable(this.descriptorWrapper.props.scrollEnabled)
     }
   }
 
