@@ -34,7 +34,7 @@ export class WebViewNewSourceHeader {
 }
 
 export class WebViewNewSource {
-  uri?: string
+  uri?: string | Resource
   method?: string
   body?: string
   headers?: WebViewNewSourceHeader[]
