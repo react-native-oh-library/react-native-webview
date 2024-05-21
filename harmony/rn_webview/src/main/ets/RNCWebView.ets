@@ -34,7 +34,7 @@ export class WebViewNewSourceHeader {
 }
 
 export class WebViewNewSource {
-  uri?: string
+  uri?: string | Resource
   method?: string
   body?: string
   headers?: WebViewNewSourceHeader[]
@@ -236,6 +236,9 @@ export struct RNCWebView {
       this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) : CacheMode.Online;
     this.source = this.descriptorWrapper.props.newSource
     this.html = this.source.html
+    if (this.source.uri && this.source.uri.toString().startsWith("asset://")) {
+      this.source.uri = $rawfile(this.source.uri.toString().replace("asset://", this.ctx.rnInstance.getAssetsDest()));
+    }
     this.url = this.source.uri as string;
     // this.nestedScrollFlag = this.descriptor.props.nestedScrollEnabled;
     // nestedScrollEnabled true表示可嵌套滚动，不需要自适应和web统一渲染，默认是false
