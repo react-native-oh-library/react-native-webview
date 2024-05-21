@@ -149,12 +149,7 @@ export struct RNCWebView {
 
   private onDescriptorWrapperChange(descriptorWrapper: RNC.RNCWebView.DescriptorWrapper) {
     this.descriptorWrapper = descriptorWrapper
-
-    Logger.debug(TAG, `[RNOH] newDescriptor props uri, ${JSON.stringify(this.descriptorWrapper.props.newSource.uri)}`);
-    this.cacheMode =
-      this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) : CacheMode.Online;
-    this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
-    this.source = this.descriptorWrapper.props.newSource
+    this.initVariable()
     if (this.html != "" && this.html != this.source.html) {
       Logger.debug(TAG, "[RNOH] html is update")
       this.html = this.source.html
@@ -185,63 +180,33 @@ export struct RNCWebView {
 
   aboutToAppear() {
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
-    this.onDescriptorWrapperChange(this.ctx.descriptorRegistry.findDescriptorWrapperByTag<RNC.RNCWebView.DescriptorWrapper>(this.tag)!)
+    this.descriptorWrapper = this.ctx.descriptorRegistry.findDescriptorWrapperByTag<RNC.RNCWebView.DescriptorWrapper>(this.tag)!
+
+    this.initVariable()
     this.cleanUpCallbacks.push(this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
       (_descriptor, newDescriptorWrapper) => {
         this.onDescriptorWrapperChange(newDescriptorWrapper! as RNC.RNCWebView.DescriptorWrapper)
       }
     ))
+
+    this.registerCommandCallback()
+  }
+
+  private initVariable() {
+    this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
+    this.cacheMode =
+      this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) : CacheMode.Online;
+    this.source = this.descriptorWrapper.props.newSource
+    this.html = this.source.html
+    this.url = this.source.uri || '';
+
     if(this.descriptorWrapper.props.overScrollMode === 'always') {
       this.overScrollMode = OverScrollMode.ALWAYS
     } else if(this.descriptorWrapper.props.overScrollMode === 'never') {
       this.overScrollMode = OverScrollMode.NEVER
     }
 
-    // this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
-    //   (newDescriptor) => {
-    //     this.descriptor = (newDescriptor as WebViewViewDescriptor)
-    //     Logger.debug(TAG, `[RNOH] newDescriptor props uri, ${JSON.stringify(this.descriptor.props.newSource.uri)}`);
-    //     this.cacheMode =
-    //       this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
-    //     this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
-    //     this.source = this.descriptor.props.newSource
-    //     if (this.html != "" && this.html != this.source.html) {
-    //       Logger.debug(TAG, "[RNOH] html is update")
-    //       this.html = this.source.html
-    //       if (this.controllerAttached) {
-    //         try {
-    //           this.controller.loadData(
-    //             this.source.html,
-    //             "text/html",
-    //             "UTF-8",
-    //             this.source.baseUrl,
-    //             " "
-    //           );
-    //         } catch (error) {
-    //           Logger.error(TAG, "error: " + error)
-    //         }
-    //       }
-    //     } else if (this.source.uri != "" && this.url != this.source.uri) {
-    //       Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
-    //       this.url = this.source.uri
-    //       if (this.controllerAttached) {
-    //         this.controller.loadUrl(this.descriptor.props.newSource.uri)
-    //       }
-    //     }
-    // })
-    // webview.WebviewController.setWebDebuggingAccess(this.descriptor.props.webviewDebuggingEnabled)
-    this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
-    this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
-    this.cacheMode =
-      this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) : CacheMode.Online;
-    this.source = this.descriptorWrapper.props.newSource
-    this.html = this.source.html
-    this.url = this.source.uri as string;
-    // this.nestedScrollFlag = this.descriptor.props.nestedScrollEnabled;
-    // nestedScrollEnabled true表示可嵌套滚动，不需要自适应和web统一渲染，默认是false
-    // this.renderMode = this.nestedScrollFlag?RenderMode.ASYNC_RENDER:RenderMode.SYNC_RENDER
-    this.overScrollMode = this.descriptorWrapper.props.bounces ? OverScrollMode.ALWAYS : OverScrollMode.NEVER
-    this.registerCommandCallback()
+    this.overScrollMode = this.descriptorWrapper.props.bounces ? OverScrollMode.ALWAYS : OverScrollMode.NEVER;
   }
 
   private registerPostMessage() {
@@ -523,9 +488,8 @@ export struct RNCWebView {
   }
 
   build() {
-    //RNViewBase({ ctx: this.ctx, tag: this.tag }) {
     Stack() {
-      Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
+      Web({ src: this.source.uri || '', controller: this.controller, renderMode: this.renderMode })
         .width(this.descriptorWrapper.width)
         .height(this.descriptorWrapper.height)
         .constraintSize({ minHeight: 1 })
@@ -540,16 +504,6 @@ export struct RNCWebView {
         .domStorageAccess(this.descriptorWrapper.props.domStorageEnabled)
         .zoomAccess(this.descriptorWrapper.props.scalesPageToFit)// nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
         .overScrollMode(this.overScrollMode)
-          // .layoutMode(this.nestedScrollFlag ? WebLayoutMode.NONE : WebLayoutMode.FIT_CONTENT)
-
-          // .nestedScroll(this.nestedScrollFlag ? {
-          //   scrollForward: NestedScrollMode.SELF_ONLY,
-          //   scrollBackward: NestedScrollMode.SELF_ONLY
-          // } : { scrollForward: NestedScrollMode.PARENT_FIRST, scrollBackward: NestedScrollMode.PARENT_FIRST })
-          // .overScrollMode(OverScrollMode.NEVER)
-          // .onSizeChange((event)=>{
-          //   Logger.debug(TAG, "[RNOH] event width: " + event.width + "[RNOH] event height: " + event.height)
-          // })
         .onProgressChange((event) => {
           if (event) {
             this.progress = event.newProgress
@@ -569,6 +523,10 @@ export struct RNCWebView {
           if (event) {
             let errorInfo: string = event.error.getErrorInfo();
             let errorCode: number = event.error.getErrorCode();
+            if (!event.request.isMainFrame()) {
+              Logger.debug(TAG, "[RNOH] ERR_INTERNET_DISCONNECTED:OR ERR_CACHE_MISS")
+              return
+            }
             Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
             Logger.debug(TAG, "[RNOH] errorCode:" + errorCode)
             this.onLoadingError(errorCode, errorInfo)
