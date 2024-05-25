@@ -27,6 +27,8 @@
 #include "ComponentDescriptors.h"
 #include "WebViewJSIBinder.h"
 #include "WebViewNapiBinder.h"
+#include "./RNCWebViewJSIBinder.h"
+#include "./RNCWebViewComponentDescriptor.h"
 #include "WebViewEventEmitRequestHandler.h"
 #include "RNCWebViewTurboModule.h"
 
@@ -59,12 +61,13 @@ public:
     {
         return {
             facebook::react::concreteComponentDescriptorProvider<facebook::react::WebViewComponentDescriptor>(),
+            facebook::react::concreteComponentDescriptorProvider<facebook::react::RNCWebViewComponentDescriptor>(),
         };
     }
     
     ComponentJSIBinderByString createComponentJSIBinderByName() override
     {
-        return {{"RNCWebView", std::make_shared<WebViewJSIBinder>()}};
+        return {{"RNCWebView", std::make_shared<RNCWebViewJSIBinder>()}};
     };
     
     ComponentNapiBinderByString createComponentNapiBinderByName() override
