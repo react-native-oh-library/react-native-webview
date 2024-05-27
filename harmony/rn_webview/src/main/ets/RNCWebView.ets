@@ -25,7 +25,7 @@
 import { Descriptor, RNOHContext, ViewBaseProps } from '@rnoh/react-native-openharmony';
 import webview from '@ohos.web.webview';
 import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
-import { RNC } from '@rnoh/react-native-openharmony/generated';
+import { RNC } from './namespace';
 import Logger from './Logger';
 
 export class WebViewNewSourceHeader {
