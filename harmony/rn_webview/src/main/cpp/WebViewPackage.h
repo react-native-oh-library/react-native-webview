@@ -24,57 +24,83 @@
 
 #pragma once
 #include "RNOH/Package.h"
-#include "ComponentDescriptors.h"
-#include "WebViewJSIBinder.h"
-#include "WebViewNapiBinder.h"
-#include "WebViewEventEmitRequestHandler.h"
-#include "RNCWebViewTurboModule.h"
+#include "RNOH/ArkTSTurboModule.h"
+#include "./RNCWebViewJSIBinder.h"
+#include "./RNCWebViewComponentDescriptor.h"
+#include "./RNCWebViewTurboModule.h"
+
 
 using namespace rnoh;
 using namespace facebook;
 
+
 class WebViewTurboModuleFactoryDelegate : public TurboModuleFactoryDelegate {
 public:
-    SharedTurboModule createTurboModule(Context ctx, const std::string &name) const override
-    {
-        if (name == "RNCWebView") {
-            return std::make_shared<RNCWebViewTurboModule>(ctx, name);
-        }
+    SharedTurboModule createTurboModule(Context ctx, const std::string &name) const override {
+                if (name == "RNCWebView") {
+                    return std::make_shared<RNCWebViewTurboModule>(ctx, name);
+                }
         return nullptr;
     };
 };
-
 namespace rnoh {
+
+
+class WebViewEventEmitRequestHandler : public EventEmitRequestHandler {
+public:
+    void handleEvent(Context const &ctx) override {
+        auto eventEmitter = ctx.shadowViewRegistry->getEventEmitter<facebook::react::EventEmitter>(ctx.tag);
+        if (eventEmitter == nullptr) {
+            return;
+        }
+
+        std::vector<std::string> supportedEventNames = {
+            "contentSizeChange",
+            "renderProcessGone",
+            "contentProcessDidTerminate",
+            "customMenuSelection",
+            "fileDownload",
+            "loadingError",
+            "loadingFinish",
+            "loadingProgress",
+            "loadingStart",
+            "httpError",
+            "message",
+            "openWindow",
+            "scroll",
+            "shouldStartLoadWithRequest",
+        };
+        if (std::find(supportedEventNames.begin(), supportedEventNames.end(), ctx.eventName) !=
+            supportedEventNames.end()) {
+            eventEmitter->dispatchEvent(ctx.eventName, ArkJS(ctx.env).getDynamic(ctx.payload));
+        }
+    }
+};
 
 class WebViewPackage : public Package {
 public:
     WebViewPackage(Package::Context ctx) : Package(ctx) {}
 
-    std::unique_ptr<TurboModuleFactoryDelegate> createTurboModuleFactoryDelegate() override
-    {
+    std::unique_ptr<TurboModuleFactoryDelegate> createTurboModuleFactoryDelegate() override {
         return std::make_unique<WebViewTurboModuleFactoryDelegate>();
     }
-    
-    std::vector<facebook::react::ComponentDescriptorProvider> createComponentDescriptorProviders() override
-    {
+
+    std::vector<facebook::react::ComponentDescriptorProvider> createComponentDescriptorProviders() override {
         return {
-            facebook::react::concreteComponentDescriptorProvider<facebook::react::WebViewComponentDescriptor>(),
+            facebook::react::concreteComponentDescriptorProvider<facebook::react::RNCWebViewComponentDescriptor>(),
         };
     }
-    
-    ComponentJSIBinderByString createComponentJSIBinderByName() override
-    {
-        return {{"RNCWebView", std::make_shared<WebViewJSIBinder>()}};
+
+    ComponentJSIBinderByString createComponentJSIBinderByName() override {
+        return {{"RNCWebView", std::make_shared<RNCWebViewJSIBinder>()}};
     };
-    
-    ComponentNapiBinderByString createComponentNapiBinderByName() override
-    {
-        return {{"RNCWebView", std::make_shared<WebViewNapiBinder>()}};
-    };
-    
-    EventEmitRequestHandlers createEventEmitRequestHandlers() override
-    {
-        return {std::make_shared<WebViewEventEmitRequestHandler>()};
+
+    ComponentNapiBinderByString createComponentNapiBinderByName() override { return {}; };
+
+    EventEmitRequestHandlers createEventEmitRequestHandlers() override {
+        return {
+            std::make_shared<WebViewEventEmitRequestHandler>(),
+        };
     }
-    };
+};
 } // namespace rnoh
