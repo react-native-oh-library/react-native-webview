@@ -22,6 +22,10 @@
  * SOFTWARE.
  */
 
+import {RNCWebView as WebView} from './src/main/ets/RNCWebView'
+
+export { WebView }
+
 export * from './src/main/ets/RNCWebView'
 
 export * from './ts'
