@@ -24,4 +24,7 @@
 
 export * from './src/main/ets/RNCWebView'
 
+export {RNCWebView as WebView} from './src/main/ets/RNCWebView'
+
 export * from './ts'
+

@@ -23,3 +23,5 @@
  */
 
 export * from './src/main/ets/RNCWebViewPackage'
+
+export {RNCWebViewPackage as WebViewPackage} from './src/main/ets/RNCWebViewPackage'
