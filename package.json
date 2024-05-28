@@ -89,12 +89,7 @@
   ],
   "keywords": ["react-native", "ios", "android", "harmony"], 
   "harmony": {
-    "alias": "react-native-webview",
-   "codegenConfig": {
-      "specPaths": [
-        "./src"
-      ]
-    }
+    "alias": "react-native-webview"
   },
   "codegenConfig": {
     "name": "WebViewSpecs",
