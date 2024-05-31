@@ -196,7 +196,13 @@ export struct RNCWebView {
     this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
     this.cacheMode =
       this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) : CacheMode.Online;
-    this.source = this.descriptorWrapper.props.newSource
+    this.source = {
+      uri: this.descriptorWrapper.props.newSource.uri ?? "",
+      method: this.descriptorWrapper.props.newSource.method ?? "",
+      body: this.descriptorWrapper.props.newSource.body ?? "",
+      html: this.descriptorWrapper.props.newSource.html ?? "",
+      baseUrl: this.descriptorWrapper.props.newSource.baseUrl ?? ""
+    }
     this.html = this.source.html
     if (this.source.uri && this.source.uri.toString().startsWith("asset://")) {
       this.source.uri = $rawfile(this.source.uri.toString().replace("asset://", this.ctx.rnInstance.getAssetsDest()));
@@ -492,7 +498,7 @@ export struct RNCWebView {
 
   build() {
     Stack() {
-      Web({ src: this.source.uri || '', controller: this.controller, renderMode: this.renderMode })
+      Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
         .width(this.descriptorWrapper.width)
         .height(this.descriptorWrapper.height)
         .constraintSize({ minHeight: 1 })
