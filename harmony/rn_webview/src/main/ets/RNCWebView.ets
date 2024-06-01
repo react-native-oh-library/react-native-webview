@@ -65,6 +65,7 @@ export interface WebViewProps extends ViewBaseProps {
   webviewDebuggingEnabled: boolean
   // nestedScrollEnabled: boolean
   scrollEnabled: boolean
+  incognito: boolean
 }
 
 export class RNCWebViewBridge {
@@ -190,6 +191,15 @@ export struct RNCWebView {
     ))
 
     this.registerCommandCallback()
+
+    if (this.hasIncognito()) {
+        this.cacheMode = CacheMode.Online;
+        webview.WebCookieManager.putAcceptCookieEnabled(false);
+    }
+  }
+
+  hasIncognito(): boolean {
+    return this.descriptorWrapper.props.incognito === true
   }
 
   private initVariable() {
@@ -268,6 +278,9 @@ export struct RNCWebView {
       this.controller.deleteJavaScriptRegister(JAVASCRIPT_INTERFACE)
       this.controller.refresh()
       this.hasRegisterJavaScriptProxy = false
+      if (this.hasIncognito()) {
+        this.controller.clearHistory()
+      }
     } catch (error) {
       Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
     }
