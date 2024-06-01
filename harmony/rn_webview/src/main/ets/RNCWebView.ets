@@ -199,7 +199,7 @@ export struct RNCWebView {
   }
 
   hasIncognito(): boolean {
-    return this.descriptorWrapper.props.incognito && this.descriptorWrapper.props.incognito === true
+    return this.descriptorWrapper.props.incognito === true
   }
 
   private initVariable() {
