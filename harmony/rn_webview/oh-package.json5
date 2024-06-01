@@ -6,7 +6,7 @@
   "name": "@react-native-oh-tpl/react-native-webview",
   "description": "main cpai architecture",
   "main": "index.ets",
-  "version": "13.10.2-nc.0.0.3",
+  "version": "13.10.2-nc.0.0.4",
   "dependencies": {
     "@rnoh/react-native-openharmony": "file:../react_native_openharmony"
   }
