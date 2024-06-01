@@ -617,6 +617,14 @@ export struct RNCWebView {
           if (!this.hasRegisterJavaScriptProxy) {
             this.registerPostMessage()
           }
+          try {
+            // 修复一些页面下无法将鸿蒙userAgent识别为手机的问题
+            let userAgent = this.controller.getUserAgent() + 'iPhone';
+            this.controller.setCustomUserAgent(userAgent);
+
+          } catch (error) {
+            Logger.error(TAG, "setUA error: " + error)
+          }
         })
     }
     .width(this.descriptorWrapper.width)
