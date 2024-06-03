@@ -214,6 +214,7 @@ export struct RNCWebView {
       baseUrl: this.descriptorWrapper.props.newSource.baseUrl ?? ""
     }
     this.html = this.source.html
+    this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
     if (this.source.uri && this.source.uri.toString().startsWith("asset://")) {
       this.source.uri = $rawfile(this.source.uri.toString().replace("asset://", this.ctx.rnInstance.getAssetsDest()));
     }

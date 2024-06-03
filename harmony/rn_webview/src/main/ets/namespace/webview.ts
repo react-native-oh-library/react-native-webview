@@ -164,7 +164,7 @@ export namespace RNCWebView {
     }
 
     get scalesPageToFit() {
-      return this.rawProps.scalesPageToFit ?? false;
+      return this.rawProps.scalesPageToFit ?? true;
     }
 
     get setBuiltInZoomControls() {
@@ -280,11 +280,11 @@ export namespace RNCWebView {
     }
 
     get scrollEnabled() {
-      return this.rawProps.scrollEnabled ?? false;
+      return this.rawProps.scrollEnabled ?? true;
     }
 
     get sharedCookiesEnabled() {
-      return this.rawProps.sharedCookiesEnabled ?? false;
+      return this.rawProps.sharedCookiesEnabled ?? true;
     }
 
     get textInteractionEnabled() {
@@ -356,7 +356,7 @@ export namespace RNCWebView {
     }
 
     get javaScriptEnabled() {
-      return this.rawProps.javaScriptEnabled ?? false;
+      return this.rawProps.javaScriptEnabled ?? true;
     }
 
     get webviewDebuggingEnabled() {
