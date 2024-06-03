@@ -26,13 +26,51 @@ import type {
   DescriptorWrapperFactoryByDescriptorType,
   DescriptorWrapperFactoryByDescriptorTypeCtx
 } from '@rnoh/react-native-openharmony/ts';
-import { RNPackage } from '@rnoh/react-native-openharmony/ts';
+import { RNPackage, TurboModulesFactory, TurboModule, TurboModuleContext } from "@rnoh/react-native-openharmony/ts";
+import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
 import { RNC } from './namespace';
+
+export class RNCWebViewTurboModule extends TurboModule {
+  constructor(protected ctx: TurboModuleContext) {
+    super(ctx);
+  }
+
+  getConstants() {
+  }
+
+  isFileUploadSupported(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      resolve()
+    });
+  }
+
+  shouldStartLoadWithLockIdentifier(shouldStart: boolean, lockIdentifier: number) {
+    ShouldRequestUrl.setValue(lockIdentifier, shouldStart ? CallbackState.DO_NOT_OVERRIDE : CallbackState.SHOULD_OVERRIDE)
+  }
+}
+
+class WebViewTurboModulesFactory extends TurboModulesFactory{
+  createTurboModule(name:string):TurboModule | null{
+    if (name === RNC.RNCWebView.NAME) {
+      return new RNCWebViewTurboModule(this.ctx);
+    }
+    return null;
+  }
+
+  hasTurboModule(name:string):boolean{
+    return name === RNC.RNCWebView.NAME;
+
+  }
+}
 
 export class RNCWebViewPackage extends RNPackage {
   createDescriptorWrapperFactoryByDescriptorType(ctx: DescriptorWrapperFactoryByDescriptorTypeCtx): DescriptorWrapperFactoryByDescriptorType {
     return {
       [RNC.RNCWebView.NAME]: (ctx) => new RNC.RNCWebView.DescriptorWrapper(ctx.descriptor)
     }
+  }
+
+  createTurboModulesFactory(ctx:TurboModuleContext):TurboModulesFactory{
+    return new WebViewTurboModulesFactory(ctx);
   }
 }
