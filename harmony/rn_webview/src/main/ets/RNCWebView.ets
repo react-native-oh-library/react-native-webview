@@ -275,13 +275,22 @@ export struct RNCWebView {
     Logger.debug(TAG, `[RNOH] aboutToDisappear`)
     this.cleanUpCallbacks.forEach(cb => cb())
     try {
-      this.controller.deleteJavaScriptRegister(JAVASCRIPT_INTERFACE)
-      this.controller.refresh()
-      this.hasRegisterJavaScriptProxy = false
       if (this.hasIncognito()) {
         this.controller.clearHistory()
         webview.WebCookieManager.clearAllCookiesSync(true);
+        webview.WebCookieManager.clearSessionCookieSync()
+        webview.WebStorage.deleteAllData();
+        console.log("clearAllCookiesSyncclearAllCookiesSyncclearAllCookiesSync")
       }
+    } catch (e) {
+      Logger.error(TAG, `[RNOH]Errorcode: ${e.code}, Message: ${e.message}`);
+    }
+
+    try {
+      this.controller.deleteJavaScriptRegister(JAVASCRIPT_INTERFACE)
+      this.controller.refresh()
+      this.hasRegisterJavaScriptProxy = false
+
     } catch (error) {
       Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
     }
