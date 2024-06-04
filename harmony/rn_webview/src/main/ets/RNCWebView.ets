@@ -193,8 +193,7 @@ export struct RNCWebView {
     this.registerCommandCallback()
 
     if (this.hasIncognito()) {
-        this.cacheMode = CacheMode.Online;
-        webview.WebCookieManager.putAcceptCookieEnabled(false);
+      this.cacheMode = CacheMode.Online;
     }
   }
 
@@ -281,6 +280,7 @@ export struct RNCWebView {
       this.hasRegisterJavaScriptProxy = false
       if (this.hasIncognito()) {
         this.controller.clearHistory()
+        webview.WebCookieManager.clearAllCookiesSync(true);
       }
     } catch (error) {
       Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
