@@ -280,7 +280,6 @@ export struct RNCWebView {
         webview.WebCookieManager.clearAllCookiesSync(true);
         webview.WebCookieManager.clearSessionCookieSync()
         webview.WebStorage.deleteAllData();
-        console.log("clearAllCookiesSyncclearAllCookiesSyncclearAllCookiesSync")
       }
     } catch (e) {
       Logger.error(TAG, `[RNOH]Errorcode: ${e.code}, Message: ${e.message}`);
@@ -433,6 +432,17 @@ export struct RNCWebView {
       mainDocumentURL: ""
     })
   }
+  onProgressChange() {
+    this.eventEmitter!.emit('loadingProgress', {
+      url: this.controller.getUrl(),
+      loading: this.progress != 100,
+      title: this.controller.getTitle(),
+      canGoBack: this.controller.accessBackward(),
+      canGoForward: this.controller.accessForward(),
+      lockIdentifier: 0,
+      progress: this.progress / 100
+    })
+  }
 
   onLoadingFinish() {
     this.eventEmitter!.emit('loadingFinish', {
@@ -539,7 +549,7 @@ export struct RNCWebView {
         .onProgressChange((event) => {
           if (event) {
             this.progress = event.newProgress
-            Logger.debug(TAG, "[RNOH] event progress: " + event.newProgress)
+            this.onProgressChange()
           }
         })
         .onPageBegin(() => {
@@ -565,11 +575,9 @@ export struct RNCWebView {
           }
         })
         .onHttpErrorReceive((event) => {
-          console.log('onHttpErrorReceiveevent',event)
           if (event) {
             let errorInfo: string = event.response.getResponseData();
             let code: number = event.response.getResponseCode()
-            console.log('onHttpErrorReceive',errorInfo)
             Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
             this.onHttpError(code,errorInfo)
           }
