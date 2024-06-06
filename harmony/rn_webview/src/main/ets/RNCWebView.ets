@@ -42,6 +42,12 @@ export class WebViewNewSource {
   baseUrl?: string
 }
 
+interface AlertEvent {
+  url: string;
+  message: string;
+  result: JsResult;
+}
+
 const TAG = "WebView"
 
 export const WEB_VIEW = "RNCWebView"
@@ -432,6 +438,7 @@ export struct RNCWebView {
       mainDocumentURL: ""
     })
   }
+
   onProgressChange() {
     this.eventEmitter!.emit('loadingProgress', {
       url: this.controller.getUrl(),
@@ -527,6 +534,42 @@ export struct RNCWebView {
         Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
       }
     }
+  }
+
+  onJavascriptAlert(event: AlertEvent) {
+    if (event) {
+      AlertDialog.show({
+        title: 'Javascript',
+        message: event.message,
+        alignment: DialogAlignment.Center,
+        secondaryButton: {
+          value: '确定',
+          action: () => event.result.handleConfirm()
+        },
+        cancel: () => event.result.handleCancel(),
+      })
+    }
+    return true
+  }
+
+  onJavascriptConfirm(event: AlertEvent) {
+    if (event) {
+      AlertDialog.show({
+        title: 'Javascript',
+        message: event.message,
+        alignment: DialogAlignment.Center,
+        secondaryButton: {
+          value: '确定',
+          action: () => event.result.handleConfirm()
+        },
+        cancel: () => event.result.handleCancel(),
+        primaryButton: {
+          value: '取消',
+          action: () => event.result.handleCancel()
+        },
+      })
+    }
+    return true
   }
 
   build() {
@@ -657,6 +700,8 @@ export struct RNCWebView {
             Logger.error(TAG, "setUA error: " + error)
           }
         })
+        .onAlert(this.onJavascriptAlert)
+        .onConfirm(this.onJavascriptConfirm)
     }
     .width(this.descriptorWrapper.width)
     .height(this.descriptorWrapper.height)
