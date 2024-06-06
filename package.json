@@ -9,7 +9,7 @@
     "Thibault Malbranche <malbranche.thibault@gmail.com>"
   ],
   "license": "MIT",
-  "version": "13.10.2-0.0.1",
+  "version": "13.10.2-0.0.2",
   "homepage": "https://github.com/react-native-webview/react-native-webview#readme",
   "scripts": {
     "android": "react-native run-android",
@@ -73,7 +73,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/react-native-oh-library/react-native-webview.git" 
+    "url": "git://github.com/react-native-oh-library/react-native-webview.git"
   },
   "files": [
     "src",
@@ -87,7 +87,7 @@
     "!**/__fixtures__",
     "!**/__mocks__"
   ],
-  "keywords": ["react-native", "ios", "android", "harmony"], 
+  "keywords": ["react-native", "ios", "android", "harmony"],
   "harmony": {
     "alias": "react-native-webview",
    "codegenConfig": {
@@ -100,6 +100,6 @@
     "name": "WebViewSpecs",
     "type": "components",
     "jsSrcsDir": "src"
-  },  
+  },
   "packageManager": "yarn@1.22.19"
 }
