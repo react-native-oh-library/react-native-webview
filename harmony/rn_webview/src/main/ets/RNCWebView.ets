@@ -150,6 +150,7 @@ export struct RNCWebView {
   // nestedScrollFlag: boolean = false;
   renderMode: RenderMode = RenderMode.SYNC_RENDER;
   scrollEnabled = true;
+  allowPageStartInProgress = true;
   @State webviewWidth: number = 0
   @State webviewHeight: number = 0
   private eventEmitter: RNC.RNCWebView.EventEmitter | undefined = undefined
@@ -444,6 +445,11 @@ export struct RNCWebView {
   }
 
   onProgressChange() {
+    // 修复单页面应用切换路由时 onPageBegin 未触发的问题
+    if (this.controller.getUrl() !== this.url && this.progress < 100 && this.allowPageStartInProgress) {
+      this.allowPageStartInProgress = false;
+      this.onLoadingStart();
+    }
     this.eventEmitter!.emit('loadingProgress', {
       url: this.controller.getUrl(),
       loading: this.progress != 100,
@@ -453,6 +459,9 @@ export struct RNCWebView {
       lockIdentifier: 0,
       progress: this.progress / 100
     })
+    if (this.progress === 100) {
+      this.allowPageStartInProgress = true;
+    }
   }
 
   onLoadingFinish() {
