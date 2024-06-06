@@ -150,6 +150,8 @@ export struct RNCWebView {
   // nestedScrollFlag: boolean = false;
   renderMode: RenderMode = RenderMode.SYNC_RENDER;
   scrollEnabled = true;
+  @State webviewWidth: number = 0
+  @State webviewHeight: number = 0
   private eventEmitter: RNC.RNCWebView.EventEmitter | undefined = undefined
   private cleanUpCallbacks: (() => void)[] = []
   private descriptorWrapper: RNC.RNCWebView.DescriptorWrapper = {} as RNC.RNCWebView.DescriptorWrapper
@@ -219,6 +221,8 @@ export struct RNCWebView {
       baseUrl: this.descriptorWrapper.props.newSource.baseUrl ?? ""
     }
     this.html = this.source.html
+    this.webviewWidth = this.descriptorWrapper.width
+    this.webviewHeight = this.descriptorWrapper.height
     this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
     if (this.source.uri && this.source.uri.toString().startsWith("asset://")) {
       this.source.uri = $rawfile(this.source.uri.toString().replace("asset://", this.ctx.rnInstance.getAssetsDest()));
@@ -575,8 +579,8 @@ export struct RNCWebView {
   build() {
     Stack() {
       Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
-        .width(this.descriptorWrapper.width)
-        .height(this.descriptorWrapper.height)
+        .width(this.webviewWidth)
+        .height(this.webviewHeight)
         .constraintSize({ minHeight: 1 })
         .overScrollMode(this.overScrollMode)
         .backgroundColor(Color.Transparent)
@@ -703,8 +707,8 @@ export struct RNCWebView {
         .onAlert(this.onJavascriptAlert)
         .onConfirm(this.onJavascriptConfirm)
     }
-    .width(this.descriptorWrapper.width)
-    .height(this.descriptorWrapper.height)
+    .width(this.webviewWidth)
+    .height(this.webviewHeight)
     .position({ x: this.descriptorWrapper.positionRelativeToParent.x, y: this.descriptorWrapper.positionRelativeToParent.y })
   }
 }
