@@ -159,9 +159,6 @@ export struct RNCWebView {
   private cleanUpCallbacks: (() => void)[] = []
   private descriptorWrapper: RNC.RNCWebView.DescriptorWrapper = {} as RNC.RNCWebView.DescriptorWrapper
 
-  sendEvent<Payload>(eventNmae: string, payload: Payload) {
-    this.ctx.rnInstance.emitDeviceEvent(eventNmae, payload)
-  }
 
   aboutToAppear() {
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
@@ -228,7 +225,6 @@ export struct RNCWebView {
     this.registerCommandCallback()
     if (this.hasIncognito()) {
       this.cacheMode = CacheMode.Online;
-      webview.WebCookieManager.putAcceptCookieEnabled(false);
     }
     setTimeout(() => {
       console.log('descriptorWrapper===>' + JSON.stringify(this.descriptorWrapper.props))
@@ -263,12 +259,15 @@ export struct RNCWebView {
     Logger.debug(TAG, `[RNOH] aboutToDisappear`)
     this.cleanUpCallbacks.forEach(cb => cb())
     try {
+      if (this.hasIncognito()) {
+        this.controller.clearHistory()
+        webview.WebCookieManager.clearAllCookiesSync(true);
+        webview.WebCookieManager.clearSessionCookieSync()
+        webview.WebStorage.deleteAllData();
+      }
       this.controller.deleteJavaScriptRegister(JAVASCRIPT_INTERFACE)
       this.controller.refresh()
       this.hasRegisterJavaScriptProxy = false
-      if (this.hasIncognito()) {
-        this.controller.clearHistory()
-      }
     } catch (error) {
       Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
     }
@@ -410,6 +409,7 @@ export struct RNCWebView {
       navigationType: "other",
       mainDocumentURL: ""
     })
+    console.log('onLoadingStartSend===>')
   }
 
   onLoadingFinish() {
@@ -452,8 +452,24 @@ export struct RNCWebView {
     })
   }
 
+  loadingProgress(progress: number) {
+    this.eventEmitter!.emit('loadingProgress', {
+      url: this.controller.getUrl(),
+      loading: false,
+      title: this.controller.getTitle(),
+      canGoBack: this.controller.accessBackward(),
+      canGoForward: this.controller.accessForward(),
+      lockIdentifier: 0,
+      progress:progress
+    })
+  }
+  scroll(x:number,y:number){
+    console.log('scrollscrollscroll===>')
+    this.eventEmitter!.emit('scroll', {contentInset: {bottom: 0, left: 0, right: 0, top: 0}, contentOffset: {y: y, x: x}, contentSize: {height: 0, width: 0}, layoutMeasurement: {height: 0, width: 0}})
+  }
+
   onShouldStartLoadWithRequest() {
-    this.eventEmitter!.emit('shouldStartLoadWithRequest', {
+    const flg =  this.eventEmitter!.emit('shouldStartLoadWithRequest', {
       url: this.controller.getUrl(),
       loading: this.progress != 100,
       title: this.controller.getTitle(),
@@ -464,10 +480,11 @@ export struct RNCWebView {
       mainDocumentURL: "",
       isTopFrame: false
     })
+    console.log(JSON.stringify('flgflgflg===>'+JSON.stringify(flg)))
   }
 
   onShouldStartLoadCallFunction(lockIdentifier: number, data: WebResourceRequest) {
-    this.eventEmitter!.emit("shouldStartLoadWithRequest", {
+   this.eventEmitter!.emit("shouldStartLoadWithRequest", {
       url: data.getRequestUrl(),
       loading: this.progress != 100,
       title: this.controller.getTitle(),
@@ -525,15 +542,14 @@ export struct RNCWebView {
           //   Logger.debug(TAG, "[RNOH] event width: " + event.width + "[RNOH] event height: " + event.height)
           // })
         .onProgressChange((event) => {
-          console.log('onProgressChangeonProgressChange====>' + JSON.stringify(event))
           if (event) {
             this.progress = event.newProgress
-            this.sendEvent('onLoadProgress', event.newProgress as number)
+            this.loadingProgress(this.progress)
           }
         })
         .onScroll((event) => {
           if (event) {
-            this.sendEvent('onScroll', event)
+            this.scroll(event.xOffset,event.yOffset)
           }
         })
         .onPageBegin(() => {
@@ -564,57 +580,57 @@ export struct RNCWebView {
             this.onHttpError(code, errorInfo)
           }
         })
-        .onLoadIntercept((event) => {
-          if (event) {
-            if (this.onLoadInterceptStatus === ShouldStartLoadWithRequestEnabledStatus.START) {
-              this.sendEvent('onLoadIntercept', JSON.stringify({
-                url: event.data.getRequestUrl(),
-                loading: this.progress != 100,
-                title: this.controller.getTitle(),
-                canGoBack: this.controller.accessBackward(),
-                canGoForward: this.controller.accessForward(),
-                lockIdentifier: 11,
-                navigationType: "other",
-                mainDocumentURL: "",
-                isTopFrame: event.data.isMainFrame(),
-                status: this.onLoadInterceptStatus
-              }))
-              this.onLoadInterceptStatus = ShouldStartLoadWithRequestEnabledStatus.END
-              setTimeout(() => {
-                if (this.descriptorWrapper.props.shouldStartLoadWithRequestEnabled) {
-                  this.controller.refresh()
-                }
-              })
-            }
-          }
-          if (this.source.html != undefined && this.source.html != '') {
-            Logger.debug(TAG, "[RNOH]: load html not intercept")
-            return false;
-          }
-          if (event.data.getRequestUrl() == this.source.uri || this.requestUrl != "") {
-            Logger.debug(TAG, "[RNOH] first load not intercept")
-            this.requestUrl = ""
-            return false
-          }
-          this.requestUrl = event.data.getRequestUrl()
-          let lockIdentifier = ShouldRequestUrl.getNewData();
-          this.lockIdentifier = lockIdentifier
-          Logger.debug(TAG, "[RNOH]:lockIdentifier:" + lockIdentifier)
-          ShouldRequestUrl.setCallBack(lockIdentifier, () => {
-            let data: CallbackState = ShouldRequestUrl.getValue(this.lockIdentifier);
-            let should: boolean = data == CallbackState.SHOULD_OVERRIDE
-            Logger.debug(TAG, "[RNOH] should:" + should)
-            ShouldRequestUrl.removeData(this.lockIdentifier)
-            this.lockIdentifier = ""
-            if (!should) {
-              this.controller.loadUrl(this.requestUrl)
-            } else {
-              this.requestUrl = ""
-            }
-          })
-          this.onShouldStartLoadCallFunction(Number(this.lockIdentifier), event.data)
-          return true
-        })
+        // .onLoadIntercept((event) => {
+        //   if (event) {
+        //     if (this.onLoadInterceptStatus === ShouldStartLoadWithRequestEnabledStatus.START) {
+        //       this.sendEvent('onLoadIntercept', JSON.stringify({
+        //         url: event.data.getRequestUrl(),
+        //         loading: this.progress != 100,
+        //         title: this.controller.getTitle(),
+        //         canGoBack: this.controller.accessBackward(),
+        //         canGoForward: this.controller.accessForward(),
+        //         lockIdentifier: 11,
+        //         navigationType: "other",
+        //         mainDocumentURL: "",
+        //         isTopFrame: event.data.isMainFrame(),
+        //         status: this.onLoadInterceptStatus
+        //       }))
+        //       this.onLoadInterceptStatus = ShouldStartLoadWithRequestEnabledStatus.END
+        //       setTimeout(() => {
+        //         if (this.descriptorWrapper.props.shouldStartLoadWithRequestEnabled) {
+        //           this.controller.refresh()
+        //         }
+        //       })
+        //     }
+        //   }
+        //   if (this.source.html != undefined && this.source.html != '') {
+        //     Logger.debug(TAG, "[RNOH]: load html not intercept")
+        //     return false;
+        //   }
+        //   if (event.data.getRequestUrl() == this.source.uri || this.requestUrl != "") {
+        //     Logger.debug(TAG, "[RNOH] first load not intercept")
+        //     this.requestUrl = ""
+        //     return false
+        //   }
+        //   this.requestUrl = event.data.getRequestUrl()
+        //   let lockIdentifier = ShouldRequestUrl.getNewData();
+        //   this.lockIdentifier = lockIdentifier
+        //   Logger.debug(TAG, "[RNOH]:lockIdentifier:" + lockIdentifier)
+        //   ShouldRequestUrl.setCallBack(lockIdentifier, () => {
+        //     let data: CallbackState = ShouldRequestUrl.getValue(this.lockIdentifier);
+        //     let should: boolean = data == CallbackState.SHOULD_OVERRIDE
+        //     Logger.debug(TAG, "[RNOH] should:" + should)
+        //     ShouldRequestUrl.removeData(this.lockIdentifier)
+        //     this.lockIdentifier = ""
+        //     if (!should) {
+        //       this.controller.loadUrl(this.requestUrl)
+        //     } else {
+        //       this.requestUrl = ""
+        //     }
+        //   })
+        //   this.onShouldStartLoadCallFunction(Number(this.lockIdentifier), event.data)
+        //   return true
+        // })
         .onControllerAttached(() => {
           this.controllerAttached = true;
           Logger.debug(TAG, "[RNOH] onControllerAttached")
@@ -649,16 +665,15 @@ export struct RNCWebView {
           }
           if (this.descriptorWrapper.props.userAgent) {
             try {
-              let userAgent = this.controller.getUserAgent() + this.descriptorWrapper.props.userAgent;
-              this.controller.setCustomUserAgent(userAgent);
+              this.controller.setCustomUserAgent(this.descriptorWrapper.props.userAgent);
             } catch (error) {
               console.error(`ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${this.descriptorWrapper.props.userAgent}`);
             }
           }
         })
     }
-    .width(this.descriptorWrapper.width)
-    .height(this.descriptorWrapper.height)
+    .width('100%')
+    .height('100%')
     .position({
       x: this.descriptorWrapper.positionRelativeToParent.x,
       y: this.descriptorWrapper.positionRelativeToParent.y

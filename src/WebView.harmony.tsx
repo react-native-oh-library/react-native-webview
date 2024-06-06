@@ -2,7 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
-  useRef,
+  useRef
 } from 'react';
 import { Image, View, ImageSourcePropType, HostComponent } from 'react-native';
 import { Double } from 'react-native/Libraries/Types/CodegenTypes';
@@ -23,7 +23,6 @@ import {
 } from 'react-native-webview/src/WebViewTypes';
 
 import styles from 'react-native-webview/src/WebView.styles';
-
 const { resolveAssetSource } = Image;
 const processDecelerationRate = (
   decelerationRate: DecelerationRateConstant | number | undefined
@@ -73,6 +72,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
       onLoad,
       onLoadEnd,
       onLoadProgress,
+        onScroll,
       onContentProcessDidTerminate: onContentProcessDidTerminateProp,
       onFileDownload,
       onHttpError: onHttpErrorProp,
@@ -109,7 +109,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
       []
     );
 
-    const {
+      const {
       onLoadingStart,
       onShouldStartLoadWithRequest,
       onMessage,
@@ -129,6 +129,8 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
       onHttpErrorProp,
       onLoadEnd,
       onLoadProgress,
+          // @ts-expect-error old arch only
+          onScroll,
       onLoadStart,
       onMessageProp,
       onOpenWindowProp,
@@ -246,6 +248,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
         onLoadingError={onLoadingError}
         onLoadingFinish={onLoadingFinish}
         onLoadingProgress={onLoadingProgress}
+        onScroll={onScroll}
         onFileDownload={onFileDownload}
         onLoadingStart={onLoadingStart}
         onHttpError={onHttpError}
