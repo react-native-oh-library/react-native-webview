@@ -518,8 +518,8 @@ export struct RNCWebView {
     //RNViewBase({ ctx: this.ctx, tag: this.tag }) {
     Stack() {
       Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
-        .width(this.descriptorWrapper.width)
-        .height(this.descriptorWrapper.height)
+        .width("100%")
+        .height("100%")
         .constraintSize({ minHeight: 1 })
         .overScrollMode(this.overScrollMode)
         .backgroundColor(Color.Transparent)
