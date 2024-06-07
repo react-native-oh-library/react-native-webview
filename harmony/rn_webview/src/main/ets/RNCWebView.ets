@@ -24,6 +24,7 @@
 
 import { Descriptor, RNOHContext, ViewBaseProps } from '@rnoh/react-native-openharmony';
 import webview from '@ohos.web.webview';
+import { url as OSUrl } from '@kit.ArkTS';
 import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
 import { RNC } from './namespace';
 import Logger from './Logger';
@@ -549,10 +550,29 @@ export struct RNCWebView {
     }
   }
 
-  onJavascriptAlert(event: AlertEvent) {
+  getJsDialogTitle() {
+    const url = this.controller.getUrl()
+    // 对于 data: URL，只显示 'JavaScript'，类似于 Chrome
+    let title = 'JavaScript';
+    const isDataUrl = (url !== null) && url.startsWith("data:");
+
+
+    if (!isDataUrl) {
+      try {
+        const dialogUrl = OSUrl.URL.parseURL(url);
+        title = `网址为”${dialogUrl.protocol}//${dialogUrl.host}“的网页显示：`;
+      } catch (ex) {
+        title = url;
+      }
+    }
+
+    return title;
+  }
+
+  onJavascriptAlert(event?: AlertEvent) {
     if (event) {
       AlertDialog.show({
-        title: 'Javascript',
+        title: this.getJsDialogTitle(),
         message: event.message,
         alignment: DialogAlignment.Center,
         secondaryButton: {
@@ -565,10 +585,10 @@ export struct RNCWebView {
     return true
   }
 
-  onJavascriptConfirm(event: AlertEvent) {
+  onJavascriptConfirm(event?: AlertEvent) {
     if (event) {
       AlertDialog.show({
-        title: 'Javascript',
+        title: this.getJsDialogTitle(),
         message: event.message,
         alignment: DialogAlignment.Center,
         secondaryButton: {
@@ -713,8 +733,8 @@ export struct RNCWebView {
             Logger.error(TAG, "setUA error: " + error)
           }
         })
-        .onAlert(this.onJavascriptAlert)
-        .onConfirm(this.onJavascriptConfirm)
+        .onAlert((event) => this.onJavascriptAlert(event))
+        .onConfirm((event) => this.onJavascriptConfirm(event))
     }
     .width(this.webviewWidth)
     .height(this.webviewHeight)
