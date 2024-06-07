@@ -543,7 +543,7 @@ export struct RNCWebView {
           // })
         .onProgressChange((event) => {
           if (event) {
-            this.progress = event.newProgress
+            this.progress = event.newProgress / 100
             this.loadingProgress(this.progress)
           }
         })
