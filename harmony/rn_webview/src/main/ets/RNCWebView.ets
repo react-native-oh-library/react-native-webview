@@ -70,7 +70,6 @@ export interface WebViewProps extends ViewBaseProps {
   messagingModuleName: string
   shouldStartLoadWithRequestEnabled: boolean
   webviewDebuggingEnabled: boolean
-  // nestedScrollEnabled: boolean
   scrollEnabled: boolean
   incognito: boolean
 }
@@ -148,9 +147,9 @@ export struct RNCWebView {
   messagingEnabled: boolean = false;
   hasRegisterJavaScriptProxy: boolean = false;
   controllerAttached: boolean = false;
-  // nestedScrollFlag: boolean = false;
   renderMode: RenderMode = RenderMode.SYNC_RENDER;
   scrollEnabled = true;
+  nestedScroll = NestedScrollMode.SELF_FIRST;
   allowPageStartInProgress = true;
   @State webviewWidth: number = 0
   @State webviewHeight: number = 0
@@ -226,6 +225,8 @@ export struct RNCWebView {
     this.webviewWidth = this.descriptorWrapper.width
     this.webviewHeight = this.descriptorWrapper.height
     this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
+    // 当禁止滚动时，使用父组件滚动
+    this.nestedScroll = this.scrollEnabled ? NestedScrollMode.SELF_FIRST : NestedScrollMode.PARENT_FIRST;
     if (this.source.uri && this.source.uri.toString().startsWith("asset://")) {
       this.source.uri = $rawfile(this.source.uri.toString().replace("asset://", this.ctx.rnInstance.getAssetsDest()));
     }
@@ -620,13 +621,17 @@ export struct RNCWebView {
         .textZoomRatio(this.descriptorWrapper.props.textZoom)
         .cacheMode(this.cacheMode)
         .domStorageAccess(this.descriptorWrapper.props.domStorageEnabled)
-        .zoomAccess(this.descriptorWrapper.props.scalesPageToFit)// nestedScrollFlag 为true 表示可以在嵌套滚动中，web自己能滚动
+        .zoomAccess(this.descriptorWrapper.props.scalesPageToFit)
         .overScrollMode(this.overScrollMode)
         .onProgressChange((event) => {
           if (event) {
             this.progress = event.newProgress
             this.onProgressChange()
           }
+        })
+        .nestedScroll({
+          scrollForward: this.nestedScroll,
+          scrollBackward: this.nestedScroll,
         })
         .onPageBegin(() => {
           this.onLoadingStart()
