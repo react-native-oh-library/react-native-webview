@@ -25,9 +25,14 @@
 import { Descriptor, ComponentBuilderContext, RNOHContext, ViewBaseProps } from '@rnoh/react-native-openharmony'
 import webview from '@ohos.web.webview';
 import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
-import { RNViewBase,RNViewBaseAttributeModifier,ViewDescriptorWrapperBase,RNComponentContext } from '@rnoh/react-native-openharmony';
+import {
+  RNViewBase,
+  RNViewBaseAttributeModifier,
+  ViewDescriptorWrapperBase,
+  RNComponentContext
+} from '@rnoh/react-native-openharmony';
 import Logger from './Logger'
-import {getFreeWebId,getNWeb,Data,onErrorReceiveEvent,onLoadInterceptEvent,onProgressChangeEvent} from './Common'
+import { getFreeWebId, getNWeb, Data, onErrorReceiveEvent, onLoadInterceptEvent, onProgressChangeEvent } from './Common'
 
 export class WebViewNewSource {
   uri: string | Resource = ""
@@ -112,26 +117,29 @@ export struct WebView {
   // nestedScrollFlag: boolean = false;
   renderMode: RenderMode = RenderMode.SYNC_RENDER;
   @State private rnViewAttributeModifier: RNViewBaseAttributeModifier | undefined = undefined
-  private webNodeId:string|undefined = undefined
+  private webNodeId: string | undefined = undefined
 
   aboutToAppear() {
-    Logger.debug(TAG,`aboutToAppear tag:${this.tag}`)
+    Logger.debug(TAG, `aboutToAppear tag:${this.tag}`)
     this.descriptor = this.ctx.descriptorRegistry.getDescriptor<WebViewViewDescriptor>(this.tag)
     this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
       (newDescriptor) => {
         this.descriptor = (newDescriptor as WebViewViewDescriptor)
-        Logger.debug(TAG,"update descriptor height: " + this.descriptor.layoutMetrics.frame.size.height + " width:" + this.descriptor.layoutMetrics.frame.size.width)
+        Logger.debug(TAG, "update descriptor height: " + this.descriptor.layoutMetrics.frame.size.height + " width:" +
+        this.descriptor.layoutMetrics.frame.size.width)
         this.descriptorChangesCallback()
       }
     )
     webview.WebviewController.setWebDebuggingAccess(this.descriptor.props.webviewDebuggingEnabled)
     this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
-    this.cacheMode = this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
+    this.cacheMode =
+      this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
     this.source = this.descriptor.props.newSource
     this.html = this.source.html
     this.url = this.source.uri;
     this.registerCommandCallback()
-    let descriptorWrapper = this.ctx.descriptorRegistry.findDescriptorWrapperByTag<ViewDescriptorWrapperBase>(this.descriptor.tag)
+    let descriptorWrapper =
+      this.ctx.descriptorRegistry.findDescriptorWrapperByTag<ViewDescriptorWrapperBase>(this.descriptor.tag)
     if (!descriptorWrapper || !(descriptorWrapper instanceof ViewDescriptorWrapperBase)) {
       descriptorWrapper = new ViewDescriptorWrapperBase(this.descriptor)
     }
@@ -141,7 +149,7 @@ export struct WebView {
     this.webNodeId = getFreeWebId()
     // 预加载场景无法进入onControllerAttached
     if (this.webNodeId !== undefined) {
-      Logger.debug(TAG,`The current component is a preloaded webview. id:${this.webNodeId}`)
+      Logger.debug(TAG, `The current component is a preloaded webview. id:${this.webNodeId}`)
       let controller = getNWeb(this.webNodeId)?.getController()
       if (controller) {
         this.controller = controller
@@ -152,13 +160,15 @@ export struct WebView {
       }
       this.descriptorChangesCallback(true)
     } else {
-      Logger.debug(TAG,`The current component is not a preloaded webview`)
+      Logger.debug(TAG, `The current component is not a preloaded webview`)
     }
   }
 
-  descriptorChangesCallback(isForceUpdate:boolean = false){
-    Logger.debug(TAG, `[RNOH] descriptorChangesCallback,tag:${this.tag},props: ${JSON.stringify(this.descriptor.props)}`);
-    this.cacheMode = this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
+  descriptorChangesCallback(isForceUpdate: boolean = false) {
+    Logger.debug(TAG,
+      `[RNOH] descriptorChangesCallback,tag:${this.tag},props: ${JSON.stringify(this.descriptor.props)}`);
+    this.cacheMode =
+      this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
     this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
     this.source = this.descriptor.props.newSource
     this.updateNode()
@@ -188,22 +198,22 @@ export struct WebView {
     }
   }
 
-  updateNode(){
+  updateNode() {
     let nodeParams = {
-      controller:this.controller ,
-      cacheMode:this.cacheMode,
-      descriptor:this.descriptor,
-        onProgressChange:(e:onProgressChangeEvent)=>this.onProgressChange(e),
-      onPageEnd:()=>this.onPageEnd(),
-      onErrorReceive:(e:onErrorReceiveEvent)=>this.onErrorReceive(e),
-      onLoadIntercept:(e:onLoadInterceptEvent)=>this.onLoadIntercept(e)
+      controller: this.controller,
+      cacheMode: this.cacheMode,
+      descriptor: this.descriptor,
+      onProgressChange: (e: onProgressChangeEvent) => this.onProgressChange(e),
+      onPageEnd: () => this.onPageEnd(),
+      onErrorReceive: (e: onErrorReceiveEvent) => this.onErrorReceive(e),
+      onLoadIntercept: (e: onLoadInterceptEvent) => this.onLoadIntercept(e)
     } as Data
     if (this.webNodeId) {
       getNWeb(this.webNodeId)?.updateNode(nodeParams)
     }
   }
 
-  onProgressChange(event:onProgressChangeEvent):void {
+  onProgressChange(event: onProgressChangeEvent): void {
     Logger.debug(TAG, "[RNOH] event progress: " + event)
     if (event) {
       this.progress = event.newProgress
@@ -211,13 +221,13 @@ export struct WebView {
     }
   }
 
-  onPageEnd():void{
+  onPageEnd(): void {
     Logger.debug(TAG, "[RNOH] event onPageEnd ")
     this.runInjectedJavaScript()
     this.onLoadingFinish()
   }
 
-  onErrorReceive(event:onErrorReceiveEvent):void{
+  onErrorReceive(event: onErrorReceiveEvent): void {
     Logger.debug(TAG, "[RNOH] event onErrorReceive ")
     if (event) {
       let errorInfo: string = event.error.getErrorInfo();
@@ -232,11 +242,12 @@ export struct WebView {
     }
   }
 
-  onLoadIntercept(event:onLoadInterceptEvent):boolean{
-    Logger.debug(TAG, "[RNOH]:onLoadIntercept:" )
+  onLoadIntercept(event: onLoadInterceptEvent): boolean {
+    Logger.debug(TAG, "[RNOH]:onLoadIntercept:")
 
     if (!this.descriptor.props.shouldStartLoadWithRequestEnabled) {
-      Logger.debug(TAG, "[RNOH]:shouldStartLoadWithRequestEnabled:" + this.descriptor.props.shouldStartLoadWithRequestEnabled)
+      Logger.debug(TAG,
+        "[RNOH]:shouldStartLoadWithRequestEnabled:" + this.descriptor.props.shouldStartLoadWithRequestEnabled)
       return false
     }
     if (this.source.html != undefined && this.source.html != '') {
@@ -268,7 +279,7 @@ export struct WebView {
     return true
   }
 
-  onControllerAttached():void{
+  onControllerAttached(): void {
     Logger.debug(TAG, "[RNOH] onControllerAttached")
     this.controllerAttached = true;
     let baseUrl = this.source.baseUrl
@@ -289,8 +300,8 @@ export struct WebView {
       let header = this.source.headers;
       if (header != undefined && header != "") {
         let headers: Array<webview.WebHeader> = [];
-        JSON.parse(header,( key: string, value: string) => {
-          if(key && value){
+        JSON.parse(header, (key: string, value: string) => {
+          if (key && value) {
             headers.push({ headerKey: key, headerValue: value })
           }
           return undefined;
@@ -323,7 +334,7 @@ export struct WebView {
       this.controller.registerJavaScriptProxy(bridge, JAVASCRIPT_INTERFACE, ["postMessage"])
       this.controller.refresh()
       this.hasRegisterJavaScriptProxy = true
-      Logger.debug(TAG,`registerJavaScriptProxy finish`)
+      Logger.debug(TAG, `registerJavaScriptProxy finish`)
     }
   }
 
@@ -383,7 +394,7 @@ export struct WebView {
   }
 
   registerCommandCallback() {
-    Logger.debug(TAG,`registerCommandCallback `)
+    Logger.debug(TAG, `registerCommandCallback `)
     this.cleanupCommandCallback = this.ctx.componentCommandReceiver.registerCommandCallback(
       this.tag,
       (command, args: string[]) => {
@@ -400,7 +411,7 @@ export struct WebView {
             break
           case "postMessage":
             Logger.debug(TAG, `[RNOH] postMessage,${JSON.stringify(args)}`)
-            let data = JSON.stringify({data : args[0]})
+            let data = JSON.stringify({ data: args[0] })
             let result: string = "(function () {" +
               "var event;" +
               "var data = " + data.toString() + ";" +
@@ -437,7 +448,7 @@ export struct WebView {
   }
 
   onLoadingFinish() {
-    Logger.debug(TAG,`emit onLoadingFinish `)
+    Logger.debug(TAG, `emit onLoadingFinish `)
     this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
       type: "onLoadingFinish",
       url: this.controller.getUrl(),
@@ -452,7 +463,7 @@ export struct WebView {
   }
 
   onLoadingError(code: number, description: string) {
-    Logger.debug(TAG,`emit onLoadingError `)
+    Logger.debug(TAG, `emit onLoadingError `)
     this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
       type: "onLoadingError",
       url: this.controller.getUrl(),
@@ -468,7 +479,7 @@ export struct WebView {
   }
 
   onShouldStartLoadWithRequest() {
-    Logger.debug(TAG,`emit onShouldStartLoadWithRequest `)
+    Logger.debug(TAG, `emit onShouldStartLoadWithRequest `)
     this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
       type: "onShouldStartLoadWithRequest",
       url: this.controller.getUrl(),
@@ -484,7 +495,7 @@ export struct WebView {
   }
 
   onShouldStartLoadCallFunction(lockIdentifier: number, data: WebResourceRequest) {
-    Logger.debug(TAG,`emit onShouldStartLoadCallFunction `)
+    Logger.debug(TAG, `emit onShouldStartLoadCallFunction `)
     this.ctx.rnInstance.emitComponentEvent(this.descriptor.tag, WEB_VIEW, {
       type: "onShouldStartLoadWithRequest",
       url: data.getRequestUrl(),
@@ -500,7 +511,7 @@ export struct WebView {
   }
 
   runInjectedJavaScript() {
-    Logger.debug(TAG,`runInjectedJavaScript `)
+    Logger.debug(TAG, `runInjectedJavaScript `)
     let injectedJS = this.descriptor.props.injectedJavaScript
     if (this.javaScriptEnable && injectedJS != "" && this.controllerAttached) {
       try {
@@ -519,13 +530,13 @@ export struct WebView {
 
   build() {
     Stack() {
-      if (this.webNodeId){
+      if (this.webNodeId) {
         NodeContainer(getNWeb(this.webNodeId))
-          .onAppear(()=>{
-            Logger.debug(TAG,"NodeContainer onAppear")
+          .onAppear(() => {
+            Logger.debug(TAG, "NodeContainer onAppear")
           })
-      }else {
-        Web({ src: this.source.uri, controller: this.controller,renderMode: this.renderMode })
+      } else {
+        Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
           .width(this.descriptor.layoutMetrics.frame.size.width)
           .height(this.descriptor.layoutMetrics.frame.size.height)
           .constraintSize({ minHeight: 1 })
@@ -539,17 +550,17 @@ export struct WebView {
           .domStorageAccess(this.descriptor.props.domStorageEnabled)
           .zoomAccess(this.descriptor.props.scalesPageToFit)
           .overScrollMode(OverScrollMode.NEVER)
-          .onProgressChange((e:onProgressChangeEvent)=>this.onProgressChange(e))
-          .onPageEnd(()=>this.onPageEnd())
-          .onErrorReceive((e:onErrorReceiveEvent)=>this.onErrorReceive(e))
-          .onLoadIntercept((e)=>this.onLoadIntercept(e))
-          .onControllerAttached(()=>this.onControllerAttached())
+          .onProgressChange((e: onProgressChangeEvent) => this.onProgressChange(e))
+          .onPageEnd(() => this.onPageEnd())
+          .onErrorReceive((e: onErrorReceiveEvent) => this.onErrorReceive(e))
+          .onLoadIntercept((e) => this.onLoadIntercept(e))
+          .onControllerAttached(() => this.onControllerAttached())
       }
 
     }
     .width(this.descriptor.layoutMetrics.frame.size.width)
     .height(this.descriptor.layoutMetrics.frame.size.height)
-    .position({x:this.descriptor.layoutMetrics.frame.origin.x,y:this.descriptor.layoutMetrics.frame.origin.y})
+    .position({ x: this.descriptor.layoutMetrics.frame.origin.x, y: this.descriptor.layoutMetrics.frame.origin.y })
     .attributeModifier(this.rnViewAttributeModifier)
   }
 }

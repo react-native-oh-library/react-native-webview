@@ -62,6 +62,7 @@ export class ShouldRequestUrl {
   public static getValue(lockIdentifier: string): CallbackState {
     return ShouldRequestUrl.ShouldRequestUrlLocks.get(lockIdentifier).getValue()
   }
+
   public static removeData(lockIdentifier: string): void {
     ShouldRequestUrl.ShouldRequestUrlLocks.remove(lockIdentifier)
   }

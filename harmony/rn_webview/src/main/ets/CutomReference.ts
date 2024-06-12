@@ -25,6 +25,7 @@
 export class CustomReference {
   private atomicValue: number;
   private callBack!: Function;
+
   constructor(init: number) {
     this.atomicValue = init
   }

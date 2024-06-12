@@ -44,7 +44,8 @@ export class RNCWebViewTurboModule extends TurboModule {
   }
 
   shouldStartLoadWithLockIdentifier(shouldStart: boolean, lockIdentifier: number) {
-    Logger.info("WebView",'shouldStartLoadWithLockIdentifier shouldStart: ' + shouldStart);
-    ShouldRequestUrl.setValue(lockIdentifier, shouldStart ? CallbackState.DO_NOT_OVERRIDE : CallbackState.SHOULD_OVERRIDE)
+    Logger.info("WebView", 'shouldStartLoadWithLockIdentifier shouldStart: ' + shouldStart);
+    ShouldRequestUrl.setValue(lockIdentifier,
+      shouldStart ? CallbackState.DO_NOT_OVERRIDE : CallbackState.SHOULD_OVERRIDE)
   }
 }
