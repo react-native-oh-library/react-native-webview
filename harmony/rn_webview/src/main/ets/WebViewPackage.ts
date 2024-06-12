@@ -22,26 +22,26 @@
  * SOFTWARE.
  */
 
-import {RNPackage,TurboModulesFactory} from '@rnoh/react-native-openharmony/ts';
-import type {TurboModule,TurboModuleContext} from '@rnoh/react-native-openharmony/ts';
-import {RNCWebViewTurboModule} from './RNCWebViewTurboModule';
+import { RNPackage, TurboModulesFactory } from '@rnoh/react-native-openharmony/ts';
+import type { TurboModule, TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
+import { RNCWebViewTurboModule } from './RNCWebViewTurboModule';
 
-class WebViewTurboModulesFactory extends TurboModulesFactory{
-  createTurboModule(name:string):TurboModule | null{
+class WebViewTurboModulesFactory extends TurboModulesFactory {
+  createTurboModule(name: string): TurboModule | null {
     if (name === 'RNCWebView') {
       return new RNCWebViewTurboModule(this.ctx);
     }
     return null;
   }
 
-  hasTurboModule(name:string):boolean{
+  hasTurboModule(name: string): boolean {
     return name === 'RNCWebView';
 
   }
 }
 
-export class WebViewPackage extends RNPackage{
-  createTurboModulesFactory(ctx:TurboModuleContext):TurboModulesFactory{
+export class WebViewPackage extends RNPackage {
+  createTurboModulesFactory(ctx: TurboModuleContext): TurboModulesFactory {
     return new WebViewTurboModulesFactory(ctx);
   }
 }
