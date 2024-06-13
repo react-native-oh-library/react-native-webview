@@ -510,15 +510,6 @@ export struct RNCWebView {
     }
   }
 
-  onBackPress() {
-
-    Logger.debug(TAG, 'onBackPressonBackPressonBackPressonBackPress ' );
-    if(this.controller.accessBackward()){
-      this.controller.backward()
-    }
-    return true
-  }
-
   build() {
     Stack() {
       Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
