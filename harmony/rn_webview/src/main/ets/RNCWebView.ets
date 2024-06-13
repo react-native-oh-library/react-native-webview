@@ -512,7 +512,7 @@ export struct RNCWebView {
 
   build() {
     Stack() {
-      Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
+      Web({ src: "", controller: this.controller, renderMode: this.renderMode })
         .width("100%")
         .height("100%")
         .constraintSize({ minHeight: 1 })
@@ -644,7 +644,7 @@ export struct RNCWebView {
       Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
       this.url = this.source.uri as string;
       if (this.controllerAttached) {
-        this.controller.loadUrl(this.descriptorWrapper.props.newSource.uri)
+        this.controller.loadUrl(this.descriptorWrapper.props.newSource.uri,this.headers)
       }
     }
     if (this.controllerAttached) {
