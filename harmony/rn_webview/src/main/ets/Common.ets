@@ -105,14 +105,15 @@ export class myNodeController extends NodeController {
   aboutToAppear() {
     this.isMounted = true
     this.getController()?.onActive()
-    Logger.debug("ljc aboutToAppear")
+    Logger.debug(" aboutToAppear")
   }
 
   // 当controller对应的NodeContainer在Disappear的时候进行回调
   aboutToDisappear() {
-    this.isMounted = false
-    this.getController()?.onInactive()
-    Logger.debug("ljc aboutToDisappear")
+    this.release()
+    // this.isMounted = false
+    // this.getController()?.onInactive()
+    Logger.debug(" aboutToDisappear")
   }
 
   setMount(isMounted: boolean) {
@@ -127,7 +128,9 @@ export class myNodeController extends NodeController {
     return controllerMap.get(this.id);
   }
 
-  release(): void {
+  private release(): void {
+    this.getController()?.loadData('','text/html', 'UTF-8')
+    this.getController()?.clearHistory()
     this.isMounted = false
     this.getController()?.onInactive()
   }
