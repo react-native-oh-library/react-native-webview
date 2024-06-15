@@ -367,9 +367,9 @@ export struct WebView {
     } catch (error) {
       Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
     }
-    if (this.webNodeId) {
-      getNWeb(this.webNodeId)?.release()
-    }
+    // if (this.webNodeId) {
+    //   getNWeb(this.webNodeId)?.release()
+    // }
   }
 
   transCacheMode(cacheMode: number): CacheMode {
