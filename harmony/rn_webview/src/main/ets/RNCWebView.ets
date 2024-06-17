@@ -166,39 +166,6 @@ export struct RNCWebView {
       this.overScrollMode = OverScrollMode.NEVER
     }
 
-    // this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
-    //   (newDescriptor) => {
-    //     this.descriptor = (newDescriptor as WebViewViewDescriptor)
-    //     Logger.debug(TAG, `[RNOH] newDescriptor props uri, ${JSON.stringify(this.descriptor.props.newSource.uri)}`);
-    //     this.cacheMode =
-    //       this.descriptor.props.cacheEnabled ? this.transCacheMode(this.descriptor.props.cacheMode) : CacheMode.Online;
-    //     this.javaScriptEnable = this.descriptor.props.javaScriptEnabled;
-    //     this.source = this.descriptor.props.newSource
-    //     if (this.html != "" && this.html != this.source.html) {
-    //       Logger.debug(TAG, "[RNOH] html is update")
-    //       this.html = this.source.html
-    //       if (this.controllerAttached) {
-    //         try {
-    //           this.controller.loadData(
-    //             this.source.html,
-    //             "text/html",
-    //             "UTF-8",
-    //             this.source.baseUrl,
-    //             " "
-    //           );
-    //         } catch (error) {
-    //           Logger.error(TAG, "error: " + error)
-    //         }
-    //       }
-    //     } else if (this.source.uri != "" && this.url != this.source.uri) {
-    //       Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
-    //       this.url = this.source.uri
-    //       if (this.controllerAttached) {
-    //         this.controller.loadUrl(this.descriptor.props.newSource.uri)
-    //       }
-    //     }
-    // })
-    // webview.WebviewController.setWebDebuggingAccess(this.descriptor.props.webviewDebuggingEnabled)
     this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
     this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
     this.cacheMode =
@@ -210,9 +177,6 @@ export struct RNCWebView {
       this.source.uri = $rawfile(this.source.uri.toString().replace("asset://", this.ctx.rnInstance.getAssetsDest()));
     }
     this.url = this.source.uri as string;
-    // this.nestedScrollFlag = this.descriptor.props.nestedScrollEnabled;
-    // nestedScrollEnabled true表示可嵌套滚动，不需要自适应和web统一渲染，默认是false
-    // this.renderMode = this.nestedScrollFlag?RenderMode.ASYNC_RENDER:RenderMode.SYNC_RENDER
     this.overScrollMode = this.descriptorWrapper.props.bounces ? OverScrollMode.ALWAYS : OverScrollMode.NEVER
     this.registerCommandCallback()
     if (this.hasIncognito()) {
@@ -405,7 +369,6 @@ export struct RNCWebView {
       navigationType: "other",
       mainDocumentURL: ""
     })
-    console.log('onLoadingStartSend===>')
   }
 
   onLoadingFinish() {
@@ -460,12 +423,15 @@ export struct RNCWebView {
     })
   }
   scroll(x:number,y:number){
-    console.log('scrollscrollscroll===>')
-    this.eventEmitter!.emit('scroll', {contentInset: {bottom: 0, left: 0, right: 0, top: 0}, contentOffset: {y: y, x: x}, contentSize: {height: 0, width: 0}, layoutMeasurement: {height: 0, width: 0}})
+    this.eventEmitter!.emit('scroll', {
+      contentInset: {bottom: 0, left: 0, right: 0, top: 0},
+      contentOffset: {y: y, x: x},
+      contentSize: {height: 0, width: 0},
+      layoutMeasurement: {height: 0, width: 0}})
   }
 
   onShouldStartLoadWithRequest() {
-    const flg =  this.eventEmitter!.emit('shouldStartLoadWithRequest', {
+    this.eventEmitter!.emit('shouldStartLoadWithRequest', {
       url: this.controller.getUrl(),
       loading: this.progress != 100,
       title: this.controller.getTitle(),
@@ -476,7 +442,6 @@ export struct RNCWebView {
       mainDocumentURL: "",
       isTopFrame: false
     })
-    console.log(JSON.stringify('flgflgflg===>'+JSON.stringify(flg)))
   }
 
   onShouldStartLoadCallFunction(lockIdentifier: number, data: WebResourceRequest) {
