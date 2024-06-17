@@ -26,6 +26,7 @@ import { Descriptor, RNComponentContext, ViewBaseProps } from '@rnoh/react-nativ
 import webview from '@ohos.web.webview';
 import { RNC } from '@rnoh/react-native-openharmony/generated';
 import Logger from './Logger';
+
 export class WebViewNewSourceHeader {
   name?: string
   value?: string
@@ -65,7 +66,7 @@ export interface WebViewProps extends ViewBaseProps {
   incognito: boolean
   userAgent: string
   shouldStartLoadWithRequestEnabled: boolean
-  originWhitelist:Array<string>
+  originWhitelist: Array<string>
 }
 
 
@@ -117,6 +118,7 @@ export class ResultType {
 }
 
 export type WebViewViewDescriptor = Descriptor<"RNCWebView", WebViewProps>
+
 @Component
 export struct RNCWebView {
   public static readonly NAME = RNC.RNCWebView.NAME
@@ -150,7 +152,6 @@ export struct RNCWebView {
   private eventEmitter: RNC.RNCWebView.EventEmitter | undefined = undefined
   private cleanUpCallbacks: (() => void)[] = []
   private descriptorWrapper: RNC.RNCWebView.DescriptorWrapper = {} as RNC.RNCWebView.DescriptorWrapper
-
 
   aboutToAppear() {
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
@@ -419,15 +420,22 @@ export struct RNCWebView {
       canGoBack: this.controller.accessBackward(),
       canGoForward: this.controller.accessForward(),
       lockIdentifier: 0,
-      progress:progress
+      progress: progress
     })
   }
-  scroll(x:number,y:number){
+
+  scroll(x: number, y: number) {
     this.eventEmitter!.emit('scroll', {
-      contentInset: {bottom: 0, left: 0, right: 0, top: 0},
-      contentOffset: {y: y, x: x},
-      contentSize: {height: 0, width: 0},
-      layoutMeasurement: {height: 0, width: 0}})
+      contentInset: {
+        bottom: 0,
+        left: 0,
+        right: 0,
+        top: 0
+      },
+      contentOffset: { y: y, x: x },
+      contentSize: { height: 0, width: 0 },
+      layoutMeasurement: { height: 0, width: 0 }
+    })
   }
 
   onShouldStartLoadWithRequest() {
@@ -445,7 +453,7 @@ export struct RNCWebView {
   }
 
   onShouldStartLoadCallFunction(lockIdentifier: number, data: WebResourceRequest) {
-   this.eventEmitter!.emit("shouldStartLoadWithRequest", {
+    this.eventEmitter!.emit("shouldStartLoadWithRequest", {
       url: data.getRequestUrl(),
       loading: this.progress != 100,
       title: this.controller.getTitle(),
@@ -500,7 +508,7 @@ export struct RNCWebView {
         })
         .onScroll((event) => {
           if (event) {
-            this.scroll(event.xOffset,event.yOffset)
+            this.scroll(event.xOffset, event.yOffset)
           }
         })
         .onPageBegin(() => {
@@ -522,11 +530,9 @@ export struct RNCWebView {
           }
         })
         .onHttpErrorReceive((event) => {
-          console.log('onHttpErrorReceiveevent', event)
           if (event) {
             let errorInfo: string = event.response.getResponseData();
             let code: number = event.response.getResponseCode()
-            console.log('onHttpErrorReceive', errorInfo)
             Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
             this.onHttpError(code, errorInfo)
           }
@@ -548,7 +554,7 @@ export struct RNCWebView {
             } catch (error) {
               Logger.error(TAG, "error:" + error)
             }
-          }else if (uri != undefined && uri != "") {
+          } else if (uri != undefined && uri != "") {
             this.controller.loadUrl(uri, this.headers);
           } else {
             this.controller.loadUrl(uri, this.headers);
@@ -560,7 +566,8 @@ export struct RNCWebView {
             try {
               this.controller.setCustomUserAgent(this.descriptorWrapper.props.userAgent);
             } catch (error) {
-              console.error(`ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${this.descriptorWrapper.props.userAgent}`);
+              Logger.debug(TAG,
+                `[RNOH] setCustomUserAgent ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${this.descriptorWrapper.props.userAgent}`);
             }
           }
         })
@@ -609,7 +616,7 @@ export struct RNCWebView {
       Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
       this.url = this.source.uri as string;
       if (this.controllerAttached) {
-        this.controller.loadUrl(this.descriptorWrapper.props.newSource.uri,this.headers)
+        this.controller.loadUrl(this.descriptorWrapper.props.newSource.uri, this.headers)
       }
     }
     if (this.controllerAttached) {
