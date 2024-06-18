@@ -153,6 +153,7 @@ export struct RNCWebView {
   injectedJavaScriptBeforeContentLoaded: Array<ScriptItem> = [
     { script: '', scriptRules: ["*"] }
   ];
+  headers: Array<webview.WebHeader> = []
   allowPageStartInProgress = true;
   @State webviewWidth: number = 0
   @State webviewHeight: number = 0
@@ -161,7 +162,6 @@ export struct RNCWebView {
   private descriptorWrapper: RNC.RNCWebView.DescriptorWrapper = {} as RNC.RNCWebView.DescriptorWrapper
 
   private onDescriptorWrapperChange(descriptorWrapper: RNC.RNCWebView.DescriptorWrapper) {
-    this.descriptorWrapper = descriptorWrapper
     this.initVariable()
     if (this.html != "" && this.html != this.source.html) {
       Logger.debug(TAG, "[RNOH] html is update")
@@ -183,7 +183,7 @@ export struct RNCWebView {
       Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
       this.url = this.source.uri as string;
       if (this.controllerAttached) {
-        this.controller.loadUrl(this.descriptorWrapper.props.newSource.uri)
+        this.controller.loadUrl(this.descriptorWrapper.props.newSource.uri, this.headers)
       }
     }
     if (this.controllerAttached) {
@@ -193,9 +193,10 @@ export struct RNCWebView {
 
   aboutToAppear() {
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
-    this.descriptorWrapper = this.ctx.descriptorRegistry.findDescriptorWrapperByTag<RNC.RNCWebView.DescriptorWrapper>(this.tag)!
 
     this.initVariable()
+    this.url = this.source.uri as string;
+    webview.WebviewController.setWebDebuggingAccess(this.descriptorWrapper.props.webviewDebuggingEnabled)
     this.cleanUpCallbacks.push(this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
       (_descriptor, newDescriptorWrapper) => {
         this.onDescriptorWrapperChange(newDescriptorWrapper! as RNC.RNCWebView.DescriptorWrapper)
@@ -214,6 +215,7 @@ export struct RNCWebView {
   }
 
   private initVariable() {
+    this.descriptorWrapper = this.ctx.descriptorRegistry.findDescriptorWrapperByTag<RNC.RNCWebView.DescriptorWrapper>(this.tag)!
     this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
     this.cacheMode =
       this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) : CacheMode.Online;
@@ -222,7 +224,15 @@ export struct RNCWebView {
       method: this.descriptorWrapper.props.newSource.method ?? "",
       body: this.descriptorWrapper.props.newSource.body ?? "",
       html: this.descriptorWrapper.props.newSource.html ?? "",
-      baseUrl: this.descriptorWrapper.props.newSource.baseUrl ?? ""
+      baseUrl: this.descriptorWrapper.props.newSource.baseUrl ?? "",
+      headers: this.descriptorWrapper.props.newSource.headers ?? []
+    }
+    if (this.source.headers) {
+      this.source.headers.forEach(item => {
+        if (item.name && item.value) {
+          this.headers.push({ headerKey: item.name, headerValue: item.value })
+        }
+      })
     }
     this.html = this.source.html
     this.webviewWidth = this.descriptorWrapper.width
@@ -233,7 +243,6 @@ export struct RNCWebView {
     if (this.source.uri && this.source.uri.toString().startsWith("asset://")) {
       this.source.uri = $rawfile(this.source.uri.toString().replace("asset://", this.ctx.rnInstance.getAssetsDest()));
     }
-    this.url = this.source.uri as string;
 
     if(this.descriptorWrapper.props.overScrollMode === 'always') {
       this.overScrollMode = OverScrollMode.ALWAYS
@@ -725,16 +734,9 @@ export struct RNCWebView {
               Logger.error(TAG, "error:" + error)
             }
           } else if (uri != undefined && uri != "") {
-            let header = this.source.headers;
-            if (header != undefined) {
-              let headers: Array<webview.WebHeader> = [];
-              header.forEach(item => {
-                if (item.name && item.value) {
-                  headers.push({ headerKey: item.name, headerValue: item.value })
-                }
-              })
-              this.controller.loadUrl(uri, headers);
-            }
+            this.controller.loadUrl(uri, this.headers);
+          } else {
+            this.controller.loadUrl(uri, this.headers);
           }
           if (!this.hasRegisterJavaScriptProxy) {
             this.registerPostMessage()
