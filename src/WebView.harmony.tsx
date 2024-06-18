@@ -51,7 +51,7 @@ const shouldStartLoadWithLockIdentifier:(
   lockIdentifier: Double
 ) => void = () => {}
 
-const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
+const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: boolean}>(
   (
     {
       fraudulentWebsiteWarningEnabled = true,
@@ -237,6 +237,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
         key="webViewKey"
         {...otherProps}
         scrollEnabled={otherProps.scrollEnabled ?? true}
+        scalesPageToFit={otherProps.scalesPageToFit ?? true}
         fraudulentWebsiteWarningEnabled={fraudulentWebsiteWarningEnabled}
         javaScriptEnabled={javaScriptEnabled}
         cacheEnabled={cacheEnabled}

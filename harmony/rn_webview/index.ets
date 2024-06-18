@@ -21,6 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+import {RNCWebView as WebView} from './src/main/ets/RNCWebView'
+
+export { WebView }
 
 export * from './src/main/ets/RNCWebView'
 
