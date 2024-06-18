@@ -150,6 +150,9 @@ export struct RNCWebView {
   renderMode: RenderMode = RenderMode.SYNC_RENDER;
   scrollEnabled = true;
   nestedScroll = NestedScrollMode.SELF_FIRST;
+  injectedJavaScriptBeforeContentLoaded: Array<ScriptItem> = [
+    { script: '', scriptRules: ["*"] }
+  ];
   allowPageStartInProgress = true;
   @State webviewWidth: number = 0
   @State webviewHeight: number = 0
@@ -239,6 +242,12 @@ export struct RNCWebView {
     }
 
     this.overScrollMode = this.descriptorWrapper.props.bounces ? OverScrollMode.ALWAYS : OverScrollMode.NEVER;
+
+    if (this.descriptorWrapper.props.injectedJavaScriptBeforeContentLoaded) {
+      this.injectedJavaScriptBeforeContentLoaded = [
+        { script: this.descriptorWrapper.props.injectedJavaScriptBeforeContentLoaded, scriptRules: ["*"] }
+      ];
+    }
   }
 
   private registerPostMessage() {
@@ -615,6 +624,7 @@ export struct RNCWebView {
         .overScrollMode(this.overScrollMode)
         .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
+        .javaScriptOnDocumentStart(this.injectedJavaScriptBeforeContentLoaded)
         .horizontalScrollBarAccess(this.descriptorWrapper.props.showsHorizontalScrollIndicator)
         .verticalScrollBarAccess(this.descriptorWrapper.props.showsVerticalScrollIndicator)
         .overviewModeAccess(this.descriptorWrapper.props.scalesPageToFit)
