@@ -679,8 +679,20 @@ export struct RNCWebView {
           scrollBackward: this.nestedScroll,
         })
         .onPageBegin(() => {
-          this.onLoadingStart()
-          this.controller.setScrollable(this.scrollEnabled)
+          try {
+            this.onLoadingStart()
+            this.controller.setScrollable(this.scrollEnabled)
+            if (this.descriptorWrapper.props.userAgent) {
+              this.controller.setCustomUserAgent(this.descriptorWrapper.props.userAgent);
+            }else{
+              // 修复一些页面下无法将鸿蒙userAgent识别为手机的问题
+              let userAgent: string = this.controller.getUserAgent() + ' iPhone';
+              this.controller.setCustomUserAgent(userAgent);
+            }
+          }catch (error) {
+            Logger.debug(TAG,
+              `[RNOH] setCustomUserAgent ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${this.descriptorWrapper.props.userAgent}`);
+          }
         })
         .onPageEnd(() => {
           Logger.debug(TAG, "[RNOH] onPageEnd")
@@ -728,14 +740,6 @@ export struct RNCWebView {
           }
           if (!this.hasRegisterJavaScriptProxy) {
             this.registerPostMessage()
-          }
-          try {
-            // 修复一些页面下无法将鸿蒙userAgent识别为手机的问题
-            let userAgent = this.controller.getUserAgent() + ' iPhone';
-            this.controller.setCustomUserAgent(userAgent);
-
-          } catch (error) {
-            Logger.error(TAG, "setUA error: " + error)
           }
           if (this.descriptorWrapper.props.userAgent) {
             try {
