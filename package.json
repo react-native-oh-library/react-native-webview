@@ -77,12 +77,8 @@
   },
   "files": [
     "src",
-    "android",
-    "ios",
     "harmony",
     "react-native-webview.podspec",
-    "!android/build",
-    "!ios/build",
     "!**/__tests__",
     "!**/__fixtures__",
     "!**/__mocks__"
@@ -95,11 +91,6 @@
         "./src"
       ]
     }
-  },
-  "codegenConfig": {
-    "name": "WebViewSpecs",
-    "type": "components",
-    "jsSrcsDir": "src"
   },
   "packageManager": "yarn@1.22.19"
 }
