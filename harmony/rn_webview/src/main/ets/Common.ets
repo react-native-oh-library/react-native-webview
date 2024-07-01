@@ -79,7 +79,7 @@ function WebBuilder(data: Data) {
 let wrap = wrapBuilder<Data[]>(WebBuilder);
 
 // 用于控制和反馈对应的NodeContainer上的节点的行为，需要与NodeContainer一起使用
-export class myNodeController extends NodeController {
+export class webNodeController extends NodeController {
   private rootnode: BuilderNode<Data[]> | null = null;
   private isMounted = false;
   private id: string = "1";
@@ -110,10 +110,7 @@ export class myNodeController extends NodeController {
 
   // 当controller对应的NodeContainer在Disappear的时候进行回调
   aboutToDisappear() {
-    this.release()
-    // this.isMounted = false
-    // this.getController()?.onInactive()
-    Logger.debug(" aboutToDisappear")
+    Logger.debug(TAG," aboutToDisappear")
   }
 
   setMount(isMounted: boolean) {
@@ -128,11 +125,12 @@ export class myNodeController extends NodeController {
     return controllerMap.get(this.id);
   }
 
-  private release(): void {
+  release(): void {
     this.getController()?.loadData('','text/html', 'UTF-8')
     this.getController()?.clearHistory()
     this.isMounted = false
     this.getController()?.onInactive()
+    Logger.debug(TAG,"release")
   }
 
   // 此函数为自定义函数，可作为初始化函数使用
@@ -166,7 +164,7 @@ export class myNodeController extends NodeController {
 }
 
 // 创建Map保存所需要的NodeController
-let NodeMap: Map<string, myNodeController | undefined> = new Map();
+let NodeMap: Map<string, webNodeController | undefined> = new Map();
 // 创建Map保存所需要的WebViewController
 let controllerMap: Map<string, WebviewController | undefined> = new Map();
 
@@ -176,7 +174,7 @@ export const createNWeb = (uiContext: UIContext, count: number) => {
   while (nodeMapSize < count && nodeMapSize < MAX_WEB_NODE_COUNT) {
     let id = (nodeMapSize + 1).toString();
     // 创建NodeController
-    let baseNode = new myNodeController();
+    let baseNode = new webNodeController();
     let controller = new web_webview.WebviewController();
     // 初始化自定义Web组件
     baseNode.initWeb(id, uiContext, controller);
@@ -190,7 +188,7 @@ export const createNWeb = (uiContext: UIContext, count: number) => {
 }
 
 // 自定义获取NodeController接口
-export const getNWeb = (id: string): myNodeController | undefined => {
+export const getNWeb = (id: string): webNodeController | undefined => {
   return NodeMap.get(id);
 }
 

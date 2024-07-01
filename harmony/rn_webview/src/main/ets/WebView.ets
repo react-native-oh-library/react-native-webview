@@ -185,6 +185,7 @@ export struct WebView {
             this.source.baseUrl,
             " "
           );
+          Logger.debug(TAG, "loadData finish")
         } catch (error) {
           Logger.error(TAG, "error: " + error)
         }
@@ -367,9 +368,9 @@ export struct WebView {
     } catch (error) {
       Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
     }
-    // if (this.webNodeId) {
-    //   getNWeb(this.webNodeId)?.release()
-    // }
+    if (this.webNodeId) {
+      getNWeb(this.webNodeId)?.release()
+    }
   }
 
   transCacheMode(cacheMode: number): CacheMode {
