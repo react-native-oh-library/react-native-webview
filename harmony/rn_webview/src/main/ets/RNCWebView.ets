@@ -138,13 +138,14 @@ export struct RNCWebView {
     html: "",
     baseUrl: ""
   }
-  html: string | undefined = ""
-  url: string | Resource = ""
+  html: string | undefined = "";
+  url: string | Resource = "";
   controller: webview.WebviewController = new webview.WebviewController();
-  javaScriptEnable: boolean = true
-  overScrollMode: OverScrollMode = OverScrollMode.NEVER
+  javaScriptEnable: boolean = true;
+  allowFileAccess: boolean = true;
+  overScrollMode: OverScrollMode = OverScrollMode.NEVER;
   progress: number = 0
-  cacheMode: number = CacheMode.Default
+  cacheMode: number = CacheMode.Default;
   lockIdentifier: string = "";
   requestUrl: string = "";
   messagingEnabled: boolean = false;
@@ -650,6 +651,7 @@ export struct RNCWebView {
       Web({ src: "", controller: this.controller, renderMode: this.renderMode })
         .width(this.webviewWidth)
         .height(this.webviewHeight)
+        .fileAccess(this.allowFileAccess)
         .constraintSize({ minHeight: 1 })
         .overScrollMode(this.overScrollMode)
         .backgroundColor(Color.Transparent)
