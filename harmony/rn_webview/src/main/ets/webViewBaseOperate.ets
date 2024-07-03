@@ -41,19 +41,19 @@ export class BaseOperate {
   emitProgressChange(params: ProgressInterface) {
     this.eventEmitter!.emit('loadingProgress', {
       url: this.controller.getUrl(),
-      loading: params.progress != 100,
+      loading: params.progress != ONE_HUNDRED,
       title: this.controller.getTitle(),
       canGoBack: this.controller.accessBackward(),
       canGoForward: this.controller.accessForward(),
       lockIdentifier: 0,
-      progress: params.progress / 100
+      progress: params.progress / ONE_HUNDRED
     })
   }
 
   emitLoadingStart(params: ProgressInterface) {
     this.eventEmitter!.emit('loadingStart', {
       url: this.controller.getUrl(),
-      loading: params.progress != 100,
+      loading: params.progress != ONE_HUNDRED,
       title: this.controller.getTitle(),
       canGoBack: this.controller.accessBackward(),
       canGoForward: this.controller.accessForward(),
@@ -66,7 +66,7 @@ export class BaseOperate {
   emitLoadingFinish(params: ProgressInterface) {
     this.eventEmitter!.emit('loadingFinish', {
       url: this.controller.getUrl(),
-      loading: params.progress != 100,
+      loading: params.progress != ONE_HUNDRED,
       title: this.controller.getTitle(),
       canGoBack: this.controller.accessBackward(),
       canGoForward: this.controller.accessForward(),
@@ -120,7 +120,7 @@ export class BaseOperate {
   emitShouldStartLoadWithRequest(params: ProgressInterface) {
     this.eventEmitter!.emit('shouldStartLoadWithRequest', {
       url: this.controller.getUrl(),
-      loading: params.progress != 100,
+      loading: params.progress != ONE_HUNDRED,
       title: this.controller.getTitle(),
       canGoBack: this.controller.accessBackward(),
       canGoForward: this.controller.accessForward(),

@@ -27,7 +27,7 @@ import webview from '@ohos.web.webview';
 import { url as OSUrl } from '@kit.ArkTS';
 import { RNC } from '@rnoh/react-native-openharmony/generated';
 import Logger from './Logger';
-import { BaseOperate } from './baseOperate';
+import { BaseOperate } from './webViewBaseOperate';
 import {
   AlertEvent,
   CACHE_MODE,
@@ -37,6 +37,7 @@ import {
   RNCWebViewBridge,
   WebViewEventParams,
   WebViewNewSource,
+  WebViewOverScrollMode,
   ZERO
 } from './Magic';
 
@@ -536,9 +537,9 @@ export struct RNCWebView {
       this.source.uri = $rawfile(this.source.uri.toString().replace("asset://", this.ctx.rnInstance.getAssetsDest()));
     }
 
-    if (this.descriptorWrapper.props.overScrollMode === 'always') {
+    if (this.descriptorWrapper.props.overScrollMode === WebViewOverScrollMode.ALWAYS) {
       this.overScrollMode = OverScrollMode.ALWAYS
-    } else if (this.descriptorWrapper.props.overScrollMode === 'never') {
+    } else if (this.descriptorWrapper.props.overScrollMode === WebViewOverScrollMode.NEVER) {
       this.overScrollMode = OverScrollMode.NEVER
     }
 

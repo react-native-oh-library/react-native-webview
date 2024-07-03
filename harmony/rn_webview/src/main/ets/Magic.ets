@@ -116,3 +116,8 @@ export interface ScrollInterface {
   x: number,
   y: number
 }
+
+export enum WebViewOverScrollMode {
+  ALWAYS = "always",
+  NEVER = "never"
+}
