@@ -27,7 +27,7 @@ import webview from '@ohos.web.webview';
 import { url as OSUrl } from '@kit.ArkTS';
 import { RNC } from '@rnoh/react-native-openharmony/generated';
 import Logger from './Logger';
-import { BaseOperate } from './webViewBaseOperate';
+import { BaseOperate } from './WebViewBaseOperate';
 import {
   AlertEvent,
   CACHE_MODE,
@@ -377,8 +377,8 @@ export struct RNCWebView {
         .overScrollMode(this.overScrollMode)
         .onProgressChange((event) => {
           if (event) {
-            this.progress = event.newProgress
-            this.onProgressChange()
+              this.progress = event.newProgress
+              this.onProgressChange()
           }
         })
         .onScroll((event) => {
@@ -452,14 +452,6 @@ export struct RNCWebView {
           }
           if (!this.hasRegisterJavaScriptProxy) {
             this.registerPostMessage()
-          }
-          if (this.descriptorWrapper.props.userAgent) {
-            try {
-              this.controller.setCustomUserAgent(this.descriptorWrapper.props.userAgent);
-            } catch (error) {
-              Logger.debug(TAG,
-                `[RNOH] setCustomUserAgent ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${this.descriptorWrapper.props.userAgent}`);
-            }
           }
         })
         .onAlert((event) => this.onJavascriptAlert(event))
@@ -570,7 +562,8 @@ export struct RNCWebView {
         }
       };
       this.controller.registerJavaScriptProxy(bridge, JAVASCRIPT_INTERFACE, ["postMessage"])
-      this.controller.refresh()
+      // this.controller.refresh()
+      this.controller.loadUrl(this.source.uri, this.headers);
       this.hasRegisterJavaScriptProxy = true
     }
   }
