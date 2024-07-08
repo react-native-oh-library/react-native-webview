@@ -1,6 +1,10 @@
 import { RNC } from '@rnoh/react-native-openharmony/generated/ts'
 import { webview } from '@kit.ArkWeb'
 import { CACHE_MODE, ONE_HUNDRED, WebViewEventParams } from './Magic';
+import Logger from './Logger';
+
+export const TAG = "WebView"
+
 
 interface ProgressInterface {
   progress: number;
@@ -39,68 +43,88 @@ export class BaseOperate {
   }
 
   emitProgressChange(params: ProgressInterface) {
-    this.eventEmitter!.emit('loadingProgress', {
-      url: this.controller.getUrl(),
-      loading: params.progress != ONE_HUNDRED,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: 0,
-      progress: params.progress / ONE_HUNDRED
-    })
+    try {
+      this.eventEmitter!.emit('loadingProgress', {
+        url: this.controller.getUrl(),
+        loading: params.progress != ONE_HUNDRED,
+        title: this.controller.getTitle(),
+        canGoBack: this.controller.accessBackward(),
+        canGoForward: this.controller.accessForward(),
+        lockIdentifier: 0,
+        progress: params.progress / ONE_HUNDRED
+      })
+    } catch (error) {
+      Logger.error(TAG, `[RNOH]Errorcode: ${JSON.stringify(error)}`);
+    }
   }
 
   emitLoadingStart(params: ProgressInterface) {
-    this.eventEmitter!.emit('loadingStart', {
-      url: this.controller.getUrl(),
-      loading: params.progress != ONE_HUNDRED,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: 0,
-      navigationType: "other",
-      mainDocumentURL: ""
-    })
+    try {
+      this.eventEmitter!.emit('loadingStart', {
+        url: this.controller.getUrl(),
+        loading: params.progress != ONE_HUNDRED,
+        title: this.controller.getTitle(),
+        canGoBack: this.controller.accessBackward(),
+        canGoForward: this.controller.accessForward(),
+        lockIdentifier: 0,
+        navigationType: "other",
+        mainDocumentURL: ""
+      })
+    } catch (error) {
+      Logger.error(TAG, `[RNOH]Errorcode: ${JSON.stringify(error)}`);
+    }
   }
 
   emitLoadingFinish(params: ProgressInterface) {
-    this.eventEmitter!.emit('loadingFinish', {
-      url: this.controller.getUrl(),
-      loading: params.progress != ONE_HUNDRED,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: 0,
-      navigationType: "other",
-      mainDocumentURL: ""
-    })
+    try {
+      this.eventEmitter!.emit('loadingFinish', {
+        url: this.controller.getUrl(),
+        loading: params.progress != ONE_HUNDRED,
+        title: this.controller.getTitle(),
+        canGoBack: this.controller.accessBackward(),
+        canGoForward: this.controller.accessForward(),
+        lockIdentifier: 0,
+        navigationType: "other",
+        mainDocumentURL: ""
+      })
+    } catch (error) {
+      Logger.error(TAG, `[RNOH]Errorcode: ${JSON.stringify(error)}`);
+    }
   }
 
   emitLoadingError(params: LoadingErrorInterface) {
-    this.eventEmitter!.emit('loadingError', {
-      url: this.controller.getUrl(),
-      loading: false,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: 0,
-      domain: "",
-      code: params.code,
-      description: params.description
-    })
+    try {
+      this.eventEmitter!.emit('loadingError', {
+        url: this.controller.getUrl(),
+        loading: false,
+        title: this.controller.getTitle(),
+        canGoBack: this.controller.accessBackward(),
+        canGoForward: this.controller.accessForward(),
+        lockIdentifier: 0,
+        domain: "",
+        code: params.code,
+        description: params.description
+      })
+    } catch (error) {
+      Logger.error(TAG, `[RNOH]Errorcode: ${JSON.stringify(error)}`);
+    }
   }
 
   emitHttpError(params: LoadingErrorInterface) {
-    this.eventEmitter!.emit('httpError', {
-      url: this.controller.getUrl(),
-      loading: false,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: 0,
-      description: params.description,
-      statusCode: params.code
-    })
+    try {
+      this.eventEmitter!.emit('httpError', {
+        url: this.controller.getUrl(),
+        loading: false,
+        title: this.controller.getTitle(),
+        canGoBack: this.controller.accessBackward(),
+        canGoForward: this.controller.accessForward(),
+        lockIdentifier: 0,
+        description: params.description,
+        statusCode: params.code
+      })
+    } catch (error) {
+      Logger.error(TAG, `[RNOH]Errorcode: ${JSON.stringify(error)}`);
+    }
   }
 
   emitScroll(params: ScrollInterface) {
@@ -118,17 +142,21 @@ export class BaseOperate {
   }
 
   emitShouldStartLoadWithRequest(params: ProgressInterface) {
-    this.eventEmitter!.emit('shouldStartLoadWithRequest', {
-      url: this.controller.getUrl(),
-      loading: params.progress != ONE_HUNDRED,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: 0,
-      navigationType: "other",
-      mainDocumentURL: "",
-      isTopFrame: false
-    })
+    try {
+      this.eventEmitter!.emit('shouldStartLoadWithRequest', {
+        url: this.controller.getUrl(),
+        loading: params.progress != ONE_HUNDRED,
+        title: this.controller.getTitle(),
+        canGoBack: this.controller.accessBackward(),
+        canGoForward: this.controller.accessForward(),
+        lockIdentifier: 0,
+        navigationType: "other",
+        mainDocumentURL: "",
+        isTopFrame: false
+      })
+    } catch (error) {
+      Logger.error(TAG, `[RNOH]Errorcode: ${JSON.stringify(error)}`);
+    }
   }
 
   transCacheMode(cacheMode: CACHE_MODE): CacheMode {
