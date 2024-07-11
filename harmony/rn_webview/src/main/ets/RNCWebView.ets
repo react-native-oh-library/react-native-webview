@@ -356,6 +356,10 @@ export struct RNCWebView {
     return true
   }
 
+  ignoreSilentHardwareSwitchMethods(ignoreSilentHardwareSwitch: boolean) {
+    this.webViewBaseOperate?.ignoreSilentHardwareSwitchMethods(ignoreSilentHardwareSwitch)
+  }
+
   build() {
     Stack() {
       Web({ src: "", controller: this.controller, renderMode: this.renderMode })
@@ -377,8 +381,8 @@ export struct RNCWebView {
         .overScrollMode(this.overScrollMode)
         .onProgressChange((event) => {
           if (event) {
-              this.progress = event.newProgress
-              this.onProgressChange()
+            this.progress = event.newProgress
+            this.onProgressChange()
           }
         })
         .onScroll((event) => {
@@ -429,6 +433,7 @@ export struct RNCWebView {
           }
         })
         .onControllerAttached(() => {
+          this.ignoreSilentHardwareSwitchMethods(this.descriptorWrapper.props.ignoreSilentHardwareSwitch)
           this.controllerAttached = true;
           Logger.debug(TAG, "[RNOH] onControllerAttached")
           let baseUrl = this.source.baseUrl
@@ -453,6 +458,7 @@ export struct RNCWebView {
           if (!this.hasRegisterJavaScriptProxy) {
             this.registerPostMessage()
           }
+          this.ignoreSilentHardwareSwitchMethods(this.descriptorWrapper.props.ignoreSilentHardwareSwitch)
         })
         .onAlert((event) => this.onJavascriptAlert(event))
         .onConfirm((event) => this.onJavascriptConfirm(event))
@@ -562,7 +568,6 @@ export struct RNCWebView {
         }
       };
       this.controller.registerJavaScriptProxy(bridge, JAVASCRIPT_INTERFACE, ["postMessage"])
-      // this.controller.refresh()
       this.controller.loadUrl(this.source.uri, this.headers);
       this.hasRegisterJavaScriptProxy = true
     }

@@ -196,4 +196,10 @@ export class BaseOperate {
     }
     return result;
   }
+
+  ignoreSilentHardwareSwitchMethods(ignoreSilentHardwareSwitch: boolean) {
+    Logger.info(TAG,
+      `ignoreSilentHardwareSwitchignoreSilentHardwareSwitchignoreSilentHardwareSwitch==${JSON.stringify(!ignoreSilentHardwareSwitch)}`)
+    this.controller.setAudioMuted(!ignoreSilentHardwareSwitch)
+  }
 }
