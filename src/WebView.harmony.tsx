@@ -58,6 +58,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
       javaScriptEnabled = true,
       cacheEnabled = true,
       originWhitelist = defaultOriginWhitelist,
+        ignoreSilentHardwareSwitch,
       useSharedProcessPool = true,
       textInteractionEnabled = true,
       injectedJavaScript,
@@ -136,6 +137,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
       onOpenWindowProp,
       startInLoadingState,
       originWhitelist,
+          ignoreSilentHardwareSwitch,
       onShouldStartLoadWithRequestProp,
       onShouldStartLoadWithRequestCallback,
       onContentProcessDidTerminateProp,
@@ -237,6 +239,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
         key="webViewKey"
         {...otherProps}
         scrollEnabled={otherProps.scrollEnabled ?? true}
+        ignoreSilentHardwareSwitch={ignoreSilentHardwareSwitch}
         scalesPageToFit={otherProps.scalesPageToFit ?? true}
         fraudulentWebsiteWarningEnabled={fraudulentWebsiteWarningEnabled}
         javaScriptEnabled={javaScriptEnabled}
