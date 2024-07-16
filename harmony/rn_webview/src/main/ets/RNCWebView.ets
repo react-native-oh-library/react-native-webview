@@ -89,7 +89,6 @@ export struct RNCWebView {
 
   aboutToAppear() {
     try {
-      this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
       this.initVariable()
       this.url = this.source.uri as string;
       webview.WebviewController.setWebDebuggingAccess(this.descriptorWrapper.props.webviewDebuggingEnabled)
@@ -109,7 +108,6 @@ export struct RNCWebView {
           }
         })
       }
-      this.webViewBaseOperate = BaseOperate.getInstance(this.eventEmitter, this.controller)
     } catch (error) {
       Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
     }
@@ -360,6 +358,13 @@ export struct RNCWebView {
     this.webViewBaseOperate?.ignoreSilentHardwareSwitchMethods(ignoreSilentHardwareSwitch)
   }
 
+  controllerAttachedInit(): void {
+    this.controllerAttached = true;
+    this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
+    this.webViewBaseOperate = BaseOperate.getInstance(this.eventEmitter, this.controller)
+    this.ignoreSilentHardwareSwitchMethods(this.descriptorWrapper.props.ignoreSilentHardwareSwitch)
+  }
+
   build() {
     Stack() {
       Web({ src: "", controller: this.controller, renderMode: this.renderMode })
@@ -433,8 +438,7 @@ export struct RNCWebView {
           }
         })
         .onControllerAttached(() => {
-          this.ignoreSilentHardwareSwitchMethods(this.descriptorWrapper.props.ignoreSilentHardwareSwitch)
-          this.controllerAttached = true;
+          this.controllerAttachedInit()
           Logger.debug(TAG, "[RNOH] onControllerAttached")
           let baseUrl = this.source.baseUrl
           let uri = this.source.uri
@@ -458,7 +462,6 @@ export struct RNCWebView {
           if (!this.hasRegisterJavaScriptProxy) {
             this.registerPostMessage()
           }
-          this.ignoreSilentHardwareSwitchMethods(this.descriptorWrapper.props.ignoreSilentHardwareSwitch)
         })
         .onAlert((event) => this.onJavascriptAlert(event))
         .onConfirm((event) => this.onJavascriptConfirm(event))
