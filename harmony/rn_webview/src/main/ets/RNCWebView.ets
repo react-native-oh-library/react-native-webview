@@ -571,13 +571,14 @@ export struct RNCWebView {
           if (this.controller != null) {
             let result: WebViewEventParams = this.createWebViewEvent("onMessage")
             result.data = data.toString()
-            result.lockIdentifier = 0
+            result.lockIdentifier = ZERO
             this.eventEmitter!.emit("message", result as ResultType);
           }
         }
       };
       this.controller.registerJavaScriptProxy(bridge, JAVASCRIPT_INTERFACE, ["postMessage"])
-      this.controller.loadUrl(this.source.uri, this.headers);
+      this.source.uri ?
+      this.controller.loadUrl(this.source.uri, this.headers) : this.controller.refresh()
       this.hasRegisterJavaScriptProxy = true
     }
   }
