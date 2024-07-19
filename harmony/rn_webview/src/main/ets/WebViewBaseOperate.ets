@@ -26,7 +26,6 @@ interface CreateWebViewEventInterface {
 }
 
 export class BaseOperate {
-  static instance: BaseOperate | null = null
   private eventEmitter: RNC.RNCWebView.EventEmitter
   private controller: webview.WebviewController
 
@@ -35,12 +34,6 @@ export class BaseOperate {
     this.controller = controller
   }
 
-  static getInstance(eventEmitter: RNC.RNCWebView.EventEmitter, controller: webview.WebviewController): BaseOperate {
-    if (BaseOperate.instance === null) {
-      BaseOperate.instance = new BaseOperate(eventEmitter, controller)
-    }
-    return BaseOperate.instance
-  }
 
   emitProgressChange(params: ProgressInterface) {
     try {
