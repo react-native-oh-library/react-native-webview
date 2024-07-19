@@ -362,7 +362,7 @@ export struct RNCWebView {
   controllerAttachedInit(): void {
     this.controllerAttached = true;
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
-    this.webViewBaseOperate = BaseOperate.getInstance(this.eventEmitter, this.controller)
+    this.webViewBaseOperate = new BaseOperate(this.eventEmitter, this.controller)
 
   }
 
