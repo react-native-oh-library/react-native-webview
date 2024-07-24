@@ -430,6 +430,10 @@ export struct RNCWebView {
           if (event) {
             let errorInfo: string = event.error.getErrorInfo();
             let errorCode: number = event.error.getErrorCode();
+            if (!event.request.isMainFrame()) {
+              Logger.debug(TAG, "[RNOH] Not Main Frame Error");
+              return;
+            }
             Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
             Logger.debug(TAG, "[RNOH] errorCode:" + errorCode)
             this.onLoadingError(errorCode, errorInfo)
