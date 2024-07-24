@@ -372,8 +372,9 @@ export struct RNCWebView {
       this.controller.setScrollable(this.scrollEnabled)
       this.ignoreSilentHardwareSwitchMethods(this.descriptorWrapper.props.ignoreSilentHardwareSwitch)
       if (this.descriptorWrapper.props.userAgent) {
-        this.controller.setCustomUserAgent(this.descriptorWrapper.props.userAgent);
-      } else {
+        let userAgent: string = this.controller.getUserAgent() + `${this.descriptorWrapper.props.userAgent}`;
+        this.controller.setCustomUserAgent(userAgent);      
+        } else {
         // 修复一些页面下无法将鸿蒙userAgent识别为手机的问题
         let userAgent: string = this.controller.getUserAgent() + ' iPhone';
         this.controller.setCustomUserAgent(userAgent);
