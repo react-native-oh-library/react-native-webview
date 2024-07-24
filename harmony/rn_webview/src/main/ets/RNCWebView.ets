@@ -363,7 +363,6 @@ export struct RNCWebView {
     this.controllerAttached = true;
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
     this.webViewBaseOperate = new BaseOperate(this.eventEmitter, this.controller)
-
   }
 
   onPageBeginInit() {
@@ -372,7 +371,8 @@ export struct RNCWebView {
       this.controller.setScrollable(this.scrollEnabled)
       this.ignoreSilentHardwareSwitchMethods(this.descriptorWrapper.props.ignoreSilentHardwareSwitch)
       if (this.descriptorWrapper.props.userAgent) {
-        this.controller.setCustomUserAgent(this.descriptorWrapper.props.userAgent);
+        let userAgent: string = this.controller.getUserAgent() + ` ${this.descriptorWrapper.props.userAgent}`;
+        this.controller.setCustomUserAgent(userAgent);      
       } else {
         // 修复一些页面下无法将鸿蒙userAgent识别为手机的问题
         let userAgent: string = this.controller.getUserAgent() + ' iPhone';
