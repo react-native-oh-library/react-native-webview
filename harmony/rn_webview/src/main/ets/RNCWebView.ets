@@ -363,24 +363,16 @@ export struct RNCWebView {
     this.controllerAttached = true;
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
     this.webViewBaseOperate = new BaseOperate(this.eventEmitter, this.controller)
+    this.webViewBaseOperate.setCustomUserAgent(this.descriptorWrapper.props.userAgent)
   }
 
   onPageBeginInit() {
     try {
-      this.onLoadingStart()
       this.controller.setScrollable(this.scrollEnabled)
       this.ignoreSilentHardwareSwitchMethods(this.descriptorWrapper.props.ignoreSilentHardwareSwitch)
-      if (this.descriptorWrapper.props.userAgent) {
-        let userAgent: string = this.controller.getUserAgent() + ` ${this.descriptorWrapper.props.userAgent}`;
-        this.controller.setCustomUserAgent(userAgent);      
-      } else {
-        // 修复一些页面下无法将鸿蒙userAgent识别为手机的问题
-        let userAgent: string = this.controller.getUserAgent() + ' iPhone';
-        this.controller.setCustomUserAgent(userAgent);
-      }
     } catch (error) {
       Logger.debug(TAG,
-        `[RNOH] setCustomUserAgent ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${this.descriptorWrapper.props.userAgent}`);
+        `[RNOH] setignoreSilentHardwareSwitch and setScrollable ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${this.descriptorWrapper.props.userAgent}`);
     }
   }
 

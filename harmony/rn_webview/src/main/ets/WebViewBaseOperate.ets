@@ -47,7 +47,7 @@ export class BaseOperate {
         progress: params.progress / ONE_HUNDRED
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH]Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitProgressChange Errorcode: ${JSON.stringify(error)}`);
     }
   }
 
@@ -64,7 +64,7 @@ export class BaseOperate {
         mainDocumentURL: ""
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH]Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitLoadingStart Errorcode: ${JSON.stringify(error)}`);
     }
   }
 
@@ -81,7 +81,7 @@ export class BaseOperate {
         mainDocumentURL: ""
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH]Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitLoadingFinish Errorcode: ${JSON.stringify(error)}`);
     }
   }
 
@@ -99,7 +99,7 @@ export class BaseOperate {
         description: params.description
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH]Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitLoadingError Errorcode: ${JSON.stringify(error)}`);
     }
   }
 
@@ -116,22 +116,26 @@ export class BaseOperate {
         statusCode: params.code
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH]Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitHttpError Errorcode: ${JSON.stringify(error)}`);
     }
   }
 
   emitScroll(params: ScrollInterface) {
-    this.eventEmitter!.emit('scroll', {
-      contentInset: {
-        bottom: 0,
-        left: 0,
-        right: 0,
-        top: 0
-      },
-      contentOffset: { y: params.y, x: params.x },
-      contentSize: { height: 0, width: 0 },
-      layoutMeasurement: { height: 0, width: 0 }
-    })
+    try {
+      this.eventEmitter!.emit('scroll', {
+        contentInset: {
+          bottom: 0,
+          left: 0,
+          right: 0,
+          top: 0
+        },
+        contentOffset: { y: params.y, x: params.x },
+        contentSize: { height: 0, width: 0 },
+        layoutMeasurement: { height: 0, width: 0 }
+      })
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] emitScroll Errorcode: ${JSON.stringify(error)}`);
+    }
   }
 
   emitShouldStartLoadWithRequest(params: ProgressInterface) {
@@ -148,7 +152,7 @@ export class BaseOperate {
         isTopFrame: false
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH]Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitShouldStartLoadWithRequest Errorcode: ${JSON.stringify(error)}`);
     }
   }
 
@@ -192,5 +196,21 @@ export class BaseOperate {
 
   ignoreSilentHardwareSwitchMethods(ignoreSilentHardwareSwitch: boolean) {
     this.controller.setAudioMuted(!ignoreSilentHardwareSwitch)
+  }
+
+  setCustomUserAgent(customUserAgent?: string): void {
+    try {
+      if (customUserAgent) {
+        let userAgent: string = this.controller.getUserAgent() + ` ${customUserAgent}`;
+        this.controller.setCustomUserAgent(userAgent);
+      } else {
+        // 修复一些页面下无法将鸿蒙userAgent识别为手机的问题
+        let userAgent: string = this.controller.getUserAgent() + ' iPhone';
+        this.controller.setCustomUserAgent(userAgent);
+      }
+    } catch (error) {
+      Logger.debug(TAG,
+        `[RNOH] setCustomUserAgent ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${customUserAgent}`);
+    }
   }
 }
