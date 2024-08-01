@@ -58,7 +58,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
       javaScriptEnabled = true,
       cacheEnabled = true,
       originWhitelist = defaultOriginWhitelist,
-        ignoreSilentHardwareSwitch,
+      ignoreSilentHardwareSwitch,
       useSharedProcessPool = true,
       textInteractionEnabled = true,
       injectedJavaScript,
@@ -73,7 +73,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
       onLoad,
       onLoadEnd,
       onLoadProgress,
-        onScroll,
+      onScroll,
       onContentProcessDidTerminate: onContentProcessDidTerminateProp,
       onFileDownload,
       onHttpError: onHttpErrorProp,
@@ -92,6 +92,9 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
       incognito,
       decelerationRate: decelerationRateProp,
       onShouldStartLoadWithRequest: onShouldStartLoadWithRequestProp,
+      onStartShouldSetResponder,
+      onMoveShouldSetResponderCapture,
+      onResponderMove,
       ...otherProps
     },
     ref
@@ -290,7 +293,12 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
     );
 
     return (
-      <View style={webViewContainerStyle}>
+      <View
+        style={webViewContainerStyle}
+        onStartShouldSetResponder={(e) => onStartShouldSetResponder?onStartShouldSetResponder(e):false}
+        onMoveShouldSetResponderCapture={(e) => onMoveShouldSetResponderCapture?onMoveShouldSetResponderCapture(e):false}
+        onResponderMove={(e) => onResponderMove?onResponderMove(e):null}
+      >
         {webView}
         {otherView}
       </View>
