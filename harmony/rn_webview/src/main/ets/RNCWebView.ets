@@ -566,9 +566,11 @@ export struct RNCWebView {
           Logger.debug(TAG, `[RNOH] bridge postMessage,  ${JSON.stringify(data)}`);
           if (this.controller != null) {
             let result: WebViewEventParams = this.createWebViewEvent("onMessage")
-            result.data = data.toString()
-            result.lockIdentifier = ZERO
-            this.eventEmitter!.emit("message", result as ResultType);
+            if (result) {
+              result.data = data.toString()
+              result.lockIdentifier = ZERO
+              this.eventEmitter!.emit("message", result as ResultType);
+            }
           }
         }
       };
