@@ -465,8 +465,8 @@ export struct RNCWebView {
             this.registerPostMessage()
           }
         })
-        .onAlert((event) => this.onJavascriptAlert(event))
-        .onConfirm((event) => this.onJavascriptConfirm(event))
+        .onAlert((event: AlertEvent) => this.onJavascriptAlert(event))
+        .onConfirm((event: AlertEvent) => this.onJavascriptConfirm(event))
     }
     .width(this.webviewWidth)
     .height(this.webviewHeight)

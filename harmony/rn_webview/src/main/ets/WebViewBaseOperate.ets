@@ -203,10 +203,6 @@ export class BaseOperate {
       if (customUserAgent) {
         let userAgent: string = this.controller.getUserAgent() + ` ${customUserAgent}`;
         this.controller.setCustomUserAgent(userAgent);
-      } else {
-        // 修复一些页面下无法将鸿蒙userAgent识别为手机的问题
-        let userAgent: string = this.controller.getUserAgent() + ' iPhone';
-        this.controller.setCustomUserAgent(userAgent);
       }
     } catch (error) {
       Logger.debug(TAG,
