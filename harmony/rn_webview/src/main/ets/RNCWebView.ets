@@ -405,11 +405,12 @@ export struct RNCWebView {
 
   getPermissionDialogMessage(event:OnPermissionRequestEvent) {
     let permissionDialogMessage = ''
+    console.info("=======eee==",event.request.getAccessibleResource().toString())
     if(event.request.getAccessibleResource().toString().includes(ProtectedResourceType.VIDEO_CAPTURE)){
       permissionDialogMessage = this.resourceToString($r('app.string.useYourCamera'))
     }else if(event.request.getAccessibleResource().toString().includes(ProtectedResourceType.AUDIO_CAPTURE)){
       permissionDialogMessage = this.resourceToString($r('app.string.useYourMicrophone'))
-    }else if(event.request.getAccessibleResource().toString().includes(ProtectedResourceType.VIDEO_CAPTURE)){
+    }else if(event.request.getAccessibleResource().toString().includes(ProtectedResourceType.MidiSysex)){
       permissionDialogMessage = this.resourceToString($r('app.string.MIDI_SYSEX_Resources'))
     }
     return permissionDialogMessage;
