@@ -9,20 +9,20 @@
       "value":"deny"
     },
     {
-      "name":"onConfirm",
-      "value":"onConfirm"
+      "name":"on_confirm",
+      "value":"on confirm"
     },
     {
-      "name": "useYourCamera",
-      "value": "useYourCamera? "
+      "name": "use_your_camera",
+      "value": "use Your Camera ? "
     },
     {
-      "name": "useYourMicrophone",
-      "value": "useYourMicrophone? "
+      "name": "use_your_microphone",
+      "value": "use your microphone ? "
     },
     {
-      "name": "MIDI_SYSEX_Resources",
-      "value": " MIDI SYSEX Resources? "
+      "name": "midi_sysex_resources",
+      "value": "MIDI SYSEX Resources ? "
     }
   ]
 }

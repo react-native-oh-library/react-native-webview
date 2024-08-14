@@ -92,7 +92,7 @@ export struct RNCWebView {
   aboutToAppear() {
     try {
       this.initVariable()
-      this.getPermissionDialogTitle()
+      this.getBundleName()
       this.url = this.source.uri as string;
       webview.WebviewController.setWebDebuggingAccess(this.descriptorWrapper.props.webviewDebuggingEnabled)
       this.cleanUpCallbacks.push(this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
@@ -379,7 +379,7 @@ export struct RNCWebView {
     }
   }
 
-  getPermissionDialogTitle() {
+  getBundleName() {
     let bundleFlags =
       bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_HAP_MODULE | bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_ABILITY |
       bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION;
@@ -405,12 +405,17 @@ export struct RNCWebView {
 
   getPermissionDialogMessage(event:OnPermissionRequestEvent) {
     let permissionDialogMessage = ''
-    if(event.request.getAccessibleResource().toString().includes(ProtectedResourceType.VIDEO_CAPTURE)){
-      permissionDialogMessage = this.resourceToString($r('app.string.useYourCamera'))
-    }else if(event.request.getAccessibleResource().toString().includes(ProtectedResourceType.AUDIO_CAPTURE)){
-      permissionDialogMessage = this.resourceToString($r('app.string.useYourMicrophone'))
-    }else if(event.request.getAccessibleResource().toString().includes(ProtectedResourceType.MidiSysex)){
-      permissionDialogMessage = this.resourceToString($r('app.string.MIDI_SYSEX_Resources'))
+    permissionDialogMessage = event.request.getAccessibleResource().toString()
+    switch (permissionDialogMessage) {
+      case (ProtectedResourceType.VIDEO_CAPTURE + "," + ProtectedResourceType.AUDIO_CAPTURE):
+        permissionDialogMessage = this.resourceToString($r('app.string.use_your_camera'))
+        break;
+      case ProtectedResourceType.AUDIO_CAPTURE:
+        permissionDialogMessage = this.resourceToString($r('app.string.use_your_microphone'))
+        break;
+      case ProtectedResourceType.MidiSysex:
+        permissionDialogMessage = this.resourceToString($r('app.string.midi_sysex_resources'))
+        break;
     }
     return permissionDialogMessage;
   }
@@ -421,7 +426,7 @@ export struct RNCWebView {
         .onPermissionRequest((event) => {
           if (event) {
             AlertDialog.show({
-              title: this.resourceToString($r('app.string.onConfirm')) + this.bundleName,
+              title: this.resourceToString($r('app.string.on_confirm')) + this.bundleName,
               message: this.getPermissionDialogMessage(event),
               alignment: DialogAlignment.Center,
               primaryButton: {
@@ -431,7 +436,7 @@ export struct RNCWebView {
                 }
               },
               secondaryButton: {
-                value: $r('app.string.onConfirm'),
+                value: $r('app.string.on_confirm'),
                 action: () => {
                   event.request.grant(event.request.getAccessibleResource());
                 }
