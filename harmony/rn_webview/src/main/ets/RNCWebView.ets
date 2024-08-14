@@ -40,6 +40,7 @@ import {
   WebViewOverScrollMode,
   ZERO
 } from './Magic';
+import { bundleManager } from '@kit.AbilityKit';
 
 export const TAG = "WebView"
 
@@ -67,6 +68,7 @@ export struct RNCWebView {
   cacheMode: number = CacheMode.Default;
   lockIdentifier: string = "";
   requestUrl: string = "";
+  bundleName: string = "";
   messagingEnabled: boolean = false;
   hasRegisterJavaScriptProxy: boolean = false;
   controllerAttached: boolean = false;
@@ -90,6 +92,7 @@ export struct RNCWebView {
   aboutToAppear() {
     try {
       this.initVariable()
+      this.getPermissionDialogTitle()
       this.url = this.source.uri as string;
       webview.WebviewController.setWebDebuggingAccess(this.descriptorWrapper.props.webviewDebuggingEnabled)
       this.cleanUpCallbacks.push(this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
@@ -376,9 +379,70 @@ export struct RNCWebView {
     }
   }
 
+  getPermissionDialogTitle() {
+    let bundleFlags =
+      bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_HAP_MODULE | bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_ABILITY |
+      bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION;
+
+    try {
+      bundleManager.getBundleInfoForSelf(bundleFlags, (error, data) => {
+        if (error) {
+          Logger.debug(TAG,
+            `[RNOH] getBundleInfoForSelf failed ErrorCode: ${error.code},  Message: ${error.message}`);
+        } else {
+          this.bundleName = JSON.stringify(data.name)
+        }
+      });
+    } catch (error) {
+      Logger.debug(TAG,
+        `[RNOH] getBundleInfoForSelf failed ErrorCode: ${error.code},  Message: ${error.message}`);
+    }
+  }
+
+  resourceToString(resource:Resource):string{
+    return getContext(this).resourceManager.getStringSync(resource)
+  }
+
+  getPermissionDialogMessage(event:OnPermissionRequestEvent) {
+    let permissionDialogMessage = ''
+    if(event.request.getAccessibleResource().toString().includes(ProtectedResourceType.VIDEO_CAPTURE)){
+      permissionDialogMessage = this.resourceToString($r('app.string.useYourCamera'))
+    }else if(event.request.getAccessibleResource().toString().includes(ProtectedResourceType.AUDIO_CAPTURE)){
+      permissionDialogMessage = this.resourceToString($r('app.string.useYourMicrophone'))
+    }else if(event.request.getAccessibleResource().toString().includes(ProtectedResourceType.VIDEO_CAPTURE)){
+      permissionDialogMessage = this.resourceToString($r('app.string.MIDI_SYSEX_Resources'))
+    }
+    return permissionDialogMessage;
+  }
+
   build() {
     Stack() {
       Web({ src: "", controller: this.controller, renderMode: this.renderMode })
+        .onPermissionRequest((event) => {
+          if (event) {
+            AlertDialog.show({
+              title: this.resourceToString($r('app.string.onConfirm')) + this.bundleName,
+              message: this.getPermissionDialogMessage(event),
+              alignment: DialogAlignment.Center,
+              primaryButton: {
+                value: $r('app.string.deny'),
+                action: () => {
+                  event.request.deny();
+                }
+              },
+              secondaryButton: {
+                value: $r('app.string.onConfirm'),
+                action: () => {
+                  event.request.grant(event.request.getAccessibleResource());
+                }
+              },
+              cancel: () => {
+                event.request.deny();
+              }
+            })
+          }
+        })
+
         .width(this.webviewWidth)
         .height(this.webviewHeight)
         .fileAccess(this.allowFileAccess)
