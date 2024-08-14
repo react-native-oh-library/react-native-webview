@@ -14,11 +14,11 @@
     },
     {
       "name": "useYourCamera",
-      "value": "useYourCamera?"
+      "value": "useYourCamera? "
     },
     {
       "name": "useYourMicrophone",
-      "value": "useYourMicrophone?"
+      "value": "useYourMicrophone? "
     },
     {
       "name": "MIDI_SYSEX_Resources",
