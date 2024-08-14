@@ -387,14 +387,14 @@ export struct RNCWebView {
     try {
       bundleManager.getBundleInfoForSelf(bundleFlags, (error, data) => {
         if (error) {
-          Logger.debug(TAG,
+          Logger.error(TAG,
             `[RNOH] getBundleInfoForSelf failed ErrorCode: ${error.code},  Message: ${error.message}`);
         } else {
           this.bundleName = JSON.stringify(data.name)
         }
       });
     } catch (error) {
-      Logger.debug(TAG,
+      Logger.error(TAG,
         `[RNOH] getBundleInfoForSelf failed ErrorCode: ${error.code},  Message: ${error.message}`);
     }
   }
@@ -405,7 +405,6 @@ export struct RNCWebView {
 
   getPermissionDialogMessage(event:OnPermissionRequestEvent) {
     let permissionDialogMessage = ''
-    console.info("=======eee==",event.request.getAccessibleResource().toString())
     if(event.request.getAccessibleResource().toString().includes(ProtectedResourceType.VIDEO_CAPTURE)){
       permissionDialogMessage = this.resourceToString($r('app.string.useYourCamera'))
     }else if(event.request.getAccessibleResource().toString().includes(ProtectedResourceType.AUDIO_CAPTURE)){
