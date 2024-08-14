@@ -3,6 +3,26 @@
     {
       "name":"page_show",
       "value":"page from npm package"
+    },
+    {
+      "name":"deny",
+      "value":"不允许"
+    },
+    {
+      "name": "on_confirm",
+      "value": "允许"
+    },
+    {
+      "name": "use_your_camera",
+      "value": "使用你的相机？"
+    },
+    {
+      "name": "use_your_microphone",
+      "value": "使用你的麦克风？"
+    },
+    {
+      "name": "midi_sysex_resources",
+      "value": "访问 MIDI SYSEX 资源？"
     }
   ]
 }
