@@ -14,15 +14,15 @@
     },
     {
       "name": "use_your_camera",
-      "value": "使用你的相机 ？ "
+      "value": "使用你的相机？"
     },
     {
       "name": "use_your_microphone",
-      "value": "使用你的麦克风 ？ "
+      "value": "使用你的麦克风？"
     },
     {
       "name": "midi_sysex_resources",
-      "value": "访问MIDI SYSEX 资源 ？ "
+      "value": "访问 MIDI SYSEX 资源？"
     }
   ]
 }

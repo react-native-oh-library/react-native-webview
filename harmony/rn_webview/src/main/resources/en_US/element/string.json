@@ -14,15 +14,15 @@
     },
     {
       "name": "use_your_camera",
-      "value": "use Your Camera ? "
+      "value": "use Your Camera?"
     },
     {
       "name": "use_your_microphone",
-      "value": "use your microphone ? "
+      "value": "use your microphone?"
     },
     {
       "name": "midi_sysex_resources",
-      "value": "MIDI SYSEX Resources ? "
+      "value": "MIDI SYSEX Resources?"
     }
   ]
 }
