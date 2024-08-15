@@ -407,7 +407,7 @@ export struct RNCWebView {
     let permissionDialogMessage = ''
     permissionDialogMessage = event.request.getAccessibleResource().toString()
     switch (permissionDialogMessage) {
-      case (ProtectedResourceType.VIDEO_CAPTURE + "," + ProtectedResourceType.AUDIO_CAPTURE):
+      case ProtectedResourceType.VIDEO_CAPTURE:
         permissionDialogMessage = this.resourceToString($r('app.string.use_your_camera'))
         break;
       case ProtectedResourceType.AUDIO_CAPTURE:
@@ -415,6 +415,9 @@ export struct RNCWebView {
         break;
       case ProtectedResourceType.MidiSysex:
         permissionDialogMessage = this.resourceToString($r('app.string.midi_sysex_resources'))
+        break;
+      case ProtectedResourceType.VIDEO_CAPTURE + "," + ProtectedResourceType.AUDIO_CAPTURE:
+        permissionDialogMessage = this.resourceToString($r('app.string.use_your_camera_and_microphone'))
         break;
     }
     return permissionDialogMessage;

@@ -21,6 +21,10 @@
       "value": "use your microphone?"
     },
     {
+      "name": "use_your_camera_and_microphone",
+      "value": "use your camera and microphone?"
+    },
+    {
       "name": "midi_sysex_resources",
       "value": "MIDI SYSEX Resources?"
     }
