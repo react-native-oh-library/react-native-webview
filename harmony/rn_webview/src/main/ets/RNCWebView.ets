@@ -244,6 +244,16 @@ export struct RNCWebView {
               }
             }
             break
+          case "stopLoading":
+            Logger.debug(TAG, `[RNOH] stopLoading,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.stop();
+              } catch (error) {
+                Logger.error(TAG, "error: " + error)
+              }
+            }
+            break
           default:
             break
         }
@@ -399,11 +409,11 @@ export struct RNCWebView {
     }
   }
 
-  resourceToString(resource:Resource):string{
+  resourceToString(resource: Resource): string {
     return getContext(this).resourceManager.getStringSync(resource)
   }
 
-  getPermissionDialogMessage(event:OnPermissionRequestEvent) {
+  getPermissionDialogMessage(event: OnPermissionRequestEvent) {
     let permissionDialogMessage = ''
     permissionDialogMessage = event.request.getAccessibleResource().toString()
     switch (permissionDialogMessage) {
