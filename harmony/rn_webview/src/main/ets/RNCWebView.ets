@@ -64,6 +64,7 @@ export struct RNCWebView {
   controller: webview.WebviewController = new webview.WebviewController();
   javaScriptEnable: boolean = true;
   allowFileAccess: boolean = true;
+  forceDark: boolean = true;
   minFontSize: number = EIGHT;
   overScrollMode: OverScrollMode = OverScrollMode.NEVER;
   progress: number = ZERO;
@@ -485,6 +486,8 @@ export struct RNCWebView {
         .verticalScrollBarAccess(this.descriptorWrapper.props.showsVerticalScrollIndicator)
         .overviewModeAccess(this.descriptorWrapper.props.scalesPageToFit)
         .textZoomRatio(this.descriptorWrapper.props.textZoom)
+        .darkMode(this.descriptorWrapper.props.forceDarkOn ? WebDarkMode.On : WebDarkMode.Auto)
+        .forceDarkAccess(this.forceDark)
         .cacheMode(this.cacheMode)
         .minFontSize(this.minFontSize)
         .domStorageAccess(this.descriptorWrapper.props.domStorageEnabled)
