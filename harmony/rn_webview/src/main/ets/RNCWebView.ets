@@ -256,6 +256,16 @@ export struct RNCWebView {
               }
             }
             break
+          case "loadUrl":
+            Logger.debug(TAG, `[RNOH] loadUrl,${JSON.stringify(args)}`)
+            if (this.controllerAttached) {
+              try {
+                this.controller.loadUrl(args[0]);
+              } catch (error) {
+                Logger.error(TAG, `[RNOH] loadUrl Errorcode: ${JSON.stringify(error)}`);
+              }
+            }
+            break
           default:
             break
         }
