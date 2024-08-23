@@ -33,6 +33,7 @@ import {
   CACHE_MODE,
   JAVASCRIPT_INTERFACE,
   ONE_HUNDRED,
+  EIGHT,
   ResultType,
   RNCWebViewBridge,
   WebViewEventParams,
@@ -63,6 +64,7 @@ export struct RNCWebView {
   controller: webview.WebviewController = new webview.WebviewController();
   javaScriptEnable: boolean = true;
   allowFileAccess: boolean = true;
+  minFontSize: number = EIGHT;
   overScrollMode: OverScrollMode = OverScrollMode.NEVER;
   progress: number = ZERO;
   cacheMode: number = CacheMode.Default;
@@ -474,6 +476,7 @@ export struct RNCWebView {
         .overviewModeAccess(this.descriptorWrapper.props.scalesPageToFit)
         .textZoomRatio(this.descriptorWrapper.props.textZoom)
         .cacheMode(this.cacheMode)
+        .minFontSize(this.minFontSize)
         .domStorageAccess(this.descriptorWrapper.props.domStorageEnabled)
         .zoomAccess(this.descriptorWrapper.props.scalesPageToFit)
         .overScrollMode(this.overScrollMode)
@@ -593,6 +596,8 @@ export struct RNCWebView {
     this.descriptorWrapper =
       this.ctx.descriptorRegistry.findDescriptorWrapperByTag<RNC.RNCWebView.DescriptorWrapper>(this.tag)!
     this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
+    this.minFontSize =
+      this.descriptorWrapper.props.minimumFontSize ? this.descriptorWrapper.props.minimumFontSize : EIGHT;
     this.cacheMode =
       this.descriptorWrapper.props.cacheEnabled ?
         this.webViewBaseOperate?.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) as number :

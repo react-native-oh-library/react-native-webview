@@ -51,7 +51,7 @@ const shouldStartLoadWithLockIdentifier:(
   lockIdentifier: Double
 ) => void = () => {}
 
-const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: boolean}>(
+const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: boolean, minimumFontSize: number}>(
   (
     {
       fraudulentWebsiteWarningEnabled = true,
@@ -59,6 +59,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
       cacheEnabled = true,
       originWhitelist = defaultOriginWhitelist,
       ignoreSilentHardwareSwitch,
+      minimumFontSize,
       useSharedProcessPool = true,
       textInteractionEnabled = true,
       injectedJavaScript,
@@ -141,6 +142,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
       startInLoadingState,
       originWhitelist,
           ignoreSilentHardwareSwitch,
+          minimumFontSize,
       onShouldStartLoadWithRequestProp,
       onShouldStartLoadWithRequestCallback,
       onContentProcessDidTerminateProp,
@@ -243,6 +245,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
         {...otherProps}
         scrollEnabled={otherProps.scrollEnabled ?? true}
         ignoreSilentHardwareSwitch={ignoreSilentHardwareSwitch}
+        minimumFontSize={minimumFontSize}
         scalesPageToFit={otherProps.scalesPageToFit ?? true}
         fraudulentWebsiteWarningEnabled={fraudulentWebsiteWarningEnabled}
         javaScriptEnabled={javaScriptEnabled}

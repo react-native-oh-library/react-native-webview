@@ -101,6 +101,8 @@ export type WebViewViewDescriptor = Descriptor<"RNCWebView", WebViewProps>
 
 export const ZERO: number = 0
 
+export const EIGHT: number = 8;
+
 export const ONE_HUNDRED: number = 100
 
 export interface ProgressInterface {
