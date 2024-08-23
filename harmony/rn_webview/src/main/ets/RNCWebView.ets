@@ -39,7 +39,8 @@ import {
   WebViewEventParams,
   WebViewNewSource,
   WebViewOverScrollMode,
-  ZERO
+  ZERO,
+  COMMAND_NAME
 } from './Magic';
 import { bundleManager } from '@kit.AbilityKit';
 
@@ -151,125 +152,7 @@ export struct RNCWebView {
   registerCommandCallback() {
     this.cleanupCommandCallback = this.ctx.componentCommandReceiver.registerCommandCallback(
       this.tag,
-      (command, args: string[]) => {
-        switch (command) {
-          case "injectJavaScript":
-            Logger.debug(TAG, `[RNOH] injectJavaScript,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.runJavaScript("(function() {\n" + args[0] + ";\n})();")
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "postMessage":
-            Logger.debug(TAG, `[RNOH] postMessage,${JSON.stringify(args)}`)
-            let data = JSON.stringify({ data: args[0] })
-            let result: string = "(function () {" +
-              "var event;" +
-              "var data = " + data.toString() + ";" +
-              "try {" +
-              "event = new MessageEvent('message', data);" +
-              "} catch (e) {" +
-              "event = document.createEvent('MessageEvent');" +
-              "event.initMessageEvent('message', true, true, data.data, data.origin, data.lastEventId, data.source);" +
-              "}" +
-              "document.dispatchEvent(event);" +
-              "})();"
-            if (this.controllerAttached) {
-              try {
-                this.controller.runJavaScript(result)
-              } catch (error) {
-                Logger.error(TAG, "error:" + error)
-              }
-            }
-            break;
-          case "reload":
-            Logger.debug(TAG, `[RNOH] reload,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.refresh();
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "goBack":
-            Logger.debug(TAG, `[RNOH] goBack,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.backward();
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "goForward":
-            Logger.debug(TAG, `[RNOH] goForward,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.forward();
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "requestFocus":
-            Logger.debug(TAG, `[RNOH] requestFocus,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.requestFocus();
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "clearCache":
-            Logger.debug(TAG, `[RNOH] clearCache,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                const removeFlag = !!args[0] === true;
-                this.controller.removeCache(removeFlag);
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "clearHistory":
-            Logger.debug(TAG, `[RNOH] clearHistory,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.clearHistory();
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "stopLoading":
-            Logger.debug(TAG, `[RNOH] stopLoading,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.stop();
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "loadUrl":
-            Logger.debug(TAG, `[RNOH] loadUrl,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.loadUrl(args[0]);
-              } catch (error) {
-                Logger.error(TAG, `[RNOH] loadUrl Errorcode: ${JSON.stringify(error)}`);
-              }
-            }
-            break
-          default:
-            break
-        }
-      });
+      (command: COMMAND_NAME, args: string[]) => this.webViewBaseOperate?.registerCommandCallback(command, args));
   }
 
   onLoadingStart() {
@@ -472,7 +355,6 @@ export struct RNCWebView {
             })
           }
         })
-
         .width(this.webviewWidth)
         .height(this.webviewHeight)
         .fileAccess(this.allowFileAccess)

@@ -1,6 +1,6 @@
 import { RNC } from '@rnoh/react-native-openharmony/generated/ts'
 import { webview } from '@kit.ArkWeb'
-import { CACHE_MODE, ONE_HUNDRED, WebViewEventParams } from './Magic';
+import { CACHE_MODE, COMMAND_NAME, ONE_HUNDRED, WebViewEventParams } from './Magic';
 import Logger from './Logger';
 
 export const TAG = "WebView"
@@ -47,7 +47,7 @@ export class BaseOperate {
         progress: params.progress / ONE_HUNDRED
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitProgressChange Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitProgressChange Errorcode:  ${error.code}`);
     }
   }
 
@@ -64,7 +64,7 @@ export class BaseOperate {
         mainDocumentURL: ""
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitLoadingStart Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitLoadingStart Errorcode:  ${error.code}`);
     }
   }
 
@@ -81,7 +81,7 @@ export class BaseOperate {
         mainDocumentURL: ""
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitLoadingFinish Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitLoadingFinish Errorcode:  ${error.code}`);
     }
   }
 
@@ -99,7 +99,7 @@ export class BaseOperate {
         description: params.description
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitLoadingError Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitLoadingError Errorcode:  ${error.code}`);
     }
   }
 
@@ -116,7 +116,7 @@ export class BaseOperate {
         statusCode: params.code
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitHttpError Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitHttpError Errorcode:  ${error.code}`);
     }
   }
 
@@ -134,7 +134,7 @@ export class BaseOperate {
         layoutMeasurement: { height: 0, width: 0 }
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitScroll Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitScroll Errorcode: ${error.code}`);
     }
   }
 
@@ -152,7 +152,7 @@ export class BaseOperate {
         isTopFrame: false
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitShouldStartLoadWithRequest Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitShouldStartLoadWithRequest Errorcode: ${error.code}`);
     }
   }
 
@@ -208,5 +208,137 @@ export class BaseOperate {
       Logger.debug(TAG,
         `[RNOH] setCustomUserAgent ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${customUserAgent}`);
     }
+  }
+
+  injectJavaScript(args: string[]) {
+    try {
+      this.controller.runJavaScript("(function() {\n" + args[0] + ";\n})();")
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] injectJavaScript Errorcode: ${error.code}`);
+    }
+  }
+
+  postMessage(args: string[]) {
+    let data = JSON.stringify({ data: args[0] })
+    let result: string = "(function () {" +
+      "var event;" +
+      "var data = " + data.toString() + ";" +
+      "try {" +
+      "event = new MessageEvent('message', data);" +
+      "} catch (e) {" +
+      "event = document.createEvent('MessageEvent');" +
+      "event.initMessageEvent('message', true, true, data.data, data.origin, data.lastEventId, data.source);" +
+      "}" +
+      "document.dispatchEvent(event);" +
+      "})();"
+    try {
+      this.controller.runJavaScript(result)
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] postMessage Errorcode: ${error.code}`);
+    }
+
+  }
+
+  reload() {
+    try {
+      this.controller.refresh();
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] reload Errorcode: ${error.code}`);
+    }
+
+  }
+
+  goBack() {
+    try {
+      this.controller.backward();
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] goBack Errorcode: ${error.code}`);
+    }
+
+  }
+
+  goForward() {
+    try {
+      this.controller.forward();
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] goForward Errorcode: ${error.code}`);
+    }
+  }
+
+  requestFocus() {
+    try {
+      this.controller.requestFocus();
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] requestFocus Errorcode: ${error.code}`);
+    }
+  }
+
+  clearCache(args: string[]) {
+    try {
+      const removeFlag = !!args[0] === true;
+      this.controller.removeCache(removeFlag);
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] clearCache Errorcode: ${error.code}`);
+    }
+  }
+
+  clearHistory() {
+    try {
+      this.controller.clearHistory();
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] clearHistory Errorcode: ${error.code}`);
+    }
+  }
+
+  stopLoading() {
+    try {
+      this.controller.stop();
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] stopLoading Errorcode: ${error.code}`);
+    }
+  }
+
+  loadUrl(args: string[]) {
+    try {
+      this.controller.loadUrl(args[0]);
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] loadUrl Errorcode: ${error.code}`);
+    }
+  }
+
+  registerCommandCallback(commandName: COMMAND_NAME, args: string[]) {
+    switch (commandName) {
+      case COMMAND_NAME.INJECTJAVASCRIPT:
+        this.injectJavaScript(args)
+        break
+      case COMMAND_NAME.POSTMESSAGE:
+        this.postMessage(args)
+        break
+      case COMMAND_NAME.RELOAD:
+        this.reload()
+        break
+      case COMMAND_NAME.GOBACK:
+        this.goBack()
+        break
+      case COMMAND_NAME.GOFORWARD:
+        this.goForward()
+        break
+      case COMMAND_NAME.REQUESTFOCUS:
+        this.goForward()
+      case COMMAND_NAME.CLEARCACHE:
+        this.clearCache(args)
+      case COMMAND_NAME.CLEARHISTORY:
+        this.clearHistory()
+        break
+      case COMMAND_NAME.STOPLOADING:
+        this.stopLoading()
+        break
+      case COMMAND_NAME.LOADURL:
+        this.loadUrl(args)
+        break
+      default:
+        break
+    }
+
   }
 }
