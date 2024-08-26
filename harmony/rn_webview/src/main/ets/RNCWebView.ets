@@ -509,6 +509,9 @@ export struct RNCWebView {
           scrollBackward: this.nestedScroll,
         })
         .onPageBegin(() => {
+          if(this.controller.getUrl() === this.url) {
+            this.onLoadingStart();
+          }
           this.onPageBeginInit()
         })
         .onPageEnd(() => {
