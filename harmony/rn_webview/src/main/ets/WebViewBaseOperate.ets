@@ -201,7 +201,7 @@ export class BaseOperate {
   setCustomUserAgent(customUserAgent?: string): void {
     try {
       if (customUserAgent) {
-        let userAgent: string = this.controller.getUserAgent() + ` ${customUserAgent}`;
+        let userAgent: string = customUserAgent;
         this.controller.setCustomUserAgent(userAgent);
       }
     } catch (error) {
