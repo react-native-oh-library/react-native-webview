@@ -85,8 +85,12 @@ export class BaseOperate {
     }
   }
 
-  emitLoadingError(params: LoadingErrorInterface) {
+  emitLoadingError(event: OnErrorReceiveEvent) {
     try {
+      if (!event.request.isMainFrame()) {
+        Logger.debug(TAG, "[RNOH] Not Main Frame Error");
+        return;
+      }
       this.eventEmitter!.emit('loadingError', {
         url: this.controller.getUrl(),
         loading: false,
@@ -95,15 +99,15 @@ export class BaseOperate {
         canGoForward: this.controller.accessForward(),
         lockIdentifier: 0,
         domain: "",
-        code: params.code,
-        description: params.description
+        code: event.error.getErrorCode(),
+        description: event.error.getErrorInfo()
       })
     } catch (error) {
       Logger.error(TAG, `[RNOH] emitLoadingError Errorcode: ${JSON.stringify(error)}`);
     }
   }
 
-  emitHttpError(params: LoadingErrorInterface) {
+  emitHttpError(event: OnHttpErrorReceiveEvent) {
     try {
       this.eventEmitter!.emit('httpError', {
         url: this.controller.getUrl(),
@@ -112,15 +116,15 @@ export class BaseOperate {
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
         lockIdentifier: 0,
-        description: params.description,
-        statusCode: params.code
+        description: event.response.getResponseData(),
+        statusCode: event.response.getResponseCode()
       })
     } catch (error) {
       Logger.error(TAG, `[RNOH] emitHttpError Errorcode: ${JSON.stringify(error)}`);
     }
   }
 
-  emitScroll(params: ScrollInterface) {
+  emitScroll(event: OnScrollEvent) {
     try {
       this.eventEmitter!.emit('scroll', {
         contentInset: {
@@ -129,7 +133,7 @@ export class BaseOperate {
           right: 0,
           top: 0
         },
-        contentOffset: { y: params.y, x: params.x },
+        contentOffset: { y: event.yOffset, x: event.xOffset },
         contentSize: { height: 0, width: 0 },
         layoutMeasurement: { height: 0, width: 0 }
       })
@@ -208,5 +212,9 @@ export class BaseOperate {
       Logger.debug(TAG,
         `[RNOH] setCustomUserAgent ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${customUserAgent}`);
     }
+  }
+
+  onErrorReceive(){
+
   }
 }
