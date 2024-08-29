@@ -123,3 +123,16 @@ export enum WebViewOverScrollMode {
   ALWAYS = "always",
   NEVER = "never"
 }
+
+export enum COMMAND_NAME {
+  INJECTJAVASCRIPT = 'injectJavaScript',
+  POSTMESSAGE = 'postMessage',
+  RELOAD = 'reload',
+  GOBACK = 'goBack',
+  GOFORWARD = 'goForward',
+  REQUESTFOCUS = 'requestFocus',
+  CLEARCACHE = 'clearCache',
+  CLEARHISTORY = 'clearHistory',
+  STOPLOADING = 'stopLoading',
+  LOADURL='loadUrl'
+}
