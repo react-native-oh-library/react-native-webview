@@ -468,10 +468,10 @@ export struct RNCWebView {
   build() {
     Stack() {
       Web({ src: "", controller: this.controller, renderMode: this.renderMode })
-        .onPermissionRequest((event) => {
+        .onPermissionRequest((event: OnPermissionRequestEvent) => {
           if (event) {
             AlertDialog.show({
-              title: this.resourceToString($r('app.string.on_confirm')) + this.bundleName,
+              title: this.resourceToString($r('app.string.on_confirm')) + event.request.getOrigin(),
               message: this.getPermissionDialogMessage(event),
               alignment: DialogAlignment.Center,
               primaryButton: {
