@@ -277,7 +277,8 @@ export struct RNCWebView {
     this.webViewBaseOperate?.emitLoadingStart({ progress: this.progress })
   }
 
-  onProgressChange() {
+  onProgressChange(event: OnProgressChangeEvent) {
+    this.progress = event.newProgress
     // 修复单页面应用切换路由时 onPageBegin 未触发的问题
     if (this.controller.getUrl() !== this.url && this.progress < ONE_HUNDRED && this.allowPageStartInProgress) {
       this.allowPageStartInProgress = false;
@@ -291,18 +292,6 @@ export struct RNCWebView {
 
   onLoadingFinish() {
     this.webViewBaseOperate?.emitLoadingFinish({ progress: this.progress })
-  }
-
-  onLoadingError(code: number, description: string) {
-    this.webViewBaseOperate?.emitLoadingError({ code, description })
-  }
-
-  onHttpError(code: number, description: string) {
-    this.webViewBaseOperate?.emitHttpError({ code, description })
-  }
-
-  scroll(x: number, y: number) {
-    this.webViewBaseOperate?.emitScroll({ x, y })
   }
 
   onShouldStartLoadWithRequest() {
@@ -390,10 +379,35 @@ export struct RNCWebView {
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
     this.webViewBaseOperate = new BaseOperate(this.eventEmitter, this.controller)
     this.webViewBaseOperate.setCustomUserAgent(this.descriptorWrapper.props.userAgent)
+    let baseUrl = this.source.baseUrl
+    let uri = this.source.uri
+    if (this.source.html != undefined && this.source.html != "") {
+      try {
+        this.controller.loadData(
+          this.source.html,
+          "text/html",
+          "UTF-8",
+          baseUrl,
+          " "
+        );
+      } catch (error) {
+        Logger.error(TAG, "error:" + error)
+      }
+    } else if (uri != undefined && uri != "") {
+      this.controller.loadUrl(uri, this.headers);
+    } else {
+      this.controller.loadUrl(uri, this.headers);
+    }
+    if (!this.hasRegisterJavaScriptProxy) {
+      this.registerPostMessage()
+    }
   }
 
-  onPageBeginInit() {
+  onPageBegin() {
     try {
+      if (this.controller.getUrl() === this.url) {
+        this.onLoadingStart();
+      }
       this.controller.setScrollable(this.scrollEnabled)
       this.ignoreSilentHardwareSwitchMethods(this.descriptorWrapper.props.ignoreSilentHardwareSwitch)
     } catch (error) {
@@ -424,6 +438,11 @@ export struct RNCWebView {
 
   resourceToString(resource: Resource): string {
     return getContext(this).resourceManager.getStringSync(resource)
+  }
+
+  onPageEnd() {
+    this.runInjectedJavaScript()
+    this.onLoadingFinish()
   }
 
   getPermissionDialogMessage(event: OnPermissionRequestEvent) {
@@ -493,79 +512,17 @@ export struct RNCWebView {
         .domStorageAccess(this.descriptorWrapper.props.domStorageEnabled)
         .zoomAccess(this.descriptorWrapper.props.scalesPageToFit)
         .overScrollMode(this.overScrollMode)
-        .onProgressChange((event) => {
-          if (event) {
-            this.progress = event.newProgress
-            this.onProgressChange()
-          }
-        })
-        .onScroll((event) => {
-          if (event) {
-            this.scroll(event.xOffset, event.yOffset)
-          }
-        })
+        .onProgressChange((event: OnProgressChangeEvent) => this.onProgressChange(event))
+        .onScroll((event: OnScrollEvent) => this.webViewBaseOperate?.emitScroll(event))
         .nestedScroll({
           scrollForward: this.nestedScroll,
           scrollBackward: this.nestedScroll,
         })
-        .onPageBegin(() => {
-          if(this.controller.getUrl() === this.url) {
-            this.onLoadingStart();
-          }
-          this.onPageBeginInit()
-        })
-        .onPageEnd(() => {
-          Logger.debug(TAG, "[RNOH] onPageEnd")
-          this.runInjectedJavaScript()
-          this.onLoadingFinish()
-        })
-        .onErrorReceive((event) => {
-          if (event) {
-            let errorInfo: string = event.error.getErrorInfo();
-            let errorCode: number = event.error.getErrorCode();
-            if (!event.request.isMainFrame()) {
-              Logger.debug(TAG, "[RNOH] Not Main Frame Error");
-              return;
-            }
-            Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
-            Logger.debug(TAG, "[RNOH] errorCode:" + errorCode)
-            this.onLoadingError(errorCode, errorInfo)
-          }
-        })
-        .onHttpErrorReceive((event) => {
-          if (event) {
-            let errorInfo: string = event.response.getResponseData();
-            let code: number = event.response.getResponseCode()
-            Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
-            this.onHttpError(code, errorInfo)
-          }
-        })
-        .onControllerAttached(() => {
-          this.controllerAttachedInit()
-          Logger.debug(TAG, "[RNOH] onControllerAttached")
-          let baseUrl = this.source.baseUrl
-          let uri = this.source.uri
-          if (this.source.html != undefined && this.source.html != "") {
-            try {
-              this.controller.loadData(
-                this.source.html,
-                "text/html",
-                "UTF-8",
-                baseUrl,
-                " "
-              );
-            } catch (error) {
-              Logger.error(TAG, "error:" + error)
-            }
-          } else if (uri != undefined && uri != "") {
-            this.controller.loadUrl(uri, this.headers);
-          } else {
-            this.controller.loadUrl(uri, this.headers);
-          }
-          if (!this.hasRegisterJavaScriptProxy) {
-            this.registerPostMessage()
-          }
-        })
+        .onPageBegin(() => this.onPageBegin())
+        .onPageEnd(() => this.onPageEnd())
+        .onErrorReceive((event: OnErrorReceiveEvent) => this.webViewBaseOperate?.emitLoadingError(event))
+        .onHttpErrorReceive((event: OnHttpErrorReceiveEvent) => this.webViewBaseOperate?.emitHttpError(event))
+        .onControllerAttached(() => this.controllerAttachedInit())
         .onAlert((event: AlertEvent) => this.onJavascriptAlert(event))
         .onConfirm((event: AlertEvent) => this.onJavascriptConfirm(event))
     }
