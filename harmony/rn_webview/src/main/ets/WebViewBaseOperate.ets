@@ -10,16 +10,6 @@ interface ProgressInterface {
   progress: number;
 }
 
-interface LoadingErrorInterface {
-  code: number;
-  description: string
-}
-
-interface ScrollInterface {
-  x: number;
-  y: number
-}
-
 interface CreateWebViewEventInterface {
   type: string;
   progress: number;
@@ -47,7 +37,7 @@ export class BaseOperate {
         progress: params.progress / ONE_HUNDRED
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitProgressChange Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitProgressChange Errorcode: ${error.code}`);
     }
   }
 
@@ -64,7 +54,7 @@ export class BaseOperate {
         mainDocumentURL: ""
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitLoadingStart Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitLoadingStart Errorcode: ${error.code}`);
     }
   }
 
@@ -81,7 +71,7 @@ export class BaseOperate {
         mainDocumentURL: ""
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitLoadingFinish Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitLoadingFinish Errorcode: ${error.code}`);
     }
   }
 
@@ -103,7 +93,7 @@ export class BaseOperate {
         description: event.error.getErrorInfo()
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitLoadingError Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitLoadingError Errorcode: ${error.code}`);
     }
   }
 
@@ -120,7 +110,7 @@ export class BaseOperate {
         statusCode: event.response.getResponseCode()
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitHttpError Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitHttpError Errorcode: ${error.code}`);
     }
   }
 
@@ -138,7 +128,7 @@ export class BaseOperate {
         layoutMeasurement: { height: 0, width: 0 }
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitScroll Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitScroll Errorcode: ${error.code}`);
     }
   }
 
@@ -156,7 +146,7 @@ export class BaseOperate {
         isTopFrame: false
       })
     } catch (error) {
-      Logger.error(TAG, `[RNOH] emitShouldStartLoadWithRequest Errorcode: ${JSON.stringify(error)}`);
+      Logger.error(TAG, `[RNOH] emitShouldStartLoadWithRequest Errorcode: ${error.code}`);
     }
   }
 
@@ -210,7 +200,7 @@ export class BaseOperate {
       }
     } catch (error) {
       Logger.debug(TAG,
-        `[RNOH] setCustomUserAgent ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${customUserAgent}`);
+        `[RNOH] setCustomUserAgent ErrorCode: ${error.code}, userAgent: ${customUserAgent}`);
     }
   }
 
@@ -340,6 +330,28 @@ export class BaseOperate {
       default:
         break
     }
+  }
 
+  setOriginWhitelist(uris: string) {
+    try {
+      this.controller.setUrlTrustList(uris);
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] setOriginWhitelist Errorcode: ${error.code}`);
+    }
+  }
+
+  setIncognito() {
+    this.controller.clearHistory()
+    webview.WebCookieManager.clearAllCookiesSync(true);
+    webview.WebCookieManager.clearSessionCookieSync()
+    webview.WebStorage.deleteAllData();
+  }
+
+  static setThirdPartyCookiesEnabled(status: boolean) {
+    try {
+      webview.WebCookieManager.putAcceptThirdPartyCookieEnabled(status);
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] setThirdPartyCookiesEnabled Errorcode: ${error.code}`);
+    }
   }
 }

@@ -46,12 +46,12 @@ const useWarnIfChanges = <T extends unknown>(value: T, name: string) => {
   }
 };
 
-const shouldStartLoadWithLockIdentifier:(
+const shouldStartLoadWithLockIdentifier: (
   shouldStart: boolean,
   lockIdentifier: Double
-) => void = () => {}
+) => void = () => { }
 
-const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: boolean, minimumFontSize: number}>(
+const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boolean, minimumFontSize: number, thirdPartyCookiesEnabled: boolean }>(
   (
     {
       fraudulentWebsiteWarningEnabled = true,
@@ -66,6 +66,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
       injectedJavaScriptBeforeContentLoaded,
       injectedJavaScriptForMainFrameOnly = true,
       injectedJavaScriptBeforeContentLoadedForMainFrameOnly = true,
+      thirdPartyCookiesEnabled = false,
       injectedJavaScriptObject,
       startInLoadingState,
       onNavigationStateChange,
@@ -114,7 +115,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
       []
     );
 
-      const {
+    const {
       onLoadingStart,
       onShouldStartLoadWithRequest,
       onMessage,
@@ -134,15 +135,15 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
       onHttpErrorProp,
       onLoadEnd,
       onLoadProgress,
-          // @ts-expect-error old arch only
-          onScroll,
+      // @ts-expect-error old arch only
+      onScroll,
       onLoadStart,
       onMessageProp,
       onOpenWindowProp,
       startInLoadingState,
       originWhitelist,
-          ignoreSilentHardwareSwitch,
-          minimumFontSize,
+      ignoreSilentHardwareSwitch,
+      minimumFontSize,
       onShouldStartLoadWithRequestProp,
       onShouldStartLoadWithRequestCallback,
       onContentProcessDidTerminateProp,
@@ -219,24 +220,24 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
     const newSource =
       typeof sourceResolved === 'object'
         ? Object.entries(sourceResolved as WebViewSourceUri).reduce(
-            (prev, [currKey, currValue]) => {
-              return {
-                ...prev,
-                [currKey]:
-                  currKey === 'headers' &&
+          (prev, [currKey, currValue]) => {
+            return {
+              ...prev,
+              [currKey]:
+                currKey === 'headers' &&
                   currValue &&
                   typeof currValue === 'object'
-                    ? Object.entries(currValue).map(([key, value]) => {
-                        return {
-                          name: key,
-                          value,
-                        };
-                      })
-                    : currValue,
-              };
-            },
-            {}
-          )
+                  ? Object.entries(currValue).map(([key, value]) => {
+                    return {
+                      name: key,
+                      value,
+                    };
+                  })
+                  : currValue,
+            };
+          },
+          {}
+        )
         : sourceResolved;
 
     const webView = (
@@ -267,6 +268,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
         hasOnOpenWindowEvent={onOpenWindowProp !== undefined}
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         onContentProcessDidTerminate={onContentProcessDidTerminate}
+        thirdPartyCookiesEnabled={thirdPartyCookiesEnabled}
         injectedJavaScript={injectedJavaScript}
         injectedJavaScriptBeforeContentLoaded={
           injectedJavaScriptBeforeContentLoaded
@@ -298,9 +300,9 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
     return (
       <View
         style={webViewContainerStyle}
-        onStartShouldSetResponder={(e) => onStartShouldSetResponder?onStartShouldSetResponder(e):false}
-        onMoveShouldSetResponderCapture={(e) => onMoveShouldSetResponderCapture?onMoveShouldSetResponderCapture(e):false}
-        onResponderMove={(e) => onResponderMove?onResponderMove(e):null}
+        onStartShouldSetResponder={(e) => onStartShouldSetResponder ? onStartShouldSetResponder(e) : false}
+        onMoveShouldSetResponderCapture={(e) => onMoveShouldSetResponderCapture ? onMoveShouldSetResponderCapture(e) : false}
+        onResponderMove={(e) => onResponderMove ? onResponderMove(e) : null}
       >
         {webView}
         {otherView}
