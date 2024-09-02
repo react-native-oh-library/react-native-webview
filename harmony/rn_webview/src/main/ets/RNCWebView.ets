@@ -98,12 +98,13 @@ export struct RNCWebView {
       this.initVariable()
       this.getBundleName()
       this.url = this.source.uri as string;
-      webview.WebviewController.setWebDebuggingAccess(this.descriptorWrapper.props.webviewDebuggingEnabled)
       this.cleanUpCallbacks.push(this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
         (_descriptor, newDescriptorWrapper) => {
           this.onDescriptorWrapperChange(newDescriptorWrapper! as RNC.RNCWebView.DescriptorWrapper)
         }
       ))
+      BaseOperate.setThirdPartyCookiesEnabled(this.descriptorWrapper.props.thirdPartyCookiesEnabled)
+      webview.WebviewController.setWebDebuggingAccess(this.descriptorWrapper.props.webviewDebuggingEnabled)
       this.registerCommandCallback()
       if (this.hasIncognito()) {
         this.cacheMode = CacheMode.Online;
@@ -136,10 +137,7 @@ export struct RNCWebView {
     this.cleanUpCallbacks.forEach(cb => cb())
     try {
       if (this.hasIncognito()) {
-        this.controller.clearHistory()
-        webview.WebCookieManager.clearAllCookiesSync(true);
-        webview.WebCookieManager.clearSessionCookieSync()
-        webview.WebStorage.deleteAllData();
+        this.webViewBaseOperate?.setIncognito()
       }
       this.controller.deleteJavaScriptRegister(JAVASCRIPT_INTERFACE)
       this.controller.refresh()
