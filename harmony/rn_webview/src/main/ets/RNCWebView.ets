@@ -260,6 +260,7 @@ export struct RNCWebView {
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
     this.webViewBaseOperate = new BaseOperate(this.eventEmitter, this.controller)
     this.webViewBaseOperate.setCustomUserAgent(this.descriptorWrapper.props.userAgent)
+    this.webViewBaseOperate.setFraudulentWebsiteWarningEnabled(this.descriptorWrapper.props.fraudulentWebsiteWarningEnabled)
     let baseUrl = this.source.baseUrl
     let uri = this.source.uri
     if (this.source.html != undefined && this.source.html != "") {

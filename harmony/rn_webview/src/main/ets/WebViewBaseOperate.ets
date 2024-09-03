@@ -354,4 +354,12 @@ export class BaseOperate {
       Logger.error(TAG, `[RNOH] setThirdPartyCookiesEnabled Errorcode: ${error.code}`);
     }
   }
+
+  setFraudulentWebsiteWarningEnabled(status: boolean) {
+    try {
+      this.controller.enableSafeBrowsing(status);
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] setFraudulentWebsiteWarningEnabled Errorcode: ${error.code}`);
+    }
+  }
 }
