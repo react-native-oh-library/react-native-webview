@@ -1,4 +1,4 @@
-import { Descriptor, ViewBaseProps } from '@rnoh/react-native-openharmony'
+import { Descriptor, ViewBaseProps, ViewDescriptorWrapperBase, ViewRawProps } from '@rnoh/react-native-openharmony'
 
 export class WebViewNewSourceHeader {
   name?: string
@@ -27,7 +27,9 @@ export const WEB_VIEW = "RNCWebView"
 
 export const JAVASCRIPT_INTERFACE = "ReactNativeWebView";
 
-export interface WebViewProps extends ViewBaseProps {
+export interface WebViewProps extends ViewRawProps {
+  width:number
+  height:number
   newSource: WebViewNewSource
   javaScriptEnabled: boolean
   injectedJavaScript: string
@@ -36,7 +38,7 @@ export interface WebViewProps extends ViewBaseProps {
   showsVerticalScrollIndicator: boolean
   textZoom: number
   cacheEnabled: boolean
-  cacheMode: number
+  cacheMode: CACHE_MODE
   domStorageEnabled: boolean
   scalesPageToFit: boolean
   messagingModuleName: string
@@ -46,6 +48,14 @@ export interface WebViewProps extends ViewBaseProps {
   userAgent: string
   shouldStartLoadWithRequestEnabled: boolean
   originWhitelist: Array<string>
+  thirdPartyCookiesEnabled: boolean
+  fraudulentWebsiteWarningEnabled: boolean
+  ignoreSilentHardwareSwitch: boolean
+  forceDarkOn: boolean
+  minimumFontSize: number
+  bounces: boolean
+  injectedJavaScriptBeforeContentLoaded: string
+  overScrollMode:WebViewOverScrollMode
 }
 
 
@@ -96,7 +106,12 @@ export class ResultType {
   }
 }
 
-export type WebViewViewDescriptor = Descriptor<"RNCWebView", WebViewProps>
+interface WebViewState {}
+
+export type WebViewDescriptor = Descriptor<"WebView", ViewBaseProps, WebViewState, WebViewProps>
+
+export class WebViewViewDescriptorWrapper extends ViewDescriptorWrapperBase<"WebView", ViewBaseProps, WebViewState, WebViewProps> {
+}
 
 
 export const ZERO: number = 0
@@ -134,5 +149,5 @@ export enum COMMAND_NAME {
   CLEARCACHE = 'clearCache',
   CLEARHISTORY = 'clearHistory',
   STOPLOADING = 'stopLoading',
-  LOADURL='loadUrl'
+  LOADURL = 'loadUrl'
 }
