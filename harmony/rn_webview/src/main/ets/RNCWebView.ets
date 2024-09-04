@@ -40,7 +40,8 @@ import {
   WebViewNewSource,
   WebViewOverScrollMode,
   ZERO,
-  COMMAND_NAME
+  COMMAND_NAME,
+  WebViewDescriptor,
 } from './Magic';
 import { bundleManager } from '@kit.AbilityKit';
 
@@ -90,7 +91,7 @@ export struct RNCWebView {
   private cleanupCommandCallback?: () => void = undefined
   private eventEmitter: RNC.RNCWebView.EventEmitter | undefined = undefined
   private cleanUpCallbacks: (() => void)[] = []
-  private descriptorWrapper: RNC.RNCWebView.DescriptorWrapper = {} as RNC.RNCWebView.DescriptorWrapper
+  private descriptorWrapper: WebViewDescriptor = Object() as WebViewDescriptor
   private webViewBaseOperate: BaseOperate | null = null
 
   aboutToAppear() {
@@ -98,13 +99,14 @@ export struct RNCWebView {
       this.initVariable()
       this.getBundleName()
       this.url = this.source.uri as string;
-      this.cleanUpCallbacks.push(this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
-        (_descriptor, newDescriptorWrapper) => {
-          this.onDescriptorWrapperChange(newDescriptorWrapper! as RNC.RNCWebView.DescriptorWrapper)
+      this.onDescriptorWrapperChange(this.descriptorWrapper)
+      this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
+        (newDescriptor) => {
+          this.onDescriptorWrapperChange(newDescriptor as WebViewDescriptor)
         }
-      ))
-      BaseOperate.setThirdPartyCookiesEnabled(this.descriptorWrapper.props.thirdPartyCookiesEnabled)
-      webview.WebviewController.setWebDebuggingAccess(this.descriptorWrapper.props.webviewDebuggingEnabled)
+      )
+      BaseOperate.setThirdPartyCookiesEnabled(this.descriptorWrapper.rawProps.thirdPartyCookiesEnabled)
+      webview.WebviewController.setWebDebuggingAccess(this.descriptorWrapper.rawProps.webviewDebuggingEnabled)
       this.registerCommandCallback()
       if (this.hasIncognito()) {
         this.cacheMode = CacheMode.Online;
@@ -123,7 +125,7 @@ export struct RNCWebView {
   }
 
   hasIncognito(): boolean {
-    return this.descriptorWrapper.props.incognito && this.descriptorWrapper.props.incognito === true
+    return this.descriptorWrapper.rawProps.incognito && this.descriptorWrapper.rawProps.incognito === true
   }
 
   createWebViewEvent(type: string): WebViewEventParams {
@@ -180,7 +182,7 @@ export struct RNCWebView {
   }
 
   runInjectedJavaScript() {
-    let injectedJS = this.descriptorWrapper.props.injectedJavaScript
+    let injectedJS = this.descriptorWrapper.rawProps.injectedJavaScript
     if (this.javaScriptEnable && injectedJS != "" && this.controllerAttached) {
       try {
         this.controller.runJavaScript("(function() {\n" + injectedJS + ";\n})();")
@@ -259,8 +261,8 @@ export struct RNCWebView {
     this.controllerAttached = true;
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
     this.webViewBaseOperate = new BaseOperate(this.eventEmitter, this.controller)
-    this.webViewBaseOperate.setCustomUserAgent(this.descriptorWrapper.props.userAgent)
-    this.webViewBaseOperate.setFraudulentWebsiteWarningEnabled(this.descriptorWrapper.props.fraudulentWebsiteWarningEnabled)
+    this.webViewBaseOperate.setCustomUserAgent(this.descriptorWrapper.rawProps.userAgent)
+    this.webViewBaseOperate.setFraudulentWebsiteWarningEnabled(this.descriptorWrapper.rawProps.fraudulentWebsiteWarningEnabled)
     let baseUrl = this.source.baseUrl
     let uri = this.source.uri
     if (this.source.html != undefined && this.source.html != "") {
@@ -291,10 +293,10 @@ export struct RNCWebView {
         this.onLoadingStart();
       }
       this.controller.setScrollable(this.scrollEnabled)
-      this.ignoreSilentHardwareSwitchMethods(this.descriptorWrapper.props.ignoreSilentHardwareSwitch)
+      this.ignoreSilentHardwareSwitchMethods(this.descriptorWrapper.rawProps.ignoreSilentHardwareSwitch)
     } catch (error) {
       Logger.debug(TAG,
-        `[RNOH] setignoreSilentHardwareSwitch and setScrollable ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${this.descriptorWrapper.props.userAgent}`);
+        `[RNOH] setignoreSilentHardwareSwitch and setScrollable ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${this.descriptorWrapper.rawProps.userAgent}`);
     }
   }
 
@@ -383,16 +385,16 @@ export struct RNCWebView {
         .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
         .javaScriptOnDocumentStart(this.injectedJavaScriptBeforeContentLoaded)
-        .horizontalScrollBarAccess(this.descriptorWrapper.props.showsHorizontalScrollIndicator)
-        .verticalScrollBarAccess(this.descriptorWrapper.props.showsVerticalScrollIndicator)
-        .overviewModeAccess(this.descriptorWrapper.props.scalesPageToFit)
-        .textZoomRatio(this.descriptorWrapper.props.textZoom)
-        .darkMode(this.descriptorWrapper.props.forceDarkOn ? WebDarkMode.On : WebDarkMode.Auto)
+        .horizontalScrollBarAccess(this.descriptorWrapper.rawProps.showsHorizontalScrollIndicator)
+        .verticalScrollBarAccess(this.descriptorWrapper.rawProps.showsVerticalScrollIndicator)
+        .overviewModeAccess(this.descriptorWrapper.rawProps.scalesPageToFit)
+        .textZoomRatio(this.descriptorWrapper.rawProps.textZoom)
+        .darkMode(this.descriptorWrapper.rawProps.forceDarkOn ? WebDarkMode.On : WebDarkMode.Auto)
         .forceDarkAccess(this.forceDark)
         .cacheMode(this.cacheMode)
         .minFontSize(this.minFontSize)
-        .domStorageAccess(this.descriptorWrapper.props.domStorageEnabled)
-        .zoomAccess(this.descriptorWrapper.props.scalesPageToFit)
+        .domStorageAccess(this.descriptorWrapper.rawProps.domStorageEnabled)
+        .zoomAccess(this.descriptorWrapper.rawProps.scalesPageToFit)
         .overScrollMode(this.overScrollMode)
         .onProgressChange((event: OnProgressChangeEvent) => this.onProgressChange(event))
         .onScroll((event: OnScrollEvent) => this.webViewBaseOperate?.emitScroll(event))
@@ -407,16 +409,17 @@ export struct RNCWebView {
         .onControllerAttached(() => this.controllerAttachedInit())
         .onAlert((event: AlertEvent) => this.onJavascriptAlert(event))
         .onConfirm((event: AlertEvent) => this.onJavascriptConfirm(event))
+        .onDownloadStart((event: OnDownloadStartEvent) => this.webViewBaseOperate?.onDownloadStart(event))
     }
     .width(this.webviewWidth)
     .height(this.webviewHeight)
     .position({
-      x: this.descriptorWrapper.positionRelativeToParent.x,
-      y: this.descriptorWrapper.positionRelativeToParent.y
+      x: this.descriptorWrapper.layoutMetrics.frame.origin.x,
+      y: this.descriptorWrapper.layoutMetrics.frame.origin.y
     })
   }
 
-  private onDescriptorWrapperChange(descriptorWrapper: RNC.RNCWebView.DescriptorWrapper) {
+  private onDescriptorWrapperChange(descriptorWrapper: WebViewDescriptor) {
     this.initVariable()
     this.descriptorWrapper = descriptorWrapper
     if (this.html != "" && this.html != this.source.html) {
@@ -439,31 +442,30 @@ export struct RNCWebView {
       Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
       this.url = this.source.uri as string;
       if (this.controllerAttached) {
-        this.controller.loadUrl(this.descriptorWrapper.props.newSource.uri, this.headers)
+        this.controller.loadUrl(this.descriptorWrapper.rawProps.newSource.uri, this.headers)
       }
     }
     if (this.controllerAttached) {
-      this.controller?.setScrollable(this.descriptorWrapper.props.scrollEnabled)
+      this.controller?.setScrollable(this.descriptorWrapper.rawProps.scrollEnabled)
     }
   }
 
   private initVariable() {
-    this.descriptorWrapper =
-      this.ctx.descriptorRegistry.findDescriptorWrapperByTag<RNC.RNCWebView.DescriptorWrapper>(this.tag)!
-    this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
+    this.descriptorWrapper = this.ctx.descriptorRegistry.getDescriptor<WebViewDescriptor>(this.tag)
+    this.javaScriptEnable = this.descriptorWrapper.rawProps.javaScriptEnabled;
     this.minFontSize =
-      this.descriptorWrapper.props.minimumFontSize ? this.descriptorWrapper.props.minimumFontSize : EIGHT;
+      this.descriptorWrapper.rawProps.minimumFontSize ? this.descriptorWrapper.rawProps.minimumFontSize : EIGHT;
     this.cacheMode =
-      this.descriptorWrapper.props.cacheEnabled ?
-        this.webViewBaseOperate?.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) as number :
+      this.descriptorWrapper.rawProps.cacheEnabled ?
+        this.webViewBaseOperate?.transCacheMode(this.descriptorWrapper.rawProps.cacheMode as CACHE_MODE) as number :
       CacheMode.Online;
     this.source = {
-      uri: this.descriptorWrapper.props.newSource.uri ?? "",
-      method: this.descriptorWrapper.props.newSource.method ?? "",
-      body: this.descriptorWrapper.props.newSource.body ?? "",
-      html: this.descriptorWrapper.props.newSource.html ?? "",
-      baseUrl: this.descriptorWrapper.props.newSource.baseUrl ?? "",
-      headers: this.descriptorWrapper.props.newSource.headers ?? []
+      uri: this.descriptorWrapper.rawProps.newSource.uri ?? "",
+      method: this.descriptorWrapper.rawProps.newSource.method ?? "",
+      body: this.descriptorWrapper.rawProps.newSource.body ?? "",
+      html: this.descriptorWrapper.rawProps.newSource.html ?? "",
+      baseUrl: this.descriptorWrapper.rawProps.newSource.baseUrl ?? "",
+      headers: this.descriptorWrapper.rawProps.newSource.headers ?? []
     }
     if (this.source.headers) {
       this.source.headers.forEach(item => {
@@ -473,35 +475,35 @@ export struct RNCWebView {
       })
     }
     this.html = this.source.html
-    this.webviewWidth = this.descriptorWrapper.width
-    this.webviewHeight = this.descriptorWrapper.height
-    this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
+    this.webviewWidth = this.descriptorWrapper.rawProps.width
+    this.webviewHeight = this.descriptorWrapper.rawProps.height
+    this.scrollEnabled = this.descriptorWrapper.rawProps.scrollEnabled;
     // 当禁止滚动时，使用父组件滚动
     this.nestedScroll = this.scrollEnabled ? NestedScrollMode.SELF_FIRST : NestedScrollMode.PARENT_FIRST;
     if (this.source.uri && this.source.uri.toString().startsWith("asset://")) {
       this.source.uri = $rawfile(this.source.uri.toString().replace("asset://", this.ctx.rnInstance.getAssetsDest()));
     }
 
-    if (this.descriptorWrapper.props.overScrollMode === WebViewOverScrollMode.ALWAYS) {
+    if (this.descriptorWrapper.rawProps.overScrollMode === WebViewOverScrollMode.ALWAYS) {
       this.overScrollMode = OverScrollMode.ALWAYS
-    } else if (this.descriptorWrapper.props.overScrollMode === WebViewOverScrollMode.NEVER) {
+    } else if (this.descriptorWrapper.rawProps.overScrollMode === WebViewOverScrollMode.NEVER) {
       this.overScrollMode = OverScrollMode.NEVER
     }
 
-    this.overScrollMode = this.descriptorWrapper.props.bounces ? OverScrollMode.ALWAYS : OverScrollMode.NEVER;
+    this.overScrollMode = this.descriptorWrapper.rawProps.bounces ? OverScrollMode.ALWAYS : OverScrollMode.NEVER;
 
-    if (this.descriptorWrapper.props.injectedJavaScriptBeforeContentLoaded) {
+    if (this.descriptorWrapper.rawProps.injectedJavaScriptBeforeContentLoaded) {
       this.injectedJavaScriptBeforeContentLoaded = [
-        { script: this.descriptorWrapper.props.injectedJavaScriptBeforeContentLoaded, scriptRules: ["*"] }
+        { script: this.descriptorWrapper.rawProps.injectedJavaScriptBeforeContentLoaded, scriptRules: ["*"] }
       ];
     }
   }
 
   private registerPostMessage() {
-    if (this.messagingEnabled == this.descriptorWrapper.props.messagingEnabled) {
+    if (this.messagingEnabled == this.descriptorWrapper.rawProps.messagingEnabled) {
       return;
     }
-    this.messagingEnabled = this.descriptorWrapper.props.messagingEnabled;
+    this.messagingEnabled = this.descriptorWrapper.rawProps.messagingEnabled;
     if (this.messagingEnabled) {
       let bridge: RNCWebViewBridge = {
         postMessage: (data: string) => {

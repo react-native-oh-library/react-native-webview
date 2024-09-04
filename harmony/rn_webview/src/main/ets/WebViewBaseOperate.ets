@@ -362,4 +362,14 @@ export class BaseOperate {
       Logger.error(TAG, `[RNOH] setFraudulentWebsiteWarningEnabled Errorcode: ${error.code}`);
     }
   }
+
+  onDownloadStart(event: OnDownloadStartEvent) {
+    try {
+      this.eventEmitter!.emit('fileDownload', {
+        downloadUrl: "event.url"
+      })
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] onDownloadStart Errorcode: ${error.code}`);
+    }
+  }
 }
