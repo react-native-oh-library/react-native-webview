@@ -28,8 +28,8 @@ export const WEB_VIEW = "RNCWebView"
 export const JAVASCRIPT_INTERFACE = "ReactNativeWebView";
 
 export interface WebViewProps extends ViewRawProps {
-  width:number
-  height:number
+  width: number
+  height: number
   newSource: WebViewNewSource
   javaScriptEnabled: boolean
   injectedJavaScript: string
@@ -55,7 +55,10 @@ export interface WebViewProps extends ViewRawProps {
   minimumFontSize: number
   bounces: boolean
   injectedJavaScriptBeforeContentLoaded: string
-  overScrollMode:WebViewOverScrollMode
+  overScrollMode: WebViewOverScrollMode,
+  mediaPlaybackRequiresUserAction: boolean
+  geolocationEnabled: boolean
+  applicationNameForUserAgent: string
 }
 
 
@@ -151,3 +154,22 @@ export enum COMMAND_NAME {
   STOPLOADING = 'stopLoading',
   LOADURL = 'loadUrl'
 }
+
+interface RenderExitReasonMessageItem {
+  errorDomain: string
+  errorDesc: string
+}
+
+export const RenderExitReasonMessage = new Map<number, RenderExitReasonMessageItem>()
+
+RenderExitReasonMessage.set(0,
+  { errorDomain: 'ProcessAbnormalTermination', errorDesc: "The rendering process exits abnormally." })
+RenderExitReasonMessage.set(1,
+  { errorDomain: 'ProcessWasKilled', errorDesc: "SIGKILL is received or manually terminated." })
+RenderExitReasonMessage.set(2,
+  { errorDomain: 'ProcessCrashed', errorDesc: "The rendering process crashes and exits, such as a segment error." })
+RenderExitReasonMessage.set(3,
+  { errorDomain: 'ProcessOom', errorDesc: "The program is out of memory." })
+RenderExitReasonMessage.set(4,
+  { errorDomain: 'ProcessExitUnknown', errorDesc: "Other reasons." })
+

@@ -58,12 +58,14 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
       javaScriptEnabled = true,
       cacheEnabled = true,
       originWhitelist = defaultOriginWhitelist,
+      applicationNameForUserAgent,
       ignoreSilentHardwareSwitch,
       minimumFontSize,
       useSharedProcessPool = true,
       textInteractionEnabled = true,
       injectedJavaScript,
       injectedJavaScriptBeforeContentLoaded,
+      menuItems=[],
       injectedJavaScriptForMainFrameOnly = true,
       injectedJavaScriptBeforeContentLoadedForMainFrameOnly = true,
       thirdPartyCookiesEnabled = false,
@@ -72,6 +74,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
       startInLoadingState,
       onNavigationStateChange,
       onLoadStart,
+      onCustomMenuSelection,
       onError,
       onLoad,
       onLoadEnd,
@@ -251,6 +254,8 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
         scalesPageToFit={otherProps.scalesPageToFit ?? true}
         fraudulentWebsiteWarningEnabled={fraudulentWebsiteWarningEnabled}
         javaScriptEnabled={javaScriptEnabled}
+        onCustomMenuSelection={onCustomMenuSelection}
+        applicationNameForUserAgent={applicationNameForUserAgent}
         cacheEnabled={cacheEnabled}
         useSharedProcessPool={useSharedProcessPool}
         textInteractionEnabled={textInteractionEnabled}
@@ -289,6 +294,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
         allowsInlineMediaPlayback={allowsInlineMediaPlayback}
         incognito={incognito}
         mediaPlaybackRequiresUserAction={mediaPlaybackRequiresUserAction}
+        menuItems={menuItems}
         newSource={newSource}
         style={webViewStyles}
         hasOnFileDownload={!!onFileDownload}
