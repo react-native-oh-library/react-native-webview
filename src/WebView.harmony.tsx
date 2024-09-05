@@ -51,7 +51,7 @@ const shouldStartLoadWithLockIdentifier: (
   lockIdentifier: Double
 ) => void = () => { }
 
-const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boolean, minimumFontSize: number, thirdPartyCookiesEnabled: boolean }>(
+const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boolean, minimumFontSize: number, thirdPartyCookiesEnabled: boolean, geolocationEnabled: boolean }>(
   (
     {
       fraudulentWebsiteWarningEnabled = true,
@@ -67,6 +67,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
       injectedJavaScriptForMainFrameOnly = true,
       injectedJavaScriptBeforeContentLoadedForMainFrameOnly = true,
       thirdPartyCookiesEnabled = false,
+      geolocationEnabled = false,
       injectedJavaScriptObject,
       startInLoadingState,
       onNavigationStateChange,
@@ -253,6 +254,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
         cacheEnabled={cacheEnabled}
         useSharedProcessPool={useSharedProcessPool}
         textInteractionEnabled={textInteractionEnabled}
+        geolocationEnabled={geolocationEnabled}
         decelerationRate={decelerationRate}
         messagingEnabled={typeof onMessageProp === 'function'}
         messagingModuleName="" // android ONLY
