@@ -90,7 +90,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
       nativeConfig,
       allowsInlineMediaPlayback,
       allowsAirPlayForMediaPlayback,
-      mediaPlaybackRequiresUserAction,
+      mediaPlaybackRequiresUserAction=true,
       dataDetectorTypes,
       incognito,
       decelerationRate: decelerationRateProp,

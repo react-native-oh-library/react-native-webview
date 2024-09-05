@@ -411,6 +411,7 @@ export struct RNCWebView {
         .onConfirm((event: AlertEvent) => this.onJavascriptConfirm(event))
         .onDownloadStart((event: OnDownloadStartEvent) => this.webViewBaseOperate?.onDownloadStart(event))
         .geolocationAccess(this.descriptorWrapper.rawProps.geolocationEnabled)
+        .mediaPlayGestureAccess(this.descriptorWrapper.rawProps.mediaPlaybackRequiresUserAction)
     }
     .width(this.webviewWidth)
     .height(this.webviewHeight)
