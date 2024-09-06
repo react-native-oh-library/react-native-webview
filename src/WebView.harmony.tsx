@@ -100,6 +100,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
       onShouldStartLoadWithRequest: onShouldStartLoadWithRequestProp,
       onStartShouldSetResponder,
       onMoveShouldSetResponderCapture,
+      pullToRefreshEnabled=false,
       onResponderMove,
       ...otherProps
     },
@@ -276,6 +277,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         onContentProcessDidTerminate={onContentProcessDidTerminate}
         thirdPartyCookiesEnabled={thirdPartyCookiesEnabled}
+        pullToRefreshEnabled={pullToRefreshEnabled}
         injectedJavaScript={injectedJavaScript}
         injectedJavaScriptBeforeContentLoaded={
           injectedJavaScriptBeforeContentLoaded

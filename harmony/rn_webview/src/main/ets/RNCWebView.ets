@@ -42,6 +42,9 @@ import {
   ZERO,
   COMMAND_NAME,
   WebViewDescriptor,
+  REFRESH_FRICTION,
+  REFRESH_OFFSET,
+  MINHEIGHT,
 } from './Magic';
 import { bundleManager } from '@kit.AbilityKit';
 
@@ -87,6 +90,7 @@ export struct RNCWebView {
   allowPageStartInProgress = true;
   @State webviewWidth: number = ZERO
   @State webviewHeight: number = ZERO
+  @State isRefreshing: boolean = false
   private unregisterDescriptorChangesListener?: () => void = undefined
   private cleanupCommandCallback?: () => void = undefined
   private eventEmitter: RNC.RNCWebView.EventEmitter | undefined = undefined
@@ -135,7 +139,6 @@ export struct RNCWebView {
   aboutToDisappear() {
     this.cleanupCommandCallback?.()
     this.unregisterDescriptorChangesListener?.()
-    Logger.debug(TAG, `[RNOH] aboutToDisappear`)
     this.cleanUpCallbacks.forEach(cb => cb())
     try {
       if (this.hasIncognito()) {
@@ -175,6 +178,7 @@ export struct RNCWebView {
 
   onLoadingFinish() {
     this.webViewBaseOperate?.emitLoadingFinish({ progress: this.progress })
+    this.isRefreshing = false
   }
 
   onShouldStartLoadWithRequest() {
@@ -261,7 +265,8 @@ export struct RNCWebView {
     this.controllerAttached = true;
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
     this.webViewBaseOperate = new BaseOperate(this.eventEmitter, this.controller)
-    this.webViewBaseOperate.setCustomUserAgent(this.descriptorWrapper.rawProps.userAgent,this.descriptorWrapper.rawProps.applicationNameForUserAgent)
+    this.webViewBaseOperate.setCustomUserAgent(this.descriptorWrapper.rawProps.userAgent,
+      this.descriptorWrapper.rawProps.applicationNameForUserAgent)
     this.webViewBaseOperate.setFraudulentWebsiteWarningEnabled(this.descriptorWrapper.rawProps.fraudulentWebsiteWarningEnabled)
     let baseUrl = this.source.baseUrl
     let uri = this.source.uri
@@ -351,68 +356,72 @@ export struct RNCWebView {
 
   build() {
     Stack() {
-      Web({ src: "", controller: this.controller, renderMode: this.renderMode })
-        .onPermissionRequest((event: OnPermissionRequestEvent) => {
-          if (event) {
-            AlertDialog.show({
-              title: this.resourceToString($r('app.string.on_confirm')) + event.request.getOrigin(),
-              message: this.getPermissionDialogMessage(event),
-              alignment: DialogAlignment.Center,
-              primaryButton: {
-                value: $r('app.string.deny'),
-                action: () => {
+      Refresh({ refreshing: $$this.isRefreshing, offset: REFRESH_OFFSET, friction: REFRESH_FRICTION }) {
+        Web({ src: "", controller: this.controller, renderMode: this.renderMode })
+          .onPermissionRequest((event: OnPermissionRequestEvent) => {
+            if (event) {
+              AlertDialog.show({
+                title: this.resourceToString($r('app.string.on_confirm')) + event.request.getOrigin(),
+                message: this.getPermissionDialogMessage(event),
+                alignment: DialogAlignment.Center,
+                primaryButton: {
+                  value: $r('app.string.deny'),
+                  action: () => {
+                    event.request.deny();
+                  }
+                },
+                secondaryButton: {
+                  value: $r('app.string.on_confirm'),
+                  action: () => {
+                    event.request.grant(event.request.getAccessibleResource());
+                  }
+                },
+                cancel: () => {
                   event.request.deny();
                 }
-              },
-              secondaryButton: {
-                value: $r('app.string.on_confirm'),
-                action: () => {
-                  event.request.grant(event.request.getAccessibleResource());
-                }
-              },
-              cancel: () => {
-                event.request.deny();
-              }
-            })
-          }
-        })
+              })
+            }
+          })
 
-        .width(this.webviewWidth)
-        .height(this.webviewHeight)
-        .fileAccess(this.allowFileAccess)
-        .constraintSize({ minHeight: 1 })
-        .overScrollMode(this.overScrollMode)
-        .backgroundColor(Color.Transparent)
-        .javaScriptAccess(this.javaScriptEnable)
-        .javaScriptOnDocumentStart(this.injectedJavaScriptBeforeContentLoaded)
-        .horizontalScrollBarAccess(this.descriptorWrapper.rawProps.showsHorizontalScrollIndicator)
-        .verticalScrollBarAccess(this.descriptorWrapper.rawProps.showsVerticalScrollIndicator)
-        .overviewModeAccess(this.descriptorWrapper.rawProps.scalesPageToFit)
-        .textZoomRatio(this.descriptorWrapper.rawProps.textZoom)
-        .darkMode(this.descriptorWrapper.rawProps.forceDarkOn ? WebDarkMode.On : WebDarkMode.Auto)
-        .forceDarkAccess(this.forceDark)
-        .cacheMode(this.cacheMode)
-        .minFontSize(this.minFontSize)
-        .domStorageAccess(this.descriptorWrapper.rawProps.domStorageEnabled)
-        .zoomAccess(this.descriptorWrapper.rawProps.scalesPageToFit)
-        .overScrollMode(this.overScrollMode)
-        .onProgressChange((event: OnProgressChangeEvent) => this.onProgressChange(event))
-        .onScroll((event: OnScrollEvent) => this.webViewBaseOperate?.emitScroll(event))
-        .nestedScroll({
-          scrollForward: this.nestedScroll,
-          scrollBackward: this.nestedScroll,
-        })
-        .onPageBegin(() => this.onPageBegin())
-        .onPageEnd(() => this.onPageEnd())
-        .onErrorReceive((event: OnErrorReceiveEvent) => this.webViewBaseOperate?.emitLoadingError(event))
-        .onHttpErrorReceive((event: OnHttpErrorReceiveEvent) => this.webViewBaseOperate?.emitHttpError(event))
-        .onControllerAttached(() => this.controllerAttachedInit())
-        .onAlert((event: AlertEvent) => this.onJavascriptAlert(event))
-        .onConfirm((event: AlertEvent) => this.onJavascriptConfirm(event))
-        .onDownloadStart((event: OnDownloadStartEvent) => this.webViewBaseOperate?.onDownloadStart(event))
-        .geolocationAccess(this.descriptorWrapper.rawProps.geolocationEnabled)
-        .mediaPlayGestureAccess(this.descriptorWrapper.rawProps.mediaPlaybackRequiresUserAction)
-        .onRenderExited((event:OnRenderExitedEvent)=>this.webViewBaseOperate?.onRenderExited(event))
+          .width(this.webviewWidth)
+          .height(this.webviewHeight)
+          .fileAccess(this.allowFileAccess)
+          .constraintSize({ minHeight: MINHEIGHT })
+          .overScrollMode(this.overScrollMode)
+          .backgroundColor(Color.Transparent)
+          .javaScriptAccess(this.javaScriptEnable)
+          .javaScriptOnDocumentStart(this.injectedJavaScriptBeforeContentLoaded)
+          .horizontalScrollBarAccess(this.descriptorWrapper.rawProps.showsHorizontalScrollIndicator)
+          .verticalScrollBarAccess(this.descriptorWrapper.rawProps.showsVerticalScrollIndicator)
+          .overviewModeAccess(this.descriptorWrapper.rawProps.scalesPageToFit)
+          .textZoomRatio(this.descriptorWrapper.rawProps.textZoom)
+          .darkMode(this.descriptorWrapper.rawProps.forceDarkOn ? WebDarkMode.On : WebDarkMode.Auto)
+          .forceDarkAccess(this.forceDark)
+          .cacheMode(this.cacheMode)
+          .minFontSize(this.minFontSize)
+          .domStorageAccess(this.descriptorWrapper.rawProps.domStorageEnabled)
+          .zoomAccess(this.descriptorWrapper.rawProps.scalesPageToFit)
+          .overScrollMode(this.overScrollMode)
+          .onProgressChange((event: OnProgressChangeEvent) => this.onProgressChange(event))
+          .onScroll((event: OnScrollEvent) => this.webViewBaseOperate?.emitScroll(event))
+          .nestedScroll({
+            scrollForward: this.nestedScroll,
+            scrollBackward: this.nestedScroll,
+          })
+          .onPageBegin(() => this.onPageBegin())
+          .onPageEnd(() => this.onPageEnd())
+          .onErrorReceive((event: OnErrorReceiveEvent) => this.webViewBaseOperate?.emitLoadingError(event))
+          .onHttpErrorReceive((event: OnHttpErrorReceiveEvent) => this.webViewBaseOperate?.emitHttpError(event))
+          .onControllerAttached(() => this.controllerAttachedInit())
+          .onAlert((event: AlertEvent) => this.onJavascriptAlert(event))
+          .onConfirm((event: AlertEvent) => this.onJavascriptConfirm(event))
+          .onDownloadStart((event: OnDownloadStartEvent) => this.webViewBaseOperate?.onDownloadStart(event))
+          .geolocationAccess(this.descriptorWrapper.rawProps.geolocationEnabled)
+          .mediaPlayGestureAccess(this.descriptorWrapper.rawProps.mediaPlaybackRequiresUserAction)
+          .onRenderExited((event: OnRenderExitedEvent) => this.webViewBaseOperate?.onRenderExited(event))
+      }
+      .enabled(this.descriptorWrapper.rawProps.pullToRefreshEnabled)
+      .onRefreshing(() => this.controller.refresh())
     }
     .width(this.webviewWidth)
     .height(this.webviewHeight)
