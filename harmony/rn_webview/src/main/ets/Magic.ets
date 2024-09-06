@@ -59,6 +59,7 @@ export interface WebViewProps extends ViewRawProps {
   mediaPlaybackRequiresUserAction: boolean
   geolocationEnabled: boolean
   applicationNameForUserAgent: string
+  pullToRefreshEnabled: boolean
 }
 
 
@@ -122,6 +123,12 @@ export const ZERO: number = 0
 export const EIGHT: number = 8;
 
 export const ONE_HUNDRED: number = 100
+
+export const REFRESH_OFFSET: number = 120
+
+export const REFRESH_FRICTION = 100
+
+export const MINHEIGHT: number = 1
 
 export interface ProgressInterface {
   progress: number;
