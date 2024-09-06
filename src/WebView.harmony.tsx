@@ -70,6 +70,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
       injectedJavaScriptBeforeContentLoadedForMainFrameOnly = true,
       thirdPartyCookiesEnabled = false,
       geolocationEnabled = false,
+      webviewDebuggingEnabled = false,
       injectedJavaScriptObject,
       startInLoadingState,
       onNavigationStateChange,
@@ -299,6 +300,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
         menuItems={menuItems}
         newSource={newSource}
         style={webViewStyles}
+        webviewDebuggingEnabled={webviewDebuggingEnabled}
         hasOnFileDownload={!!onFileDownload}
         ref={webViewRef}
         // @ts-expect-error old arch only
