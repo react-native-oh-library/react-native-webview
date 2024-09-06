@@ -261,7 +261,7 @@ export struct RNCWebView {
     this.controllerAttached = true;
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
     this.webViewBaseOperate = new BaseOperate(this.eventEmitter, this.controller)
-    this.webViewBaseOperate.setCustomUserAgent(this.descriptorWrapper.rawProps.userAgent)
+    this.webViewBaseOperate.setCustomUserAgent(this.descriptorWrapper.rawProps.userAgent,this.descriptorWrapper.rawProps.applicationNameForUserAgent)
     this.webViewBaseOperate.setFraudulentWebsiteWarningEnabled(this.descriptorWrapper.rawProps.fraudulentWebsiteWarningEnabled)
     let baseUrl = this.source.baseUrl
     let uri = this.source.uri
@@ -412,6 +412,7 @@ export struct RNCWebView {
         .onDownloadStart((event: OnDownloadStartEvent) => this.webViewBaseOperate?.onDownloadStart(event))
         .geolocationAccess(this.descriptorWrapper.rawProps.geolocationEnabled)
         .mediaPlayGestureAccess(this.descriptorWrapper.rawProps.mediaPlaybackRequiresUserAction)
+        .onRenderExited((event:OnRenderExitedEvent)=>this.webViewBaseOperate?.onRenderExited(event))
     }
     .width(this.webviewWidth)
     .height(this.webviewHeight)

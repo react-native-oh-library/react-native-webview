@@ -192,11 +192,14 @@ export class BaseOperate {
     this.controller.setAudioMuted(!ignoreSilentHardwareSwitch)
   }
 
-  setCustomUserAgent(customUserAgent?: string): void {
+  setCustomUserAgent(customUserAgent?: string, applicationNameForUserAgent?: string): void {
     try {
       if (customUserAgent) {
         let userAgent: string = customUserAgent;
         this.controller.setCustomUserAgent(userAgent);
+      }
+      if (applicationNameForUserAgent) {
+        this.controller.setCustomUserAgent(`${this.controller.getUserAgent()}${applicationNameForUserAgent}`);
       }
     } catch (error) {
       Logger.debug(TAG,
@@ -370,6 +373,14 @@ export class BaseOperate {
       })
     } catch (error) {
       Logger.error(TAG, `[RNOH] onDownloadStart Errorcode: ${error.code}`);
+    }
+  }
+
+  onRenderExited(event: OnRenderExitedEvent) {
+    try {
+
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] onRenderExited Errorcode: ${error.code}`);
     }
   }
 }
