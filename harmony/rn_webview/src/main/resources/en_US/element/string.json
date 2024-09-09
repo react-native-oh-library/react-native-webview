@@ -3,6 +3,30 @@
     {
       "name":"page_show",
       "value":"page from npm package"
+    },
+    {
+      "name":"deny",
+      "value":"deny"
+    },
+    {
+      "name":"on_confirm",
+      "value":"on confirm"
+    },
+    {
+      "name": "use_your_camera",
+      "value": "use Your Camera?"
+    },
+    {
+      "name": "use_your_microphone",
+      "value": "use your microphone?"
+    },
+    {
+      "name": "use_your_camera_and_microphone",
+      "value": "use your camera and microphone?"
+    },
+    {
+      "name": "midi_sysex_resources",
+      "value": "MIDI SYSEX Resources?"
     }
   ]
 }
