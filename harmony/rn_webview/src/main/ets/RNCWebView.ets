@@ -22,110 +22,41 @@
  * SOFTWARE.
  */
 
-import { Descriptor, RNOHContext, ViewBaseProps } from '@rnoh/react-native-openharmony';
+import { RNComponentContext } from '@rnoh/react-native-openharmony';
 import webview from '@ohos.web.webview';
 import { url as OSUrl } from '@kit.ArkTS';
-import { CallbackState, ShouldRequestUrl } from './ShouldRequestUrl';
 import { RNC } from './namespace';
 import Logger from './Logger';
+import { BaseOperate } from './WebViewBaseOperate';
+import {
+  AlertEvent,
+  CACHE_MODE,
+  JAVASCRIPT_INTERFACE,
+  ONE_HUNDRED,
+  EIGHT,
+  ResultType,
+  RNCWebViewBridge,
+  WebViewEventParams,
+  WebViewNewSource,
+  WebViewOverScrollMode,
+  ZERO,
+  COMMAND_NAME,
+  WebViewDescriptor,
+  REFRESH_FRICTION,
+  REFRESH_OFFSET,
+  MINHEIGHT,
+} from './Magic';
+import { bundleManager } from '@kit.AbilityKit';
 
-export class WebViewNewSourceHeader {
-  name?: string
-  value?: string
-}
-
-export class WebViewNewSource {
-  uri?: string | Resource
-  method?: string
-  body?: string
-  headers?: WebViewNewSourceHeader[]
-  html?: string
-  baseUrl?: string
-}
-
-interface AlertEvent {
-  url: string;
-  message: string;
-  result: JsResult;
-}
-
-const TAG = "WebView"
+export const TAG = "WebView"
 
 export const WEB_VIEW = "RNCWebView"
-
-const JAVASCRIPT_INTERFACE = "ReactNativeWebView";
-
-export interface WebViewProps extends ViewBaseProps {
-  newSource: WebViewNewSource
-  javaScriptEnabled: boolean
-  injectedJavaScript: string
-  messagingEnabled: boolean
-  showsHorizontalScrollIndicator: boolean
-  showsVerticalScrollIndicator: boolean
-  textZoom: number
-  cacheEnabled: boolean
-  cacheMode: number
-  domStorageEnabled: boolean
-  scalesPageToFit: boolean
-  messagingModuleName: string
-  shouldStartLoadWithRequestEnabled: boolean
-  webviewDebuggingEnabled: boolean
-  scrollEnabled: boolean
-  incognito: boolean
-}
-
-export class RNCWebViewBridge {
-  postMessage!: (data: string) => void;
-}
-export class WebViewEventParams {
-  type: string
-  url?: string
-  loading?: boolean
-  title?: string
-  canGoBack?: boolean
-  canGoForward?: boolean
-  lockIdentifier?: number
-  data?: string
-
-  constructor(type: string) {
-    this.type = type
-  }
-}
-
-export enum  CACHE_MODE {
-  'LOAD_DEFAULT' = 'LOAD_DEFAULT',
-  'LOAD_CACHE_ELSE_NETWORK' = 'LOAD_CACHE_ELSE_NETWORK' ,
-  'LOAD_NO_CACHE' = 'LOAD_NO_CACHE' ,
-  'LOAD_CACHE_ONLY' = 'LOAD_CACHE_ONLY',
-}
-
-export class ResultType {
-  url: string
-  loading: boolean
-  title: string
-  canGoBack: boolean
-  canGoForward: boolean
-  lockIdentifier: number
-  data: string
-
-  constructor(url: string, loading: boolean, title: string, canGoBack: boolean, canGoForward: boolean, lockIdentifier: number, data: string) {
-    this.url = url
-    this.loading = loading
-    this.title = title
-    this.canGoBack = canGoBack
-    this.canGoForward = canGoForward
-    this.lockIdentifier = lockIdentifier
-    this.data = data
-  }
-}
-
-export type WebViewViewDescriptor = Descriptor<"RNCWebView", WebViewProps>
 
 @Component
 export struct RNCWebView {
   public static readonly NAME = RNC.RNCWebView.NAME
-  ctx!: RNOHContext
-  tag: number = 0
+  ctx!: RNComponentContext
+  tag: number = ZERO
   source: WebViewNewSource = {
     uri: "",
     method: "",
@@ -133,427 +64,130 @@ export struct RNCWebView {
     html: "",
     baseUrl: ""
   }
-  html: string | undefined = ""
-  url: string | Resource = ""
-  private unregisterDescriptorChangesListener?: () => void = undefined
-  private cleanupCommandCallback?: () => void = undefined
+  html: string | undefined = "";
+  url: string | Resource = "";
   controller: webview.WebviewController = new webview.WebviewController();
-  javaScriptEnable: boolean = true
-  overScrollMode: OverScrollMode = OverScrollMode.NEVER
-  progress: number = 0
-  cacheMode: number = CacheMode.Default
+  javaScriptEnable: boolean = true;
+  allowFileAccess: boolean = true;
+  forceDark: boolean = true;
+  minFontSize: number = EIGHT;
+  overScrollMode: OverScrollMode = OverScrollMode.NEVER;
+  progress: number = ZERO;
+  cacheMode: number = CacheMode.Default;
   lockIdentifier: string = "";
   requestUrl: string = "";
+  bundleName: string = "";
   messagingEnabled: boolean = false;
   hasRegisterJavaScriptProxy: boolean = false;
   controllerAttached: boolean = false;
   renderMode: RenderMode = RenderMode.SYNC_RENDER;
   scrollEnabled = true;
   nestedScroll = NestedScrollMode.SELF_FIRST;
+  headers: Array<webview.WebHeader> = []
   injectedJavaScriptBeforeContentLoaded: Array<ScriptItem> = [
     { script: '', scriptRules: ["*"] }
   ];
-  headers: Array<webview.WebHeader> = []
   allowPageStartInProgress = true;
-  @State webviewWidth: number = 0
-  @State webviewHeight: number = 0
+  @State webviewWidth: number = ZERO
+  @State webviewHeight: number = ZERO
+  @State isRefreshing: boolean = false
+  @State mode: MixedMode = MixedMode.All;
+  private unregisterDescriptorChangesListener?: () => void = undefined
+  private cleanupCommandCallback?: () => void = undefined
   private eventEmitter: RNC.RNCWebView.EventEmitter | undefined = undefined
   private cleanUpCallbacks: (() => void)[] = []
-  private descriptorWrapper: RNC.RNCWebView.DescriptorWrapper = {} as RNC.RNCWebView.DescriptorWrapper
-
-  private onDescriptorWrapperChange(descriptorWrapper: RNC.RNCWebView.DescriptorWrapper) {
-    this.initVariable()
-    if (this.html != "" && this.html != this.source.html) {
-      Logger.debug(TAG, "[RNOH] html is update")
-      this.html = this.source.html
-      if (this.controllerAttached) {
-        try {
-          this.controller.loadData(
-            this.source.html,
-            "text/html",
-            "UTF-8",
-            this.source.baseUrl,
-            " "
-          );
-        } catch (error) {
-          Logger.error(TAG, "error: " + error)
-        }
-      }
-    } else if (this.source.uri != "" && this.url != this.source.uri) {
-      Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
-      this.url = this.source.uri as string;
-      if (this.controllerAttached) {
-        this.controller.loadUrl(this.descriptorWrapper.props.newSource.uri, this.headers)
-      }
-    }
-    if (this.controllerAttached) {
-      this.controller?.setScrollable(this.descriptorWrapper.props.scrollEnabled)
-    }
-  }
+  private descriptorWrapper: WebViewDescriptor = Object() as WebViewDescriptor
+  private webViewBaseOperate: BaseOperate | null = null
 
   aboutToAppear() {
-    this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
-
-    this.initVariable()
-    this.url = this.source.uri as string;
-    webview.WebviewController.setWebDebuggingAccess(this.descriptorWrapper.props.webviewDebuggingEnabled)
-    this.cleanUpCallbacks.push(this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
-      (_descriptor, newDescriptorWrapper) => {
-        this.onDescriptorWrapperChange(newDescriptorWrapper! as RNC.RNCWebView.DescriptorWrapper)
+    try {
+      this.initVariable()
+      this.getBundleName()
+      this.url = this.source.uri as string;
+      this.onDescriptorWrapperChange(this.descriptorWrapper)
+      this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
+        (newDescriptor) => {
+          this.onDescriptorWrapperChange(newDescriptor as WebViewDescriptor)
+        }
+      )
+      BaseOperate.setThirdPartyCookiesEnabled(this.descriptorWrapper.rawProps.thirdPartyCookiesEnabled)
+      webview.WebviewController.setWebDebuggingAccess(this.descriptorWrapper.rawProps.webviewDebuggingEnabled)
+      this.registerCommandCallback()
+      if (this.hasIncognito()) {
+        this.cacheMode = CacheMode.Online;
       }
-    ))
-
-    this.registerCommandCallback()
-
-    if (this.hasIncognito()) {
-      this.cacheMode = CacheMode.Online;
+      if (this.source.headers) {
+        this.source.headers.forEach(item => {
+          if (item.name && item.value) {
+            this.headers.push({ headerKey: item.name, headerValue: item.value })
+          }
+        })
+      }
+    } catch (error) {
+      Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
     }
+
   }
 
   hasIncognito(): boolean {
-    return this.descriptorWrapper.props.incognito === true
+    return this.descriptorWrapper.rawProps.incognito && this.descriptorWrapper.rawProps.incognito === true
   }
 
-  private initVariable() {
-    this.descriptorWrapper = this.ctx.descriptorRegistry.findDescriptorWrapperByTag<RNC.RNCWebView.DescriptorWrapper>(this.tag)!
-    this.javaScriptEnable = this.descriptorWrapper.props.javaScriptEnabled;
-    this.cacheMode =
-      this.descriptorWrapper.props.cacheEnabled ? this.transCacheMode(this.descriptorWrapper.props.cacheMode as CACHE_MODE) : CacheMode.Online;
-    this.source = {
-      uri: this.descriptorWrapper.props.newSource.uri ?? "",
-      method: this.descriptorWrapper.props.newSource.method ?? "",
-      body: this.descriptorWrapper.props.newSource.body ?? "",
-      html: this.descriptorWrapper.props.newSource.html ?? "",
-      baseUrl: this.descriptorWrapper.props.newSource.baseUrl ?? "",
-      headers: this.descriptorWrapper.props.newSource.headers ?? []
-    }
-    if (this.source.headers) {
-      this.source.headers.forEach(item => {
-        if (item.name && item.value) {
-          this.headers.push({ headerKey: item.name, headerValue: item.value })
-        }
-      })
-    }
-    this.html = this.source.html
-    this.webviewWidth = this.descriptorWrapper.width
-    this.webviewHeight = this.descriptorWrapper.height
-    this.scrollEnabled = this.descriptorWrapper.props.scrollEnabled;
-    // 当禁止滚动时，使用父组件滚动
-    this.nestedScroll = this.scrollEnabled ? NestedScrollMode.SELF_FIRST : NestedScrollMode.PARENT_FIRST;
-    if (this.source.uri && this.source.uri.toString().startsWith("asset://")) {
-      this.source.uri = $rawfile(this.source.uri.toString().replace("asset://", this.ctx.rnInstance.getAssetsDest()));
-    }
-
-    if(this.descriptorWrapper.props.overScrollMode === 'always') {
-      this.overScrollMode = OverScrollMode.ALWAYS
-    } else if(this.descriptorWrapper.props.overScrollMode === 'never') {
-      this.overScrollMode = OverScrollMode.NEVER
-    }
-
-    this.overScrollMode = this.descriptorWrapper.props.bounces ? OverScrollMode.ALWAYS : OverScrollMode.NEVER;
-
-    if (this.descriptorWrapper.props.injectedJavaScriptBeforeContentLoaded) {
-      this.injectedJavaScriptBeforeContentLoaded = [
-        { script: this.descriptorWrapper.props.injectedJavaScriptBeforeContentLoaded, scriptRules: ["*"] }
-      ];
-    }
-  }
-
-  private registerPostMessage() {
-    if (this.messagingEnabled == this.descriptorWrapper.props.messagingEnabled) {
-      return;
-    }
-    this.messagingEnabled = this.descriptorWrapper.props.messagingEnabled;
-    if (this.messagingEnabled) {
-      let bridge: RNCWebViewBridge = {
-        postMessage: (data: string) => {
-          Logger.debug(TAG, `[RNOH] bridge postMessage,  ${JSON.stringify(data)}`);
-          if (this.controller != null) {
-            let result: WebViewEventParams = this.createWebViewEvent("onMessage")
-            result.data = data.toString()
-            result.lockIdentifier = 0
-            this.eventEmitter!.emit("message", result as ResultType);
-          }
-        }
-      };
-      this.controller.registerJavaScriptProxy(bridge, JAVASCRIPT_INTERFACE, ["postMessage"])
-      this.controller.refresh()
-      this.hasRegisterJavaScriptProxy = true
-    }
-  }
-
-  createWebViewEvent(param: string): WebViewEventParams {
-    let result: WebViewEventParams = new WebViewEventParams(param);
-    result.loading = this.progress != 100
-    try {
-      result.url = this.controller.getUrl();
-      result.title = this.controller.getTitle();
-      result.canGoBack = this.controller.accessBackward();
-      result.canGoForward = this.controller.accessForward();
-    } catch (error) {
-      Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
-      result.url = "";
-      result.title = "";
-      result.canGoBack = false;
-      result.canGoForward = false;
-    }
-    return result;
+  createWebViewEvent(type: string): WebViewEventParams {
+    return this.webViewBaseOperate?.createWebViewEvent({ type, progress: this.progress }) as WebViewEventParams;
   }
 
   aboutToDisappear() {
     this.cleanupCommandCallback?.()
     this.unregisterDescriptorChangesListener?.()
-    Logger.debug(TAG, `[RNOH] aboutToDisappear`)
     this.cleanUpCallbacks.forEach(cb => cb())
     try {
       if (this.hasIncognito()) {
-        this.controller.clearHistory()
-        webview.WebCookieManager.clearAllCookiesSync(true);
-        webview.WebCookieManager.clearSessionCookieSync()
-        webview.WebStorage.deleteAllData();
+        this.webViewBaseOperate?.setIncognito()
       }
-    } catch (e) {
-      Logger.error(TAG, `[RNOH]Errorcode: ${e.code}, Message: ${e.message}`);
-    }
-
-    try {
       this.controller.deleteJavaScriptRegister(JAVASCRIPT_INTERFACE)
       this.controller.refresh()
       this.hasRegisterJavaScriptProxy = false
-
+      this.webViewBaseOperate = null
     } catch (error) {
       Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
     }
   }
 
-  transCacheMode(cacheMode: CACHE_MODE): CacheMode {
-    let mode = CacheMode.Default
-    switch (cacheMode) {
-      case CACHE_MODE.LOAD_DEFAULT:
-        mode = CacheMode.Default
-        break;
-      case CACHE_MODE.LOAD_CACHE_ELSE_NETWORK:
-        mode = CacheMode.None
-        break;
-      case CACHE_MODE.LOAD_NO_CACHE:
-        mode = CacheMode.Online
-        break;
-      case CACHE_MODE.LOAD_CACHE_ONLY:
-        mode = CacheMode.Only
-        break;
-      default:
-        break;
-    }
-    return mode
-  }
-
   registerCommandCallback() {
     this.cleanupCommandCallback = this.ctx.componentCommandReceiver.registerCommandCallback(
       this.tag,
-      (command, args: string[]) => {
-        switch (command) {
-          case "injectJavaScript":
-            Logger.debug(TAG, `[RNOH] injectJavaScript,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.runJavaScript("(function() {\n" + args[0] + ";\n})();")
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "postMessage":
-            Logger.debug(TAG, `[RNOH] postMessage,${JSON.stringify(args)}`)
-            let data = JSON.stringify({ data: args[0] })
-            let result: string = "(function () {" +
-              "var event;" +
-              "var data = " + data.toString() + ";" +
-              "try {" +
-              "event = new MessageEvent('message', data);" +
-              "} catch (e) {" +
-              "event = document.createEvent('MessageEvent');" +
-              "event.initMessageEvent('message', true, true, data.data, data.origin, data.lastEventId, data.source);" +
-              "}" +
-              "document.dispatchEvent(event);" +
-              "})();"
-            if (this.controllerAttached) {
-              try {
-                this.controller.runJavaScript(result)
-              } catch (error) {
-                Logger.error(TAG, "error:" + error)
-              }
-            }
-            break;
-          case "reload":
-            Logger.debug(TAG, `[RNOH] reload,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.refresh();
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "goBack":
-            Logger.debug(TAG, `[RNOH] goBack,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.backward();
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "goForward":
-            Logger.debug(TAG, `[RNOH] goForward,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.forward();
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "requestFocus":
-            Logger.debug(TAG, `[RNOH] requestFocus,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.requestFocus();
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "clearCache":
-            Logger.debug(TAG, `[RNOH] clearCache,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                const removeFlag = !!args[0] === true;
-                this.controller.removeCache(removeFlag);
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          case "clearHistory":
-            Logger.debug(TAG, `[RNOH] clearHistory,${JSON.stringify(args)}`)
-            if (this.controllerAttached) {
-              try {
-                this.controller.clearHistory();
-              } catch (error) {
-                Logger.error(TAG, "error: " + error)
-              }
-            }
-            break
-          default:
-            break
-        }
-      });
+      (command: COMMAND_NAME, args: string[]) => this.webViewBaseOperate?.registerCommandCallback(command, args));
   }
 
   onLoadingStart() {
-    this.eventEmitter!.emit('loadingStart', {
-      url: this.controller.getUrl(),
-      loading: this.progress != 100,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: 0,
-      navigationType: "other",
-      mainDocumentURL: ""
-    })
+    this.webViewBaseOperate?.emitLoadingStart({ progress: this.progress })
   }
 
-  onProgressChange() {
+  onProgressChange(event: OnProgressChangeEvent) {
+    this.progress = event.newProgress
     // 修复单页面应用切换路由时 onPageBegin 未触发的问题
-    if (this.controller.getUrl() !== this.url && this.progress < 100 && this.allowPageStartInProgress) {
+    if (this.controller.getUrl() !== this.url && this.progress < ONE_HUNDRED && this.allowPageStartInProgress) {
       this.allowPageStartInProgress = false;
       this.onLoadingStart();
     }
-    this.eventEmitter!.emit('loadingProgress', {
-      url: this.controller.getUrl(),
-      loading: this.progress != 100,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: 0,
-      progress: this.progress / 100
-    })
-    if (this.progress === 100) {
+    this.webViewBaseOperate?.emitProgressChange({ progress: this.progress })
+    if (this.progress === ONE_HUNDRED) {
       this.allowPageStartInProgress = true;
     }
   }
 
   onLoadingFinish() {
-    this.eventEmitter!.emit('loadingFinish', {
-      url: this.controller.getUrl(),
-      loading: this.progress != 100,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: 0,
-      navigationType: "other",
-      mainDocumentURL: ""
-    })
-  }
-
-  onLoadingError(code: number, description: string) {
-    this.eventEmitter!.emit('loadingError', {
-      url: this.controller.getUrl(),
-      loading: false,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: 0,
-      domain: "",
-      code: code,
-      description: description
-    })
-  }
-
-  onHttpError(code: number,description: string) {
-    this.eventEmitter!.emit('httpError', {
-      url: this.controller.getUrl(),
-      loading: false,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: 0,
-      description: description,
-      statusCode: code
-    })
+    this.webViewBaseOperate?.emitLoadingFinish({ progress: this.progress })
+    this.isRefreshing = false
   }
 
   onShouldStartLoadWithRequest() {
-    this.eventEmitter!.emit('shouldStartLoadWithRequest', {
-      url: this.controller.getUrl(),
-      loading: this.progress != 100,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: 0,
-      navigationType: "other",
-      mainDocumentURL: "",
-      isTopFrame: false
-    })
-  }
-
-  onShouldStartLoadCallFunction(lockIdentifier: number, data: WebResourceRequest) {
-    this.eventEmitter!.emit("shouldStartLoadWithRequest", {
-      url: data.getRequestUrl(),
-      loading: this.progress != 100,
-      title: this.controller.getTitle(),
-      canGoBack: this.controller.accessBackward(),
-      canGoForward: this.controller.accessForward(),
-      lockIdentifier: lockIdentifier,
-      navigationType: "other",
-      mainDocumentURL: "",
-      isTopFrame: data.isMainFrame()
-    })
+    this.webViewBaseOperate?.emitShouldStartLoadWithRequest({ progress: this.progress })
   }
 
   runInjectedJavaScript() {
-    let injectedJS = this.descriptorWrapper.props.injectedJavaScript
+    let injectedJS = this.descriptorWrapper.rawProps.injectedJavaScript
     if (this.javaScriptEnable && injectedJS != "" && this.controllerAttached) {
       try {
         this.controller.runJavaScript("(function() {\n" + injectedJS + ";\n})();")
@@ -624,137 +258,280 @@ export struct RNCWebView {
     return true
   }
 
+  ignoreSilentHardwareSwitchMethods(ignoreSilentHardwareSwitch: boolean) {
+    this.webViewBaseOperate?.ignoreSilentHardwareSwitchMethods(ignoreSilentHardwareSwitch)
+  }
+
+  controllerAttachedInit(): void {
+    this.controllerAttached = true;
+    this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
+    this.webViewBaseOperate = new BaseOperate(this.eventEmitter, this.controller)
+    this.webViewBaseOperate.setCustomUserAgent(this.descriptorWrapper.rawProps.userAgent,
+      this.descriptorWrapper.rawProps.applicationNameForUserAgent)
+    this.webViewBaseOperate.setFraudulentWebsiteWarningEnabled(this.descriptorWrapper.rawProps.fraudulentWebsiteWarningEnabled)
+    let baseUrl = this.source.baseUrl
+    let uri = this.source.uri
+    if (this.source.html != undefined && this.source.html != "") {
+      try {
+        this.controller.loadData(
+          this.source.html,
+          "text/html",
+          "UTF-8",
+          baseUrl,
+          " "
+        );
+      } catch (error) {
+        Logger.error(TAG, "error:" + error)
+      }
+    } else if (uri != undefined && uri != "") {
+      this.controller.loadUrl(uri, this.headers);
+    } else {
+      this.controller.loadUrl(uri, this.headers);
+    }
+    if (!this.hasRegisterJavaScriptProxy) {
+      this.registerPostMessage()
+    }
+  }
+
+  onPageBegin() {
+    try {
+      if (this.controller.getUrl() === this.url) {
+        this.onLoadingStart();
+      }
+      this.controller.setScrollable(this.scrollEnabled)
+      this.ignoreSilentHardwareSwitchMethods(this.descriptorWrapper.rawProps.ignoreSilentHardwareSwitch)
+    } catch (error) {
+      Logger.debug(TAG,
+        `[RNOH] setignoreSilentHardwareSwitch and setScrollable ErrorCode: ${error.code},  Message: ${error.message}, userAgent: ${this.descriptorWrapper.rawProps.userAgent}`);
+    }
+  }
+
+  getBundleName() {
+    let bundleFlags =
+      bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_HAP_MODULE | bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_ABILITY |
+      bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION;
+
+    try {
+      bundleManager.getBundleInfoForSelf(bundleFlags, (error, data) => {
+        if (error) {
+          Logger.error(TAG,
+            `[RNOH] getBundleInfoForSelf failed ErrorCode: ${error.code},  Message: ${error.message}`);
+        } else {
+          this.bundleName = JSON.stringify(data.name)
+        }
+      });
+    } catch (error) {
+      Logger.error(TAG,
+        `[RNOH] getBundleInfoForSelf failed ErrorCode: ${error.code},  Message: ${error.message}`);
+    }
+  }
+
+  resourceToString(resource: Resource): string {
+    return getContext(this).resourceManager.getStringSync(resource)
+  }
+
+  onPageEnd() {
+    this.runInjectedJavaScript()
+    this.onLoadingFinish()
+  }
+
+  getPermissionDialogMessage(event: OnPermissionRequestEvent) {
+    let permissionDialogMessage = ''
+    permissionDialogMessage = event.request.getAccessibleResource().toString()
+    switch (permissionDialogMessage) {
+      case ProtectedResourceType.VIDEO_CAPTURE:
+        permissionDialogMessage = this.resourceToString($r('app.string.use_your_camera'))
+        break;
+      case ProtectedResourceType.AUDIO_CAPTURE:
+        permissionDialogMessage = this.resourceToString($r('app.string.use_your_microphone'))
+        break;
+      case ProtectedResourceType.MidiSysex:
+        permissionDialogMessage = this.resourceToString($r('app.string.midi_sysex_resources'))
+        break;
+      case ProtectedResourceType.VIDEO_CAPTURE + "," + ProtectedResourceType.AUDIO_CAPTURE:
+        permissionDialogMessage = this.resourceToString($r('app.string.use_your_camera_and_microphone'))
+        break;
+    }
+    return permissionDialogMessage;
+  }
+
   build() {
     Stack() {
-      Web({ src: this.source.uri, controller: this.controller, renderMode: this.renderMode })
+        Web({ src: "", controller: this.controller, renderMode: this.renderMode })
+        .mixedMode(this.mode)
+        .onPermissionRequest((event: OnPermissionRequestEvent) => {
+          if (event) {
+            AlertDialog.show({
+              title: this.resourceToString($r('app.string.on_confirm')) + event.request.getOrigin(),
+              message: this.getPermissionDialogMessage(event),
+              alignment: DialogAlignment.Center,
+              primaryButton: {
+                value: $r('app.string.deny'),
+                action: () => {
+                  event.request.deny();
+                }
+              },
+              secondaryButton: {
+                value: $r('app.string.on_confirm'),
+                action: () => {
+                  event.request.grant(event.request.getAccessibleResource());
+                }
+              },
+              cancel: () => {
+                event.request.deny();
+              }
+            })
+          }
+        })
+
         .width(this.webviewWidth)
         .height(this.webviewHeight)
-        .constraintSize({ minHeight: 1 })
+        .fileAccess(this.allowFileAccess)
+        .constraintSize({ minHeight: MINHEIGHT })
         .overScrollMode(this.overScrollMode)
         .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
         .javaScriptOnDocumentStart(this.injectedJavaScriptBeforeContentLoaded)
-        .horizontalScrollBarAccess(this.descriptorWrapper.props.showsHorizontalScrollIndicator)
-        .verticalScrollBarAccess(this.descriptorWrapper.props.showsVerticalScrollIndicator)
-        .overviewModeAccess(this.descriptorWrapper.props.scalesPageToFit)
-        .textZoomRatio(this.descriptorWrapper.props.textZoom)
+        .horizontalScrollBarAccess(this.descriptorWrapper.rawProps.showsHorizontalScrollIndicator)
+        .verticalScrollBarAccess(this.descriptorWrapper.rawProps.showsVerticalScrollIndicator)
+        .overviewModeAccess(this.descriptorWrapper.rawProps.scalesPageToFit)
+        .textZoomRatio(this.descriptorWrapper.rawProps.textZoom)
+        .darkMode(this.descriptorWrapper.rawProps.forceDarkOn ? WebDarkMode.On : WebDarkMode.Auto)
+        .forceDarkAccess(this.forceDark)
         .cacheMode(this.cacheMode)
-        .domStorageAccess(this.descriptorWrapper.props.domStorageEnabled)
-        .zoomAccess(this.descriptorWrapper.props.scalesPageToFit)
+        .minFontSize(this.minFontSize)
+        .domStorageAccess(this.descriptorWrapper.rawProps.domStorageEnabled)
+        .zoomAccess(this.descriptorWrapper.rawProps.scalesPageToFit)
         .overScrollMode(this.overScrollMode)
-        .onProgressChange((event) => {
-          if (event) {
-            this.progress = event.newProgress
-            this.onProgressChange()
-          }
-        })
+        .onProgressChange((event: OnProgressChangeEvent) => this.onProgressChange(event))
+        .onScroll((event: OnScrollEvent) => this.webViewBaseOperate?.emitScroll(event))
         .nestedScroll({
           scrollForward: this.nestedScroll,
           scrollBackward: this.nestedScroll,
         })
-        .onPageBegin(() => {
-          this.onLoadingStart()
-          this.controller.setScrollable(this.scrollEnabled)
-        })
-        .onPageEnd(() => {
-          Logger.debug(TAG, "[RNOH] onPageEnd")
-          this.runInjectedJavaScript()
-          this.onLoadingFinish()
-        })
-        .onErrorReceive((event) => {
-          if (event) {
-            let errorInfo: string = event.error.getErrorInfo();
-            let errorCode: number = event.error.getErrorCode();
-            if (!event.request.isMainFrame()) {
-              Logger.debug(TAG, "[RNOH] ERR_INTERNET_DISCONNECTED:OR ERR_CACHE_MISS")
-              return
-            }
-            Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
-            Logger.debug(TAG, "[RNOH] errorCode:" + errorCode)
-            this.onLoadingError(errorCode, errorInfo)
-          }
-        })
-        .onHttpErrorReceive((event) => {
-          if (event) {
-            let errorInfo: string = event.response.getResponseData();
-            let code: number = event.response.getResponseCode()
-            Logger.debug(TAG, "[RNOH] errorInfo:" + errorInfo)
-            this.onHttpError(code,errorInfo)
-          }
-        })
-        .onLoadIntercept((event) => {
-          if (!this.descriptorWrapper.props.shouldStartLoadWithRequestEnabled) {
-            Logger.debug(TAG,
-              "[RNOH]:shouldStartLoadWithRequestEnabled:" + this.descriptorWrapper.props.shouldStartLoadWithRequestEnabled)
-            return false
-          }
-          if (this.source.html != undefined && this.source.html != '') {
-            Logger.debug(TAG, "[RNOH]: load html not intercept")
-            return false;
-          }
-          if (event.data.getRequestUrl() == this.source.uri || this.requestUrl != "") {
-            Logger.debug(TAG, "[RNOH] first load not intercept")
-            this.requestUrl = ""
-            return false
-          }
-          this.requestUrl = event.data.getRequestUrl()
-          let lockIdentifier = ShouldRequestUrl.getNewData();
-          this.lockIdentifier = lockIdentifier
-          Logger.debug(TAG, "[RNOH]:lockIdentifier:" + lockIdentifier)
-          ShouldRequestUrl.setCallBack(lockIdentifier, () => {
-            let data: CallbackState = ShouldRequestUrl.getValue(this.lockIdentifier);
-            let should: boolean = data == CallbackState.SHOULD_OVERRIDE
-            Logger.debug(TAG, "[RNOH] should:" + should)
-            ShouldRequestUrl.removeData(this.lockIdentifier)
-            this.lockIdentifier = ""
-            if (!should) {
-              this.controller.loadUrl(this.requestUrl)
-            } else {
-              this.requestUrl = ""
-            }
-          })
-          this.onShouldStartLoadCallFunction(Number(this.lockIdentifier), event.data)
-          return true
-        })
-        .onControllerAttached(() => {
-          this.controllerAttached = true;
-          Logger.debug(TAG, "[RNOH] onControllerAttached")
-          let baseUrl = this.source.baseUrl
-          let uri = this.source.uri
-          if (this.source.html != undefined && this.source.html != "") {
-            try {
-              this.controller.loadData(
-                this.source.html,
-                "text/html",
-                "UTF-8",
-                baseUrl,
-                " "
-              );
-            } catch (error) {
-              Logger.error(TAG, "error:" + error)
-            }
-          } else if (uri != undefined && uri != "") {
-            this.controller.loadUrl(uri, this.headers);
-          } else {
-            this.controller.loadUrl(uri, this.headers);
-          }
-          if (!this.hasRegisterJavaScriptProxy) {
-            this.registerPostMessage()
-          }
-          try {
-            // 修复一些页面下无法将鸿蒙userAgent识别为手机的问题
-            let userAgent = this.controller.getUserAgent() + ' iPhone';
-            this.controller.setCustomUserAgent(userAgent);
-
-          } catch (error) {
-            Logger.error(TAG, "setUA error: " + error)
-          }
-        })
-        .onAlert((event) => this.onJavascriptAlert(event))
-        .onConfirm((event) => this.onJavascriptConfirm(event))
+        .onPageBegin(() => this.onPageBegin())
+        .onPageEnd(() => this.onPageEnd())
+        .onErrorReceive((event: OnErrorReceiveEvent) => this.webViewBaseOperate?.emitLoadingError(event))
+        .onHttpErrorReceive((event: OnHttpErrorReceiveEvent) => this.webViewBaseOperate?.emitHttpError(event))
+        .onControllerAttached(() => this.controllerAttachedInit())
+        .onAlert((event: AlertEvent) => this.onJavascriptAlert(event))
+        .onConfirm((event: AlertEvent) => this.onJavascriptConfirm(event))
+        .onDownloadStart((event: OnDownloadStartEvent) => this.webViewBaseOperate?.onDownloadStart(event))
+        .geolocationAccess(this.descriptorWrapper.rawProps.geolocationEnabled)
+        .mediaPlayGestureAccess(this.descriptorWrapper.rawProps.mediaPlaybackRequiresUserAction)
+        .onRenderExited((event: OnRenderExitedEvent) => this.webViewBaseOperate?.onRenderExited(event))
     }
     .width(this.webviewWidth)
     .height(this.webviewHeight)
-    .position({ x: this.descriptorWrapper.positionRelativeToParent.x, y: this.descriptorWrapper.positionRelativeToParent.y })
+    .position({
+      x: this.descriptorWrapper.layoutMetrics.frame.origin.x,
+      y: this.descriptorWrapper.layoutMetrics.frame.origin.y
+    })
+  }
+
+  private onDescriptorWrapperChange(descriptorWrapper: WebViewDescriptor) {
+    this.initVariable()
+    this.descriptorWrapper = descriptorWrapper
+    if (this.html != "" && this.html != this.source.html) {
+      Logger.debug(TAG, "[RNOH] html is update")
+      this.html = this.source.html
+      if (this.controllerAttached) {
+        try {
+          this.controller.loadData(
+            this.source.html,
+            "text/html",
+            "UTF-8",
+            this.source.baseUrl,
+            " "
+          );
+        } catch (error) {
+          Logger.error(TAG, "error: " + error)
+        }
+      }
+    } else if (this.source.uri != "" && this.url != this.source.uri) {
+      Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
+      this.url = this.source.uri as string;
+      if (this.controllerAttached) {
+        this.controller.loadUrl(this.descriptorWrapper.rawProps.newSource.uri, this.headers)
+      }
+    }
+    if (this.controllerAttached) {
+      this.controller?.setScrollable(this.descriptorWrapper.rawProps.scrollEnabled)
+    }
+  }
+
+  private initVariable() {
+    this.descriptorWrapper = this.ctx.descriptorRegistry.getDescriptor<WebViewDescriptor>(this.tag)
+    this.javaScriptEnable = this.descriptorWrapper.rawProps.javaScriptEnabled;
+    this.minFontSize =
+      this.descriptorWrapper.rawProps.minimumFontSize ? this.descriptorWrapper.rawProps.minimumFontSize : EIGHT;
+    this.cacheMode =
+      this.descriptorWrapper.rawProps.cacheEnabled ?
+        this.webViewBaseOperate?.transCacheMode(this.descriptorWrapper.rawProps.cacheMode as CACHE_MODE) as number :
+      CacheMode.Online;
+    this.source = {
+      uri: this.descriptorWrapper.rawProps.newSource.uri ?? "",
+      method: this.descriptorWrapper.rawProps.newSource.method ?? "",
+      body: this.descriptorWrapper.rawProps.newSource.body ?? "",
+      html: this.descriptorWrapper.rawProps.newSource.html ?? "",
+      baseUrl: this.descriptorWrapper.rawProps.newSource.baseUrl ?? "",
+      headers: this.descriptorWrapper.rawProps.newSource.headers ?? []
+    }
+    if (this.source.headers) {
+      this.source.headers.forEach(item => {
+        if (item.name && item.value) {
+          this.headers.push({ headerKey: item.name, headerValue: item.value })
+        }
+      })
+    }
+    this.html = this.source.html
+    this.webviewWidth = this.descriptorWrapper.rawProps.width
+    this.webviewHeight = this.descriptorWrapper.rawProps.height
+    this.scrollEnabled = this.descriptorWrapper.rawProps.scrollEnabled;
+    // 当禁止滚动时，使用父组件滚动
+    this.nestedScroll = this.scrollEnabled ? NestedScrollMode.SELF_FIRST : NestedScrollMode.PARENT_FIRST;
+    if (this.source.uri && this.source.uri.toString().startsWith("asset://")) {
+      this.source.uri = $rawfile(this.source.uri.toString().replace("asset://", this.ctx.rnInstance.getAssetsDest()));
+    }
+
+    if (this.descriptorWrapper.rawProps.overScrollMode === WebViewOverScrollMode.ALWAYS) {
+      this.overScrollMode = OverScrollMode.ALWAYS
+    } else if (this.descriptorWrapper.rawProps.overScrollMode === WebViewOverScrollMode.NEVER) {
+      this.overScrollMode = OverScrollMode.NEVER
+    }
+
+    this.overScrollMode = this.descriptorWrapper.rawProps.bounces ? OverScrollMode.ALWAYS : OverScrollMode.NEVER;
+
+    if (this.descriptorWrapper.rawProps.injectedJavaScriptBeforeContentLoaded) {
+      this.injectedJavaScriptBeforeContentLoaded = [
+        { script: this.descriptorWrapper.rawProps.injectedJavaScriptBeforeContentLoaded, scriptRules: ["*"] }
+      ];
+    }
+  }
+
+  private registerPostMessage() {
+    if (this.messagingEnabled == this.descriptorWrapper.rawProps.messagingEnabled) {
+      return;
+    }
+    this.messagingEnabled = this.descriptorWrapper.rawProps.messagingEnabled;
+    if (this.messagingEnabled) {
+      let bridge: RNCWebViewBridge = {
+        postMessage: (data: string) => {
+          Logger.debug(TAG, `[RNOH] bridge postMessage,  ${JSON.stringify(data)}`);
+          if (this.controller != null) {
+            let result: WebViewEventParams = this.createWebViewEvent("onMessage")
+            if (result) {
+              result.data = data.toString()
+              result.lockIdentifier = ZERO
+              this.eventEmitter!.emit("message", result as ResultType);
+            }
+          }
+        }
+      };
+      this.controller.registerJavaScriptProxy(bridge, JAVASCRIPT_INTERFACE, ["postMessage"])
+      this.source.uri ?
+      this.controller.loadUrl(this.source.uri, this.headers) : this.controller.refresh()
+      this.hasRegisterJavaScriptProxy = true
+    }
   }
 }

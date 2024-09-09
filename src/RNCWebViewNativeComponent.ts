@@ -175,6 +175,7 @@ export interface NativeProps extends ViewProps {
   allowsAirPlayForMediaPlayback?: boolean;
   allowsLinkPreview?: boolean;
   automaticallyAdjustContentInsets?: boolean;
+  ignoreSilentHardwareSwitch?:boolean;
   autoManageStatusBarEnabled?: boolean;
   bounces?: boolean;
   contentInset?: Readonly<{
@@ -212,6 +213,7 @@ export interface NativeProps extends ViewProps {
   // Workaround to watch if listener if defined
   hasOnFileDownload?: boolean;
   fraudulentWebsiteWarningEnabled?: boolean;
+  
   // !iOS only
 
   allowFileAccessFromFileURLs?: boolean;
@@ -254,7 +256,7 @@ export interface NativeProps extends ViewProps {
     html?: string;
     baseUrl?: string;
   }>;
-  userAgent?: string; 
+  userAgent?: string;
 }
 
 export interface NativeCommands {

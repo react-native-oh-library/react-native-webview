@@ -2,7 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
-  useRef,
+  useRef
 } from 'react';
 import { Image, View, ImageSourcePropType, HostComponent } from 'react-native';
 import { Double } from 'react-native/Libraries/Types/CodegenTypes';
@@ -23,7 +23,6 @@ import {
 } from 'react-native-webview/src/WebViewTypes';
 
 import styles from 'react-native-webview/src/WebView.styles';
-
 const { resolveAssetSource } = Image;
 const processDecelerationRate = (
   decelerationRate: DecelerationRateConstant | number | undefined
@@ -47,32 +46,40 @@ const useWarnIfChanges = <T extends unknown>(value: T, name: string) => {
   }
 };
 
-const shouldStartLoadWithLockIdentifier:(
+const shouldStartLoadWithLockIdentifier: (
   shouldStart: boolean,
   lockIdentifier: Double
-) => void = () => {}
+) => void = () => { }
 
-const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: boolean}>(
+const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boolean, minimumFontSize: number, thirdPartyCookiesEnabled: boolean, geolocationEnabled: boolean }>(
   (
     {
       fraudulentWebsiteWarningEnabled = true,
       javaScriptEnabled = true,
       cacheEnabled = true,
       originWhitelist = defaultOriginWhitelist,
+      applicationNameForUserAgent,
+      ignoreSilentHardwareSwitch,
+      minimumFontSize,
       useSharedProcessPool = true,
       textInteractionEnabled = true,
       injectedJavaScript,
       injectedJavaScriptBeforeContentLoaded,
+      menuItems=[],
       injectedJavaScriptForMainFrameOnly = true,
       injectedJavaScriptBeforeContentLoadedForMainFrameOnly = true,
+      thirdPartyCookiesEnabled = false,
+      geolocationEnabled = false,
       injectedJavaScriptObject,
       startInLoadingState,
       onNavigationStateChange,
       onLoadStart,
+      onCustomMenuSelection,
       onError,
       onLoad,
       onLoadEnd,
       onLoadProgress,
+      onScroll,
       onContentProcessDidTerminate: onContentProcessDidTerminateProp,
       onFileDownload,
       onHttpError: onHttpErrorProp,
@@ -86,11 +93,15 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
       nativeConfig,
       allowsInlineMediaPlayback,
       allowsAirPlayForMediaPlayback,
-      mediaPlaybackRequiresUserAction,
+      mediaPlaybackRequiresUserAction=true,
       dataDetectorTypes,
       incognito,
       decelerationRate: decelerationRateProp,
       onShouldStartLoadWithRequest: onShouldStartLoadWithRequestProp,
+      onStartShouldSetResponder,
+      onMoveShouldSetResponderCapture,
+      pullToRefreshEnabled=false,
+      onResponderMove,
       ...otherProps
     },
     ref
@@ -129,11 +140,15 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
       onHttpErrorProp,
       onLoadEnd,
       onLoadProgress,
+      // @ts-expect-error old arch only
+      onScroll,
       onLoadStart,
       onMessageProp,
       onOpenWindowProp,
       startInLoadingState,
       originWhitelist,
+      ignoreSilentHardwareSwitch,
+      minimumFontSize,
       onShouldStartLoadWithRequestProp,
       onShouldStartLoadWithRequestCallback,
       onContentProcessDidTerminateProp,
@@ -210,24 +225,24 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
     const newSource =
       typeof sourceResolved === 'object'
         ? Object.entries(sourceResolved as WebViewSourceUri).reduce(
-            (prev, [currKey, currValue]) => {
-              return {
-                ...prev,
-                [currKey]:
-                  currKey === 'headers' &&
+          (prev, [currKey, currValue]) => {
+            return {
+              ...prev,
+              [currKey]:
+                currKey === 'headers' &&
                   currValue &&
                   typeof currValue === 'object'
-                    ? Object.entries(currValue).map(([key, value]) => {
-                        return {
-                          name: key,
-                          value,
-                        };
-                      })
-                    : currValue,
-              };
-            },
-            {}
-          )
+                  ? Object.entries(currValue).map(([key, value]) => {
+                    return {
+                      name: key,
+                      value,
+                    };
+                  })
+                  : currValue,
+            };
+          },
+          {}
+        )
         : sourceResolved;
 
     const webView = (
@@ -235,18 +250,24 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
         key="webViewKey"
         {...otherProps}
         scrollEnabled={otherProps.scrollEnabled ?? true}
+        ignoreSilentHardwareSwitch={ignoreSilentHardwareSwitch}
+        minimumFontSize={minimumFontSize}
         scalesPageToFit={otherProps.scalesPageToFit ?? true}
         fraudulentWebsiteWarningEnabled={fraudulentWebsiteWarningEnabled}
         javaScriptEnabled={javaScriptEnabled}
+        onCustomMenuSelection={onCustomMenuSelection}
+        applicationNameForUserAgent={applicationNameForUserAgent}
         cacheEnabled={cacheEnabled}
         useSharedProcessPool={useSharedProcessPool}
         textInteractionEnabled={textInteractionEnabled}
+        geolocationEnabled={geolocationEnabled}
         decelerationRate={decelerationRate}
         messagingEnabled={typeof onMessageProp === 'function'}
         messagingModuleName="" // android ONLY
         onLoadingError={onLoadingError}
         onLoadingFinish={onLoadingFinish}
         onLoadingProgress={onLoadingProgress}
+        onScroll={onScroll}
         onFileDownload={onFileDownload}
         onLoadingStart={onLoadingStart}
         onHttpError={onHttpError}
@@ -255,6 +276,8 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
         hasOnOpenWindowEvent={onOpenWindowProp !== undefined}
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         onContentProcessDidTerminate={onContentProcessDidTerminate}
+        thirdPartyCookiesEnabled={thirdPartyCookiesEnabled}
+        pullToRefreshEnabled={pullToRefreshEnabled}
         injectedJavaScript={injectedJavaScript}
         injectedJavaScriptBeforeContentLoaded={
           injectedJavaScriptBeforeContentLoaded
@@ -273,6 +296,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
         allowsInlineMediaPlayback={allowsInlineMediaPlayback}
         incognito={incognito}
         mediaPlaybackRequiresUserAction={mediaPlaybackRequiresUserAction}
+        menuItems={menuItems}
         newSource={newSource}
         style={webViewStyles}
         hasOnFileDownload={!!onFileDownload}
@@ -284,7 +308,12 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & {scalesPageToFit: bool
     );
 
     return (
-      <View style={webViewContainerStyle}>
+      <View
+        style={webViewContainerStyle}
+        onStartShouldSetResponder={(e) => onStartShouldSetResponder ? onStartShouldSetResponder(e) : false}
+        onMoveShouldSetResponderCapture={(e) => onMoveShouldSetResponderCapture ? onMoveShouldSetResponderCapture(e) : false}
+        onResponderMove={(e) => onResponderMove ? onResponderMove(e) : null}
+      >
         {webView}
         {otherView}
       </View>
