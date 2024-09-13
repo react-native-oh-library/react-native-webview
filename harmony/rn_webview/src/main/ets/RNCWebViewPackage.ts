@@ -24,7 +24,7 @@
 
 import type {
   DescriptorWrapperFactoryByDescriptorType,
-  DescriptorWrapperFactoryByDescriptorTypeCtx
+  DescriptorWrapperFactoryByDescriptorTypeCtx,
 } from '@rnoh/react-native-openharmony/ts';
 import { RNPackage } from '@rnoh/react-native-openharmony/ts';
 import { RNC } from '@rnoh/react-native-openharmony/generated/ts';
