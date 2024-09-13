@@ -132,11 +132,29 @@ export class BaseOperate {
     }
   }
 
-  emitShouldStartLoadWithRequest(params: ProgressInterface) {
+  emitShouldStartLoadWithRequest(event: OnLoadInterceptEvent) {
     try {
       this.eventEmitter!.emit('shouldStartLoadWithRequest', {
-        url: this.controller.getUrl(),
-        loading: params.progress != ONE_HUNDRED,
+        url: event.data.getRequestUrl(),
+        loading: false,
+        title: this.controller.getTitle(),
+        canGoBack: this.controller.accessBackward(),
+        canGoForward: this.controller.accessForward(),
+        lockIdentifier: 0,
+        navigationType: "other",
+        mainDocumentURL: "",
+        isTopFrame: false
+      })
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] emitShouldStartLoadWithRequest Errorcode: ${error.code}`);
+    }
+  }
+
+  emitShouldStartLoadWithRequestOverrideUrlLoading(event: WebResourceRequest) {
+    try {
+      this.eventEmitter!.emit('shouldStartLoadWithRequest', {
+        url: event.getRequestUrl(),
+        loading: false,
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
@@ -369,7 +387,7 @@ export class BaseOperate {
   onDownloadStart(event: OnDownloadStartEvent) {
     try {
       this.eventEmitter!.emit('fileDownload', {
-        downloadUrl: "event.url"
+        downloadUrl: event.url
       })
     } catch (error) {
       Logger.error(TAG, `[RNOH] onDownloadStart Errorcode: ${error.code}`);

@@ -42,7 +42,6 @@ import {
   ZERO,
   COMMAND_NAME,
   WebViewDescriptor,
-  REFRESH_FRICTION,
   REFRESH_OFFSET,
   MINHEIGHT,
 } from './Magic';
@@ -182,10 +181,6 @@ export struct RNCWebView {
     this.isRefreshing = false
   }
 
-  onShouldStartLoadWithRequest() {
-    this.webViewBaseOperate?.emitShouldStartLoadWithRequest({ progress: this.progress })
-  }
-
   runInjectedJavaScript() {
     let injectedJS = this.descriptorWrapper.rawProps.injectedJavaScript
     if (this.javaScriptEnable && injectedJS != "" && this.controllerAttached) {
@@ -229,7 +224,7 @@ export struct RNCWebView {
         message: event.message,
         alignment: DialogAlignment.Center,
         secondaryButton: {
-          value: '确定',
+          value: this.resourceToString($r('app.string.determined')),
           action: () => event.result.handleConfirm()
         },
         cancel: () => event.result.handleCancel(),
@@ -245,12 +240,12 @@ export struct RNCWebView {
         message: event.message,
         alignment: DialogAlignment.Center,
         secondaryButton: {
-          value: '确定',
+          value: this.resourceToString($r('app.string.determined')),
           action: () => event.result.handleConfirm()
         },
         cancel: () => event.result.handleCancel(),
         primaryButton: {
-          value: '取消',
+          value: this.resourceToString($r('app.string.cancel')),
           action: () => event.result.handleCancel()
         },
       })
@@ -355,9 +350,19 @@ export struct RNCWebView {
     return permissionDialogMessage;
   }
 
+  onLoadIntercept(event: OnLoadInterceptEvent): boolean {
+    this.webViewBaseOperate?.emitShouldStartLoadWithRequest(event)
+    return false
+  }
+
+  onOverrideUrlLoading(event: WebResourceRequest) {
+    this.webViewBaseOperate?.emitShouldStartLoadWithRequestOverrideUrlLoading(event)
+    return false
+  }
+
   build() {
     Stack() {
-        Web({ src: "", controller: this.controller, renderMode: this.renderMode })
+      Web({ src: "", controller: this.controller, renderMode: this.renderMode })
         .mixedMode(this.mode)
         .onPermissionRequest((event: OnPermissionRequestEvent) => {
           if (event) {
@@ -420,6 +425,8 @@ export struct RNCWebView {
         .geolocationAccess(this.descriptorWrapper.rawProps.geolocationEnabled)
         .mediaPlayGestureAccess(this.descriptorWrapper.rawProps.mediaPlaybackRequiresUserAction)
         .onRenderExited((event: OnRenderExitedEvent) => this.webViewBaseOperate?.onRenderExited(event))
+        .onLoadIntercept((event: OnLoadInterceptEvent) => this.onLoadIntercept(event))
+        // .onOverrideUrlLoading((event: WebResourceRequest) => this.onOverrideUrlLoading(event))
     }
     .width(this.webviewWidth)
     .height(this.webviewHeight)
