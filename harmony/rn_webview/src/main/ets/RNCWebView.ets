@@ -426,7 +426,7 @@ export struct RNCWebView {
         .mediaPlayGestureAccess(this.descriptorWrapper.rawProps.mediaPlaybackRequiresUserAction)
         .onRenderExited((event: OnRenderExitedEvent) => this.webViewBaseOperate?.onRenderExited(event))
         .onLoadIntercept((event: OnLoadInterceptEvent) => this.onLoadIntercept(event))
-        // .onOverrideUrlLoading((event: WebResourceRequest) => this.onOverrideUrlLoading(event))
+        .onTitleReceive((event: OnTitleReceiveEvent) => this.webViewBaseOperate?.onTitleReceive(event))
     }
     .width(this.webviewWidth)
     .height(this.webviewHeight)
