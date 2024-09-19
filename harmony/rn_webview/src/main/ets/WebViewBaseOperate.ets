@@ -403,6 +403,10 @@ export class BaseOperate {
   }
 
   onTitleReceive(event: OnTitleReceiveEvent) {
-    this.title = event.title
+    try {
+
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] onTitleReceive Errorcode: ${error.code}`);
+    }
   }
 }
