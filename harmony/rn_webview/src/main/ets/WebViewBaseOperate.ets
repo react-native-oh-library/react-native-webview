@@ -71,7 +71,7 @@ export class BaseOperate {
       this.eventEmitter!.emit('loadingFinish', {
         url: this.controller.getUrl(),
         loading: params.progress != ONE_HUNDRED,
-        title: this.title,
+        title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
         lockIdentifier: 0,
@@ -403,6 +403,10 @@ export class BaseOperate {
   }
 
   onTitleReceive(event: OnTitleReceiveEvent) {
-    this.title = event.title
+    try {
+
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] onTitleReceive Errorcode: ${error.code}`);
+    }
   }
 }
