@@ -1,12 +1,12 @@
 {
-  "string":[
+  "string": [
     {
-      "name":"page_show",
-      "value":"page from npm package"
+      "name": "page_show",
+      "value": "page from npm package"
     },
     {
-      "name":"deny",
-      "value":"不允许"
+      "name": "deny",
+      "value": "不允许"
     },
     {
       "name": "on_confirm",
@@ -30,11 +30,11 @@
     },
     {
       "name": "determined",
-      "value": "determined"
+      "value": "确认"
     },
     {
       "name": "cancel",
-      "value": "determined"
+      "value": "取消"
     }
   ]
 }

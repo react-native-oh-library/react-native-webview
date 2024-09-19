@@ -30,11 +30,11 @@
     },
     {
       "name": "determined",
-      "value": "确定"
+      "value": "determined"
     },
     {
       "name": "cancel",
-      "value": "取消"
+      "value": "cancel"
     }
   ]
 }
