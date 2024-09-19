@@ -18,20 +18,12 @@ interface CreateWebViewEventInterface {
 export class BaseOperate {
   private eventEmitter: RNC.RNCWebView.EventEmitter
   private controller: webview.WebviewController
-  private title: string = ''
 
   constructor(eventEmitter: RNC.RNCWebView.EventEmitter, controller: webview.WebviewController) {
     this.eventEmitter = eventEmitter
     this.controller = controller
   }
 
-  static setThirdPartyCookiesEnabled(status: boolean) {
-    try {
-      webview.WebCookieManager.putAcceptThirdPartyCookieEnabled(status);
-    } catch (error) {
-      Logger.error(TAG, `[RNOH] setThirdPartyCookiesEnabled Errorcode: ${error.code}`);
-    }
-  }
 
   emitProgressChange(params: ProgressInterface) {
     try {
@@ -71,7 +63,7 @@ export class BaseOperate {
       this.eventEmitter!.emit('loadingFinish', {
         url: this.controller.getUrl(),
         loading: params.progress != ONE_HUNDRED,
-        title: this.title,
+        title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
         lockIdentifier: 0,
@@ -376,6 +368,14 @@ export class BaseOperate {
     webview.WebStorage.deleteAllData();
   }
 
+  static setThirdPartyCookiesEnabled(status: boolean) {
+    try {
+      webview.WebCookieManager.putAcceptThirdPartyCookieEnabled(status);
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] setThirdPartyCookiesEnabled Errorcode: ${error.code}`);
+    }
+  }
+
   setFraudulentWebsiteWarningEnabled(status: boolean) {
     try {
       this.controller.enableSafeBrowsing(status);
@@ -400,9 +400,5 @@ export class BaseOperate {
     } catch (error) {
       Logger.error(TAG, `[RNOH] onRenderExited Errorcode: ${error.code}`);
     }
-  }
-
-  onTitleReceive(event: OnTitleReceiveEvent) {
-    this.title = event.title
   }
 }

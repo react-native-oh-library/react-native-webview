@@ -27,14 +27,6 @@
     {
       "name": "midi_sysex_resources",
       "value": "访问 MIDI SYSEX 资源？"
-    },
-    {
-      "name": "determined",
-      "value": "确定"
-    },
-    {
-      "name": "cancel",
-      "value": "取消"
     }
   ]
 }
