@@ -126,8 +126,6 @@ export const ONE_HUNDRED: number = 100
 
 export const REFRESH_OFFSET: number = 120
 
-export const REFRESH_FRICTION = 100
-
 export const MINHEIGHT: number = 1
 
 export interface ProgressInterface {
