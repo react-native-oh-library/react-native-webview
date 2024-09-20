@@ -27,7 +27,7 @@ import type {
   DescriptorWrapperFactoryByDescriptorTypeCtx,
 } from '@rnoh/react-native-openharmony/ts';
 import { RNPackage } from '@rnoh/react-native-openharmony/ts';
-import { RNC } from '@rnoh/react-native-openharmony/generated/ts';
+import { RNC } from './namespace';
 
 export class RNCWebViewPackage extends RNPackage {
   createDescriptorWrapperFactoryByDescriptorType(ctx: DescriptorWrapperFactoryByDescriptorTypeCtx): DescriptorWrapperFactoryByDescriptorType {

@@ -25,7 +25,7 @@
 import { RNComponentContext } from '@rnoh/react-native-openharmony';
 import webview from '@ohos.web.webview';
 import { url as OSUrl } from '@kit.ArkTS';
-import { RNC } from '@rnoh/react-native-openharmony/generated';
+import { RNC } from './namespace';
 import Logger from './Logger';
 import { BaseOperate } from './WebViewBaseOperate';
 import {
