@@ -1,4 +1,4 @@
-import { RNC } from '@rnoh/react-native-openharmony/generated/ts'
+import { RNC } from './namespace';
 import { webview } from '@kit.ArkWeb'
 import { CACHE_MODE, COMMAND_NAME, ONE_HUNDRED, WebViewEventParams } from './Magic';
 import Logger from './Logger';
