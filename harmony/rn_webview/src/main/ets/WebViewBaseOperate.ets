@@ -235,7 +235,7 @@ export class BaseOperate {
 
   injectJavaScript(args: string[]) {
     try {
-      this.controller.runJavaScript("(function() {\n" + args[0] + ";\n})();")
+      this.controller.runJavaScript(args[0])
     } catch (error) {
       Logger.error(TAG, `[RNOH] injectJavaScript Errorcode: ${error.code}`);
     }
