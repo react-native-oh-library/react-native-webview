@@ -394,7 +394,6 @@ export struct RNCWebView {
         .fileAccess(this.allowFileAccess)
         .constraintSize({ minHeight: MINHEIGHT })
         .overScrollMode(this.overScrollMode)
-        .backgroundColor(Color.Transparent)
         .javaScriptAccess(this.javaScriptEnable)
         .javaScriptOnDocumentStart(this.injectedJavaScriptBeforeContentLoaded)
         .horizontalScrollBarAccess(this.descriptorWrapper.rawProps.showsHorizontalScrollIndicator)
