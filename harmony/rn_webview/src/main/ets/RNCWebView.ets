@@ -400,7 +400,7 @@ export struct RNCWebView {
         .verticalScrollBarAccess(this.descriptorWrapper.rawProps.showsVerticalScrollIndicator)
         .overviewModeAccess(this.descriptorWrapper.rawProps.scalesPageToFit)
         .textZoomRatio(this.descriptorWrapper.rawProps.textZoom)
-        .darkMode(this.descriptorWrapper.rawProps.forceDarkOn ? WebDarkMode.On : WebDarkMode.Auto)
+        .darkMode(BaseOperate.getColorMode(this.ctx.uiAbilityContext, this.descriptorWrapper.rawProps.forceDarkOn))
         .forceDarkAccess(this.forceDark)
         .cacheMode(this.cacheMode)
         .minFontSize(this.minFontSize)
