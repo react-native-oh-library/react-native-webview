@@ -2,6 +2,7 @@ import { RNC } from './namespace';
 import { webview } from '@kit.ArkWeb'
 import { CACHE_MODE, COMMAND_NAME, ONE_HUNDRED, WebViewEventParams } from './Magic';
 import Logger from './Logger';
+import { common, ConfigurationConstant } from '@kit.AbilityKit';
 
 export const TAG = "WebView"
 
@@ -30,6 +31,16 @@ export class BaseOperate {
       webview.WebCookieManager.putAcceptThirdPartyCookieEnabled(status);
     } catch (error) {
       Logger.error(TAG, `[RNOH] setThirdPartyCookiesEnabled Errorcode: ${error.code}`);
+    }
+  }
+
+  static getColorMode(context: common.UIAbilityContext, forceDarkOn: boolean): WebDarkMode {
+    try {
+      return ((context.config.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK) && forceDarkOn) ?
+      WebDarkMode.On : WebDarkMode.Off
+    } catch (error) {
+      Logger.error(TAG, `[RNOH] getColorMode Errorcode: ${error.code}`);
+      return WebDarkMode.Off
     }
   }
 
@@ -235,7 +246,7 @@ export class BaseOperate {
 
   injectJavaScript(args: string[]) {
     try {
-      this.controller.runJavaScript("(function() {\n" + args[0] + ";\n})();")
+      this.controller.runJavaScript(args[0])
     } catch (error) {
       Logger.error(TAG, `[RNOH] injectJavaScript Errorcode: ${error.code}`);
     }
