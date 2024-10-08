@@ -137,6 +137,7 @@ export struct RNCWebView {
   }
 
   aboutToDisappear() {
+    this.getUIContext().getFocusController().clearFocus()
     this.cleanupCommandCallback?.()
     this.unregisterDescriptorChangesListener?.()
     this.cleanUpCallbacks.forEach(cb => cb())
