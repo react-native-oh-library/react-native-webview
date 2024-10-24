@@ -46,6 +46,8 @@ import {
   MINHEIGHT,
 } from './Magic';
 import { bundleManager } from '@kit.AbilityKit';
+import inputMethod from '@ohos.inputMethod';
+import { BusinessError } from '@ohos.base';
 
 export const TAG = "WebView"
 
@@ -97,6 +99,13 @@ export struct RNCWebView {
   private cleanUpCallbacks: (() => void)[] = []
   private descriptorWrapper: WebViewDescriptor = Object() as WebViewDescriptor
   private webViewBaseOperate: BaseOperate | null = null
+  private inputMethodController: inputMethod.InputMethodController = inputMethod.getController();
+  private textConfig: inputMethod.TextConfig = {
+  inputAttribute: {
+    textInputType: 0,
+    enterKeyType: 1
+  }
+};
 
   aboutToAppear() {
     try {
@@ -122,6 +131,14 @@ export struct RNCWebView {
           }
         })
       }
+
+      this.inputMethodController.attach(true, this.textConfig, (err: BusinessError) => {
+        if (err) {
+          console.error(`Failed to attach: ${JSON.stringify(err)}`);
+          return;
+        }
+        console.log('Succeeded in attaching the inputMethod.');
+      });
     } catch (error) {
       Logger.error(TAG, `[RNOH]Errorcode: ${error.code}, Message: ${error.message}`);
     }
@@ -261,7 +278,7 @@ export struct RNCWebView {
   controllerAttachedInit(): void {
     this.controllerAttached = true;
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
-    this.webViewBaseOperate = new BaseOperate(this.eventEmitter, this.controller)
+    this.webViewBaseOperate = new BaseOperate(this.eventEmitter, this.controller, this.inputMethodController)
     this.webViewBaseOperate.setCustomUserAgent(this.descriptorWrapper.rawProps.userAgent,
       this.descriptorWrapper.rawProps.applicationNameForUserAgent)
     this.webViewBaseOperate.setFraudulentWebsiteWarningEnabled(this.descriptorWrapper.rawProps.fraudulentWebsiteWarningEnabled)
