@@ -3,8 +3,6 @@ import { webview } from '@kit.ArkWeb'
 import { CACHE_MODE, COMMAND_NAME, ONE_HUNDRED, WebViewEventParams } from './Magic';
 import Logger from './Logger';
 import { common, ConfigurationConstant } from '@kit.AbilityKit';
-import inputMethod from '@ohos.inputMethod';
-import { BusinessError } from '@ohos.base';
 
 export const TAG = "WebView"
 
@@ -21,13 +19,11 @@ interface CreateWebViewEventInterface {
 export class BaseOperate {
   private eventEmitter: RNC.RNCWebView.EventEmitter
   private controller: webview.WebviewController
-  private inputMethodController: inputMethod.InputMethodController
   private title: string = ''
 
-  constructor(eventEmitter: RNC.RNCWebView.EventEmitter, controller: webview.WebviewController, inputMethodController: inputMethod.InputMethodController) {
+  constructor(eventEmitter: RNC.RNCWebView.EventEmitter, controller: webview.WebviewController) {
     this.eventEmitter = eventEmitter
     this.controller = controller
-    this.inputMethodController = inputMethodController
   }
 
   static setThirdPartyCookiesEnabled(status: boolean) {
@@ -302,15 +298,7 @@ export class BaseOperate {
 
   requestFocus() {
     try {
-      this.inputMethodController.showTextInput((err: BusinessError) => {
-        if (err) {
-          console.error(`Failed to showTextInput: ${JSON.stringify(err)}`);
-          return;
-        }
-        console.log('Succeeded in showing the inputMethod.');
-      });
       this.controller.requestFocus();
-
     } catch (error) {
       Logger.error(TAG, `[RNOH] requestFocus Errorcode: ${error.code}`);
     }
@@ -350,7 +338,6 @@ export class BaseOperate {
   }
 
   registerCommandCallback(commandName: COMMAND_NAME, args: string[]) {
-    console.info(`commandName${commandName}`)
     switch (commandName) {
       case COMMAND_NAME.INJECTJAVASCRIPT:
         this.injectJavaScript(args)
