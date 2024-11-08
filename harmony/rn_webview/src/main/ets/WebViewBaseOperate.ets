@@ -19,9 +19,10 @@ interface CreateWebViewEventInterface {
 export class BaseOperate {
   private eventEmitter: RNC.RNCWebView.EventEmitter
   private controller: webview.WebviewController
-  private title: string = ''
+  private tag: number
 
-  constructor(eventEmitter: RNC.RNCWebView.EventEmitter, controller: webview.WebviewController) {
+  constructor(tag: number, eventEmitter: RNC.RNCWebView.EventEmitter, controller: webview.WebviewController) {
+    this.tag = tag
     this.eventEmitter = eventEmitter
     this.controller = controller
   }
@@ -52,7 +53,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.tag,
         progress: params.progress / ONE_HUNDRED
       })
     } catch (error) {
@@ -68,7 +69,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.tag,
         navigationType: "other",
         mainDocumentURL: ""
       })
@@ -85,7 +86,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.tag,
         navigationType: "other",
         mainDocumentURL: ""
       })
@@ -106,7 +107,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.tag,
         domain: "",
         code: event.error.getErrorCode(),
         description: event.error.getErrorInfo()
@@ -124,7 +125,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.tag,
         description: event.response.getResponseData(),
         statusCode: event.response.getResponseCode()
       })
@@ -159,7 +160,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.tag,
         navigationType: "other",
         mainDocumentURL: "",
         isTopFrame: false
@@ -177,7 +178,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.tag,
         navigationType: "other",
         mainDocumentURL: "",
         isTopFrame: false

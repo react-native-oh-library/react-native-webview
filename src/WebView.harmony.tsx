@@ -5,10 +5,10 @@ import React, {
   useRef
 } from 'react';
 import { Image, View, ImageSourcePropType, HostComponent } from 'react-native';
-import { Double } from 'react-native/Libraries/Types/CodegenTypes';
 import invariant from 'invariant';
 
 import RNCWebView, { Commands, NativeProps } from './RNCWebViewNativeComponent';
+import RNCWebViewModule from './NativeRNCWebViewModule';
 
 import {
   defaultOriginWhitelist,
@@ -45,11 +45,6 @@ const useWarnIfChanges = <T extends unknown>(value: T, name: string) => {
     ref.current = value;
   }
 };
-
-const shouldStartLoadWithLockIdentifier: (
-  shouldStart: boolean,
-  lockIdentifier: Double
-) => void = () => { }
 
 const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boolean, minimumFontSize: number, thirdPartyCookiesEnabled: boolean, geolocationEnabled: boolean }>(
   (
@@ -113,7 +108,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
 
     const onShouldStartLoadWithRequestCallback = useCallback(
       (shouldStart: boolean, _url: string, lockIdentifier = 0) => {
-        shouldStartLoadWithLockIdentifier(
+        RNCWebViewModule.shouldStartLoadWithLockIdentifier(
           shouldStart,
           lockIdentifier
         );

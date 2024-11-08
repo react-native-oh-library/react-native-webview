@@ -26,13 +26,32 @@ import type {
   DescriptorWrapperFactoryByDescriptorType,
   DescriptorWrapperFactoryByDescriptorTypeCtx,
 } from '@rnoh/react-native-openharmony/ts';
-import { RNPackage } from '@rnoh/react-native-openharmony/ts';
-import { RNC } from '@rnoh/react-native-openharmony/generated/ts';
+import { RNPackage, UITurboModuleFactory, UITurboModule } from '@rnoh/react-native-openharmony/ts';
+import { RNC, TM } from '@rnoh/react-native-openharmony/generated/ts';
+import { WebViewTurboModule } from './WebViewTurboModule'
+import { UITurboModuleContext } from '@rnoh/react-native-openharmony/src/main/ets/RNOH/RNOHContext';
 
 export class RNCWebViewPackage extends RNPackage {
   createDescriptorWrapperFactoryByDescriptorType(ctx: DescriptorWrapperFactoryByDescriptorTypeCtx): DescriptorWrapperFactoryByDescriptorType {
     return {
       [RNC.RNCWebView.NAME]: (ctx) => new RNC.RNCWebView.DescriptorWrapper(ctx.descriptor)
     }
+  }
+
+  createUITurboModuleFactory(ctx: UITurboModuleContext): UITurboModuleFactory {
+    return new WebViewTurboModulesFactory(ctx);
+  }
+}
+
+class WebViewTurboModulesFactory extends UITurboModuleFactory {
+  createTurboModule(name: string): UITurboModule | null {
+    if (name === TM.RNCWebViewModule.NAME) {
+      return new WebViewTurboModule(this.ctx);
+    }
+    return null;
+  }
+
+  hasTurboModule(name: string): boolean {
+    return name === TM.RNCWebViewModule.NAME;
   }
 }
