@@ -17,13 +17,15 @@ interface CreateWebViewEventInterface {
 }
 
 export class BaseOperate {
+  private static LOCK_IDENTIFIER = 0
   private eventEmitter: RNC.RNCWebView.EventEmitter
   private controller: webview.WebviewController
-  private title: string = ''
+  private lockIdentifier: number = 0
 
   constructor(eventEmitter: RNC.RNCWebView.EventEmitter, controller: webview.WebviewController) {
     this.eventEmitter = eventEmitter
     this.controller = controller
+    this.lockIdentifier = BaseOperate.generateLockIdentifier()
   }
 
   static setThirdPartyCookiesEnabled(status: boolean) {
@@ -44,6 +46,19 @@ export class BaseOperate {
     }
   }
 
+  static generateLockIdentifier(): number {
+    BaseOperate.LOCK_IDENTIFIER =  BaseOperate.LOCK_IDENTIFIER + 1
+    return BaseOperate.LOCK_IDENTIFIER
+  }
+
+  getLockIdentifier():number {
+    return this.lockIdentifier
+  }
+
+  setLockIdentifier(lockIdentifier: number) {
+    this.lockIdentifier = lockIdentifier
+  }
+
   emitProgressChange(params: ProgressInterface) {
     try {
       this.eventEmitter!.emit('loadingProgress', {
@@ -52,7 +67,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.lockIdentifier,
         progress: params.progress / ONE_HUNDRED
       })
     } catch (error) {
@@ -68,7 +83,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.lockIdentifier,
         navigationType: "other",
         mainDocumentURL: ""
       })
@@ -85,7 +100,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.lockIdentifier,
         navigationType: "other",
         mainDocumentURL: ""
       })
@@ -106,7 +121,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.lockIdentifier,
         domain: "",
         code: event.error.getErrorCode(),
         description: event.error.getErrorInfo()
@@ -124,7 +139,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.lockIdentifier,
         description: event.response.getResponseData(),
         statusCode: event.response.getResponseCode()
       })
@@ -159,7 +174,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.lockIdentifier,
         navigationType: "other",
         mainDocumentURL: "",
         isTopFrame: false
@@ -177,7 +192,7 @@ export class BaseOperate {
         title: this.controller.getTitle(),
         canGoBack: this.controller.accessBackward(),
         canGoForward: this.controller.accessForward(),
-        lockIdentifier: 0,
+        lockIdentifier: this.lockIdentifier,
         navigationType: "other",
         mainDocumentURL: "",
         isTopFrame: false

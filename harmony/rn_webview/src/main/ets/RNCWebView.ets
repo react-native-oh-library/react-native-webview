@@ -25,7 +25,7 @@
 import { RNComponentContext } from '@rnoh/react-native-openharmony';
 import webview from '@ohos.web.webview';
 import { url as OSUrl } from '@kit.ArkTS';
-import { RNC } from '@rnoh/react-native-openharmony/generated';
+import { RNC, TM } from '@rnoh/react-native-openharmony/generated';
 import Logger from './Logger';
 import { BaseOperate } from './WebViewBaseOperate';
 import {
@@ -45,6 +45,7 @@ import {
   REFRESH_OFFSET,
   MINHEIGHT,
 } from './Magic';
+import { WebViewTurboModule } from './WebViewTurboModule';
 import { bundleManager } from '@kit.AbilityKit';
 
 export const TAG = "WebView"
@@ -73,7 +74,6 @@ export struct RNCWebView {
   overScrollMode: OverScrollMode = OverScrollMode.NEVER;
   progress: number = ZERO;
   cacheMode: number = CacheMode.Default;
-  lockIdentifier: string = "";
   requestUrl: string = "";
   bundleName: string = "";
   messagingEnabled: boolean = false;
@@ -97,6 +97,9 @@ export struct RNCWebView {
   private cleanUpCallbacks: (() => void)[] = []
   private descriptorWrapper: WebViewDescriptor = Object() as WebViewDescriptor
   private webViewBaseOperate: BaseOperate | null = null
+  private shouldInterceptLoad: boolean = true
+  private callLoadTimer: number = -1
+  static readonly SHOULD_OVERRIDE_URL_LOADING_TIMEOUT: number = 250
 
   aboutToAppear() {
     try {
@@ -269,6 +272,7 @@ export struct RNCWebView {
     let uri = this.source.uri
     if (this.source.html != undefined && this.source.html != "") {
       try {
+        this.resetIntercept()
         this.controller.loadData(
           this.source.html,
           "text/html",
@@ -280,8 +284,10 @@ export struct RNCWebView {
         Logger.error(TAG, "error:" + error)
       }
     } else if (uri != undefined && uri != "") {
+      this.resetIntercept()
       this.controller.loadUrl(uri, this.headers);
     } else {
+      this.resetIntercept()
       this.controller.loadUrl(uri, this.headers);
     }
     if (!this.hasRegisterJavaScriptProxy) {
@@ -352,13 +358,55 @@ export struct RNCWebView {
   }
 
   onLoadIntercept(event: OnLoadInterceptEvent): boolean {
+    Logger.debug(TAG, `onLoadIntercept request url:${event.data.getRequestUrl()} ,shouldInterceptLoad:${this.shouldInterceptLoad}`)
+    if (!this.shouldInterceptLoad) {
+      return false
+    }
+
+    let lockIdentifier = this.webViewBaseOperate?.getLockIdentifier()
+    let webViewTurboModule = this.ctx.rnInstance.getUITurboModule<WebViewTurboModule>(TM.RNCWebViewModule.NAME)
+    this.callLoadTimer = setTimeout(()=>{
+      Logger.debug(TAG, "call setTimeout")
+      webViewTurboModule.callLoadFunction(lockIdentifier)
+    }, RNCWebView.SHOULD_OVERRIDE_URL_LOADING_TIMEOUT)
+
+    webViewTurboModule.setLoadCallback(lockIdentifier, ()=>{
+      Logger.debug(TAG, "call setLoadCallback")
+      clearTimeout(this.callLoadTimer)
+      this.shouldInterceptLoad = false
+      if (this.html != "") {
+        try {
+          this.controller.loadData(
+            this.source.html,
+            "text/html",
+            "UTF-8",
+            this.source.baseUrl,
+            " "
+          );
+        } catch (error) {
+          Logger.error(TAG, "error: " + error)
+        }
+      } else if (this.source.uri != "") {
+        Logger.debug(TAG, `uri: ` + this.source.uri);
+        this.controller.loadUrl(this.descriptorWrapper.rawProps.newSource.uri, this.headers)
+      }
+    })
     this.webViewBaseOperate?.emitShouldStartLoadWithRequest(event)
-    return false
+    return true
   }
 
   onOverrideUrlLoading(event: WebResourceRequest) {
     this.webViewBaseOperate?.emitShouldStartLoadWithRequestOverrideUrlLoading(event)
     return false
+  }
+
+  resetIntercept() {
+    Logger.debug(TAG,"resetIntercept")
+    this.ctx.rnInstance.getUITurboModule<WebViewTurboModule>(TM.RNCWebViewModule.NAME)
+      .clearLoadFunction(this.webViewBaseOperate?.getLockIdentifier())
+    clearTimeout(this.callLoadTimer)
+    this.shouldInterceptLoad = true
+    this.webViewBaseOperate?.setLockIdentifier(BaseOperate.generateLockIdentifier())
   }
 
   build() {
@@ -444,6 +492,7 @@ export struct RNCWebView {
       this.html = this.source.html
       if (this.controllerAttached) {
         try {
+          this.resetIntercept()
           this.controller.loadData(
             this.source.html,
             "text/html",
@@ -459,6 +508,7 @@ export struct RNCWebView {
       Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
       this.url = this.source.uri as string;
       if (this.controllerAttached) {
+        this.resetIntercept()
         this.controller.loadUrl(this.descriptorWrapper.rawProps.newSource.uri, this.headers)
       }
     }
@@ -529,13 +579,14 @@ export struct RNCWebView {
             let result: WebViewEventParams = this.createWebViewEvent("onMessage")
             if (result) {
               result.data = data.toString()
-              result.lockIdentifier = ZERO
+              result.lockIdentifier = this.webViewBaseOperate?.getLockIdentifier()
               this.eventEmitter!.emit("message", result as ResultType);
             }
           }
         }
       };
       this.controller.registerJavaScriptProxy(bridge, JAVASCRIPT_INTERFACE, ["postMessage"])
+      this.resetIntercept()
       this.source.uri ?
       this.controller.loadUrl(this.source.uri, this.headers) : this.controller.refresh()
       this.hasRegisterJavaScriptProxy = true
