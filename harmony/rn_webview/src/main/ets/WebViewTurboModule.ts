@@ -1,10 +1,10 @@
-import { UITurboModule } from '@rnoh/react-native-openharmony/ts';
+import { TurboModule } from '@rnoh/react-native-openharmony/ts';
 import { TM } from '@rnoh/react-native-openharmony/generated/ts';
 import Logger from './Logger';
 
 const TAG = "WebViewTurboModule"
 
-export class WebViewTurboModule extends UITurboModule implements TM.RNCWebViewModule.Spec {
+export class WebViewTurboModule extends TurboModule implements TM.RNCWebViewModule.Spec {
   private loadCallbackMap : Map<number,()=> void> = new Map();
 
   isFileUploadSupported(): Promise<boolean> {

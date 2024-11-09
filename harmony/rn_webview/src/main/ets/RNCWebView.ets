@@ -364,7 +364,7 @@ export struct RNCWebView {
     }
 
     let lockIdentifier = this.webViewBaseOperate?.getLockIdentifier()
-    let webViewTurboModule = this.ctx.rnInstance.getUITurboModule<WebViewTurboModule>(TM.RNCWebViewModule.NAME)
+    let webViewTurboModule = this.ctx.rnInstance.getTurboModule<WebViewTurboModule>(TM.RNCWebViewModule.NAME)
     this.callLoadTimer = setTimeout(()=>{
       Logger.debug(TAG, "call setTimeout")
       webViewTurboModule.callLoadFunction(lockIdentifier)
@@ -402,7 +402,7 @@ export struct RNCWebView {
 
   resetIntercept() {
     Logger.debug(TAG,"resetIntercept")
-    this.ctx.rnInstance.getUITurboModule<WebViewTurboModule>(TM.RNCWebViewModule.NAME)
+    this.ctx.rnInstance.getTurboModule<WebViewTurboModule>(TM.RNCWebViewModule.NAME)
       .clearLoadFunction(this.webViewBaseOperate?.getLockIdentifier())
     clearTimeout(this.callLoadTimer)
     this.shouldInterceptLoad = true
