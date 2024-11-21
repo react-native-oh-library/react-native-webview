@@ -24,7 +24,7 @@
 
 import { RNComponentContext } from '@rnoh/react-native-openharmony';
 import webview from '@ohos.web.webview';
-import { url as OSUrl } from '@kit.ArkTS';
+import { url as OSUrl, url } from '@kit.ArkTS';
 import { RNC, TM } from '@rnoh/react-native-openharmony/generated';
 import Logger from './Logger';
 import { BaseOperate } from './WebViewBaseOperate';
@@ -47,6 +47,7 @@ import {
 } from './Magic';
 import { WebViewTurboModule } from './WebViewTurboModule';
 import { bundleManager } from '@kit.AbilityKit';
+import { LinkingManagerTurboModule } from '@rnoh/react-native-openharmony/src/main/ets/RNOHCorePackage/turboModules';
 
 export const TAG = "WebView"
 
@@ -360,6 +361,20 @@ export struct RNCWebView {
   onLoadIntercept(event: OnLoadInterceptEvent): boolean {
     Logger.debug(TAG, `onLoadIntercept request url:${event.data.getRequestUrl()} ,shouldInterceptLoad:${this.shouldInterceptLoad}`)
     if (!this.shouldInterceptLoad) {
+      try {
+        // 避免链接多一个/字符导致判断错误
+        if (url.URL.parseURL(event.data.getRequestUrl()).toString() != url.URL.parseURL(this.url.toString()).toString()) {
+          this.webViewBaseOperate?.setLockIdentifier(BaseOperate.generateLockIdentifier())
+          this.webViewBaseOperate?.emitShouldStartLoadWithRequest(event)
+          // 非网络链接拦截加载
+          if ( !["https:","http:"].includes(new url.URL(event.data.getRequestUrl()).protocol)) {
+            return true
+          }
+        }
+      } catch (e) {
+        Logger.debug(TAG, "onLoadIntercept error:" + e)
+      }
+
       return false
     }
 
