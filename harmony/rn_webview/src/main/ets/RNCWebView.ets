@@ -47,7 +47,6 @@ import {
 } from './Magic';
 import { WebViewTurboModule } from './WebViewTurboModule';
 import { bundleManager } from '@kit.AbilityKit';
-import { LinkingManagerTurboModule } from '@rnoh/react-native-openharmony/src/main/ets/RNOHCorePackage/turboModules';
 
 export const TAG = "WebView"
 
