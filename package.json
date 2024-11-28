@@ -1,6 +1,6 @@
 {
   "name": "@react-native-oh-tpl/react-native-webview",
-  "description": "React Native WebView component for iOS, Android, macOS and Windows",
+  "description": "React Native WebView component for harmony",
   "react-native": "src/index",
   "source": "src/index",
   "typings": "index.d.ts",
@@ -9,11 +9,9 @@
     "Thibault Malbranche <malbranche.thibault@gmail.com>"
   ],
   "license": "MIT",
-  "version": "13.10.2-0.2.34",
-  "homepage": "https://github.com/react-native-webview/react-native-webview#readme",
+  "version": "13.10.2-0.2.35",
+  "homepage": "https://github.com/react-native-oh-library/react-native-webview#readme",
   "scripts": {
-    "android": "react-native run-android",
-    "ios": "react-native run-ios",
     "macos": "react-native run-macos --scheme WebviewExample --project-path example/macos",
     "start": "react-native start",
     "windows": "install-windows-test-app --project-directory example/windows && react-native run-windows --root example --arch x64",
@@ -87,8 +85,6 @@
   ],
   "keywords": [
     "react-native",
-    "ios",
-    "android",
     "harmony"
   ],
   "harmony": {
