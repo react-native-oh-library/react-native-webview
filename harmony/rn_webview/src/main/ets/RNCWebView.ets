@@ -428,7 +428,7 @@ export struct RNCWebView {
       Web({ src: "", controller: this.controller, renderMode: this.renderMode })
         .mixedMode(this.mode)
         .onPermissionRequest((event: OnPermissionRequestEvent) => {
-          if (event) {
+          if (event && (this.getPermissionDialogMessage(event) != "TYPE_SENSOR")) {
             AlertDialog.show({
               title: this.resourceToString($r('app.string.on_confirm')) + event.request.getOrigin(),
               message: this.getPermissionDialogMessage(event),
@@ -463,6 +463,7 @@ export struct RNCWebView {
         .verticalScrollBarAccess(this.descriptorWrapper.rawProps.showsVerticalScrollIndicator)
         .overviewModeAccess(this.descriptorWrapper.rawProps.scalesPageToFit)
         .textZoomRatio(this.descriptorWrapper.rawProps.textZoom)
+        .backgroundColor(BaseOperate.getColorMode(this.ctx.uiAbilityContext, this.descriptorWrapper.rawProps.forceDarkOn) === WebDarkMode.On ? Color.White : Color.Transparent)
         .darkMode(BaseOperate.getColorMode(this.ctx.uiAbilityContext, this.descriptorWrapper.rawProps.forceDarkOn))
         .forceDarkAccess(this.forceDark)
         .cacheMode(this.cacheMode)
