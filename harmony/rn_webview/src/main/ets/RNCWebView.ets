@@ -543,8 +543,8 @@ export struct RNCWebView {
       })
     }
     this.html = this.source.html
-    this.webviewWidth = this.descriptorWrapper.rawProps.width
-    this.webviewHeight = this.descriptorWrapper.rawProps.height
+    this.webviewWidth = this.descriptorWrapper.layoutMetrics.frame.size.width
+    this.webviewHeight = this.descriptorWrapper.layoutMetrics.frame.size.height
     this.scrollEnabled = this.descriptorWrapper.rawProps.scrollEnabled;
     // 当禁止滚动时，使用父组件滚动
     this.nestedScroll = this.scrollEnabled ? NestedScrollMode.SELF_FIRST : NestedScrollMode.PARENT_FIRST;
