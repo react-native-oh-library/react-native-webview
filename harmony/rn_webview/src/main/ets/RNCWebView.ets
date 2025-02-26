@@ -414,7 +414,7 @@ export struct RNCWebView {
       Web({ src: "", controller: this.controller, renderMode: this.renderMode })
         .mixedMode(this.mode)
         .onPermissionRequest((event: OnPermissionRequestEvent) => {
-          if (event) {
+          if (event && (this.getPermissionDialogMessage(event) != "TYPE_SENSOR")) {
             AlertDialog.show({
               title: this.resourceToString($r('app.string.on_confirm')) + event.request.getOrigin(),
               message: this.getPermissionDialogMessage(event),
