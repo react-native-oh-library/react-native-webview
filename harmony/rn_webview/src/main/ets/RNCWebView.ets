@@ -45,12 +45,21 @@ import {
   REFRESH_OFFSET,
   MINHEIGHT,
 } from './Magic';
-import { WebViewTurboModule } from './WebViewTurboModule';
+
 import { bundleManager } from '@kit.AbilityKit';
+import { WebViewTurboModule, ShouldStartParams, ShouldOverrideCallbackState } from './WebViewTurboModule';
+import { AnyThreadRNInstance, WorkerTaskRunnable } from '@rnoh/react-native-openharmony/src/main/ets/RNOH';
 
 export const TAG = "WebView"
 
 export const WEB_VIEW = "RNCWebView"
+
+@Sendable
+class WorkerRunnable implements WorkerTaskRunnable<ShouldStartParams> {
+  run(rnInstance: AnyThreadRNInstance, params: ShouldStartParams): void {
+    rnInstance.getTurboModule<WebViewTurboModule>(TM.RNCWebViewModule.NAME).setShouldStartParams(params)
+  }
+}
 
 @Component
 export struct RNCWebView {
@@ -272,7 +281,6 @@ export struct RNCWebView {
     let uri = this.source.uri
     if (this.source.html != undefined && this.source.html != "") {
       try {
-        this.resetIntercept()
         this.controller.loadData(
           this.source.html,
           "text/html",
@@ -284,10 +292,8 @@ export struct RNCWebView {
         Logger.error(TAG, "error:" + error)
       }
     } else if (uri != undefined && uri != "") {
-      this.resetIntercept()
       this.controller.loadUrl(uri, this.headers);
     } else {
-      this.resetIntercept()
       this.controller.loadUrl(uri, this.headers);
     }
     if (!this.hasRegisterJavaScriptProxy) {
@@ -358,55 +364,27 @@ export struct RNCWebView {
   }
 
   onLoadIntercept(event: OnLoadInterceptEvent): boolean {
-    Logger.debug(TAG, `onLoadIntercept request url:${event.data.getRequestUrl()} ,shouldInterceptLoad:${this.shouldInterceptLoad}`)
-    if (!this.shouldInterceptLoad) {
-      return false
+    Logger.debug(TAG, `onLoadIntercept start`)
+    this.webViewBaseOperate?.setLockIdentifier(BaseOperate.generateLockIdentifier())
+
+    const params = new ShouldStartParams();
+    params.lockIdentifier = this.webViewBaseOperate?.getLockIdentifier() || -1
+    this.ctx.runOnWorkerThread(new WorkerRunnable(), params);
+    this.webViewBaseOperate?.emitShouldStartLoadWithRequest(event)
+    const startTime = Date.now();
+    // 当lockState没变化并且小于超时时间，阻塞进程
+    while (params.lockState === ShouldOverrideCallbackState.UNDECIDED &&
+      Date.now() - startTime < RNCWebView.SHOULD_OVERRIDE_URL_LOADING_TIMEOUT) {
+      // 空循环等待
     }
 
-    let lockIdentifier = this.webViewBaseOperate?.getLockIdentifier()
-    let webViewTurboModule = this.ctx.rnInstance.getTurboModule<WebViewTurboModule>(TM.RNCWebViewModule.NAME)
-    this.callLoadTimer = setTimeout(()=>{
-      Logger.debug(TAG, "call setTimeout")
-      webViewTurboModule.callLoadFunction(lockIdentifier)
-    }, RNCWebView.SHOULD_OVERRIDE_URL_LOADING_TIMEOUT)
-
-    webViewTurboModule.setLoadCallback(lockIdentifier, ()=>{
-      Logger.debug(TAG, "call setLoadCallback")
-      clearTimeout(this.callLoadTimer)
-      this.shouldInterceptLoad = false
-      if (this.html != "") {
-        try {
-          this.controller.loadData(
-            this.source.html,
-            "text/html",
-            "UTF-8",
-            this.source.baseUrl,
-            " "
-          );
-        } catch (error) {
-          Logger.error(TAG, "error: " + error)
-        }
-      } else if (this.source.uri != "") {
-        Logger.debug(TAG, `uri: ` + this.source.uri);
-        this.controller.loadUrl(this.descriptorWrapper.rawProps.newSource.uri, this.headers)
-      }
-    })
-    this.webViewBaseOperate?.emitShouldStartLoadWithRequest(event)
-    return true
+    Logger.debug('params.lockState res:' + params.lockState + `, wait time is ${Date.now() - startTime}`);
+    return params.lockState === ShouldOverrideCallbackState.SHOULD_OVERRIDE;
   }
 
   onOverrideUrlLoading(event: WebResourceRequest) {
     this.webViewBaseOperate?.emitShouldStartLoadWithRequestOverrideUrlLoading(event)
     return false
-  }
-
-  resetIntercept() {
-    Logger.debug(TAG,"resetIntercept")
-    this.ctx.rnInstance.getTurboModule<WebViewTurboModule>(TM.RNCWebViewModule.NAME)
-      .clearLoadFunction(this.webViewBaseOperate?.getLockIdentifier())
-    clearTimeout(this.callLoadTimer)
-    this.shouldInterceptLoad = true
-    this.webViewBaseOperate?.setLockIdentifier(BaseOperate.generateLockIdentifier())
   }
 
   build() {
@@ -449,7 +427,8 @@ export struct RNCWebView {
         .verticalScrollBarAccess(this.descriptorWrapper.rawProps.showsVerticalScrollIndicator)
         .overviewModeAccess(this.descriptorWrapper.rawProps.scalesPageToFit)
         .textZoomRatio(this.descriptorWrapper.rawProps.textZoom)
-        .backgroundColor(BaseOperate.getColorMode(this.ctx.uiAbilityContext, this.descriptorWrapper.rawProps.forceDarkOn) === WebDarkMode.On ? Color.White : Color.Transparent)
+        .backgroundColor(BaseOperate.getColorMode(this.ctx.uiAbilityContext,
+          this.descriptorWrapper.rawProps.forceDarkOn) === WebDarkMode.On ? Color.White : Color.Transparent)
         .darkMode(BaseOperate.getColorMode(this.ctx.uiAbilityContext, this.descriptorWrapper.rawProps.forceDarkOn))
         .forceDarkAccess(this.forceDark)
         .cacheMode(this.cacheMode)
@@ -493,7 +472,6 @@ export struct RNCWebView {
       this.html = this.source.html
       if (this.controllerAttached) {
         try {
-          this.resetIntercept()
           this.controller.loadData(
             this.source.html,
             "text/html",
@@ -509,7 +487,6 @@ export struct RNCWebView {
       Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
       this.url = this.source.uri as string;
       if (this.controllerAttached) {
-        this.resetIntercept()
         this.controller.loadUrl(this.descriptorWrapper.rawProps.newSource.uri, this.headers)
       }
     }
@@ -587,7 +564,6 @@ export struct RNCWebView {
         }
       };
       this.controller.registerJavaScriptProxy(bridge, JAVASCRIPT_INTERFACE, ["postMessage"])
-      this.resetIntercept()
       this.source.uri ?
       this.controller.loadUrl(this.source.uri, this.headers) : this.controller.refresh()
       this.hasRegisterJavaScriptProxy = true

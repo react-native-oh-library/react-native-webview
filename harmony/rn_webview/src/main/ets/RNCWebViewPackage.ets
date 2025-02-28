@@ -26,25 +26,26 @@ import type {
   DescriptorWrapperFactoryByDescriptorType,
   DescriptorWrapperFactoryByDescriptorTypeCtx,
 } from '@rnoh/react-native-openharmony/ts';
-import { RNPackage, TurboModulesFactory, TurboModule } from '@rnoh/react-native-openharmony/ts';
 import { RNC, TM } from '@rnoh/react-native-openharmony/generated/ts';
+import { AnyThreadTurboModuleFactory, AnyThreadTurboModule } from '@rnoh/react-native-openharmony/ts';
+import { RNOHPackage } from '@rnoh/react-native-openharmony';
 import { WebViewTurboModule } from './WebViewTurboModule'
-import { TurboModuleContext } from '@rnoh/react-native-openharmony/src/main/ets/RNOH/RNOHContext';
+import { WorkerTurboModuleContext } from '@rnoh/react-native-openharmony/src/main/ets/RNOH/RNOHContext';
 
-export class RNCWebViewPackage extends RNPackage {
+export class RNCWebViewPackage extends RNOHPackage  {
   createDescriptorWrapperFactoryByDescriptorType(ctx: DescriptorWrapperFactoryByDescriptorTypeCtx): DescriptorWrapperFactoryByDescriptorType {
     return {
-      [RNC.RNCWebView.NAME]: (ctx) => new RNC.RNCWebView.DescriptorWrapper(ctx.descriptor)
+      "RNCWebView": (ctx) => new RNC.RNCWebView.DescriptorWrapper(ctx.descriptor)
     }
   }
 
-  createTurboModulesFactory(ctx: TurboModuleContext): TurboModulesFactory {
+  createAnyThreadTurboModuleFactory(ctx: WorkerTurboModuleContext): AnyThreadTurboModuleFactory {
     return new WebViewTurboModulesFactory(ctx);
   }
 }
 
-class WebViewTurboModulesFactory extends TurboModulesFactory {
-  createTurboModule(name: string): TurboModule | null {
+class WebViewTurboModulesFactory extends AnyThreadTurboModuleFactory {
+  createTurboModule(name: string): AnyThreadTurboModule | null {
     if (name === TM.RNCWebViewModule.NAME) {
       return new WebViewTurboModule(this.ctx);
     }

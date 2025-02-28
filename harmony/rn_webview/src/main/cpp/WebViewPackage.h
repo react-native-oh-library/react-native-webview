@@ -37,7 +37,7 @@ class WebViewTurboModuleFactoryDelegate : public TurboModuleFactoryDelegate {
 public:
     SharedTurboModule createTurboModule(Context ctx, const std::string &name) const override
     {
-        if (name == "RNCWebView") {
+        if (name == "RNCWebViewModule") {
             return std::make_shared<RNCWebViewTurboModule>(ctx, name);
         }
         return nullptr;
