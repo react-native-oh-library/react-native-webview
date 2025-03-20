@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Huawei Device Co., Ltd. All rights reserved
+// Use of this source code is governed by a Apache-2.0 license that can be
+// found in the LICENSE file.
+
 import { Descriptor, ViewBaseProps, ViewDescriptorWrapperBase, ViewRawProps } from '@rnoh/react-native-openharmony'
 
 export class WebViewNewSourceHeader {

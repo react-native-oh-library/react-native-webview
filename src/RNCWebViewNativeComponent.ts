@@ -2,6 +2,7 @@ import type { HostComponent, ViewProps } from 'react-native';
 import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
 import {DirectEventHandler,Double, Int32, WithDefault} from 'react-native/Libraries/Types/CodegenTypes';
 import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
+import type { UnsafeMixed } from './codegenUtils';
 
 export type WebViewNativeEvent = Readonly<{
   url: string;
@@ -147,7 +148,7 @@ export interface NativeProps extends ViewProps {
   domStorageEnabled?: boolean;
   downloadingMessage?: string;
   forceDarkOn?: boolean;
-  geolocationEnabled?: boolean;
+  geolocationEnabled?: WithDefault<boolean, false>;
   lackPermissionToDownloadMessage?: string;
   messagingModuleName: string;
   minimumFontSize?: Int32;
@@ -178,17 +179,17 @@ export interface NativeProps extends ViewProps {
   ignoreSilentHardwareSwitch?:boolean;
   autoManageStatusBarEnabled?: boolean;
   bounces?: boolean;
-  contentInset?: Readonly<{
+  contentInset?: UnsafeMixed<Readonly<{
     top?: Double;
     left?: Double;
     bottom?: Double;
     right?: Double;
-  }>;
+  }>>;
   contentInsetAdjustmentBehavior?: WithDefault<'never' | 'automatic' | 'scrollableAxes' | 'always', 'never'>;
   contentMode?: WithDefault<'recommended' | 'mobile' | 'desktop', 'recommended'>;
   dataDetectorTypes?: WithDefault<
     // eslint-disable-next-line @typescript-eslint/array-type
-    ReadonlyArray<'address' | 'link' | 'calendarEvent' | 'trackingNumber' | 'flightNumber' | 'lookupSuggestion' | 'phoneNumber' | 'all' | 'none'>,
+    UnsafeMixed<ReadonlyArray<'address' | 'link' | 'calendarEvent' | 'trackingNumber' | 'flightNumber' | 'lookupSuggestion' | 'phoneNumber' | 'all' | 'none'>>,
     'phoneNumber'
   >;
   decelerationRate?: Double;
@@ -208,8 +209,8 @@ export interface NativeProps extends ViewProps {
   onCustomMenuSelection?: DirectEventHandler<WebViewCustomMenuSelectionEvent>;
   onFileDownload?: DirectEventHandler<WebViewDownloadEvent>;
   // eslint-disable-next-line @typescript-eslint/array-type
-  menuItems?: ReadonlyArray<Readonly<{label: string, key: string}>>;
-  suppressMenuItems?: Readonly<string>[];
+  menuItems?: UnsafeMixed<ReadonlyArray<UnsafeMixed<Readonly<{label: string, key: string}>>>>;
+  suppressMenuItems?: UnsafeMixed<Readonly<string>>[];
   // Workaround to watch if listener if defined
   hasOnFileDownload?: boolean;
   fraudulentWebsiteWarningEnabled?: boolean;
@@ -219,10 +220,10 @@ export interface NativeProps extends ViewProps {
   allowFileAccessFromFileURLs?: boolean;
   allowUniversalAccessFromFileURLs?: boolean;
   applicationNameForUserAgent?: string;
-  basicAuthCredential?: Readonly<{
+  basicAuthCredential?: UnsafeMixed<Readonly<{
     username: string;
     password: string;
-  }>;
+  }>>;
   cacheEnabled?: boolean;
   incognito?: boolean;
   injectedJavaScript?: string;
@@ -231,7 +232,7 @@ export interface NativeProps extends ViewProps {
   injectedJavaScriptBeforeContentLoadedForMainFrameOnly?: boolean;
   javaScriptCanOpenWindowsAutomatically?: boolean;
   javaScriptEnabled?: boolean;
-  webviewDebuggingEnabled?: boolean;
+  webviewDebuggingEnabled?: WithDefault<boolean, false>;
   mediaPlaybackRequiresUserAction?: boolean;
   messagingEnabled: boolean;
   shouldStartLoadWithRequestEnabled: boolean;
@@ -247,15 +248,15 @@ export interface NativeProps extends ViewProps {
   onShouldStartLoadWithRequest: DirectEventHandler<ShouldStartLoadRequestEvent>;
   showsHorizontalScrollIndicator?: boolean;
   showsVerticalScrollIndicator?: boolean;
-  newSource: Readonly<{
+  newSource: UnsafeMixed<Readonly<{
     uri?: string
     method?: string;
     body?: string;
     // eslint-disable-next-line @typescript-eslint/array-type
-    headers?: ReadonlyArray<Readonly<{name: string, value: string}>>;
+    headers?: UnsafeMixed<ReadonlyArray<UnsafeMixed<Readonly<{name: string, value: string}>>>>;
     html?: string;
     baseUrl?: string;
-  }>;
+  }>>;
   userAgent?: string;
 }
 
