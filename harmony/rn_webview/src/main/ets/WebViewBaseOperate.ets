@@ -242,7 +242,7 @@ export class BaseOperate {
 
   // 与OS web同事 对齐 默认false 是取消静音
   ignoreSilentHardwareSwitchMethods(ignoreSilentHardwareSwitch: boolean) {
-    this.controller.setAudioMuted(ignoreSilentHardwareSwitch)
+    this.controller.setAudioMuted(!ignoreSilentHardwareSwitch)
   }
 
   setCustomUserAgent(customUserAgent?: string, applicationNameForUserAgent?: string): void {
