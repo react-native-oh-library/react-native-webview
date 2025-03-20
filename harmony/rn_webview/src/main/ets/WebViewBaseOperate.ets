@@ -1,4 +1,8 @@
-import { RNC } from '@rnoh/react-native-openharmony/generated/ts'
+// Copyright (c) 2025 Huawei Device Co., Ltd. All rights reserved
+// Use of this source code is governed by a Apache-2.0 license that can be
+// found in the LICENSE file.
+
+import { RNC } from './generated/ts'
 import { webview } from '@kit.ArkWeb'
 import { CACHE_MODE, COMMAND_NAME, ONE_HUNDRED, WebViewEventParams } from './Magic';
 import Logger from './Logger';
