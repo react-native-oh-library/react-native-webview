@@ -9,7 +9,7 @@
     "Thibault Malbranche <malbranche.thibault@gmail.com>"
   ],
   "license": "MIT",
-  "version": "13.10.2-0.2.37",
+  "version": "13.10.2-0.3.0",
   "homepage": "https://github.com/react-native-oh-library/react-native-webview#readme",
   "scripts": {
     "macos": "react-native run-macos --scheme WebviewExample --project-path example/macos",
@@ -92,12 +92,7 @@
      "access": "public"
   },
   "harmony": {
-    "alias": "react-native-webview",
-    "codegenConfig": {
-      "specPaths": [
-        "./src"
-      ]
-    }
+    "alias": "react-native-webview"
   },
   "packageManager": "yarn@1.22.19"
 }
