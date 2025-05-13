@@ -431,6 +431,11 @@ export struct RNCWebView {
         .onConfirm((event: AlertEvent) => this.onJavascriptConfirm(event))
         .onDownloadStart((event: OnDownloadStartEvent) => this.webViewBaseOperate?.onDownloadStart(event))
         .geolocationAccess(this.descriptorWrapper.rawProps.geolocationEnabled)
+        .onGeolocationShow((event) => {
+          if (event && (this.descriptorWrapper.rawProps.geolocationEnabled != undefined)) {
+            event.geolocation.invoke(event.origin, this.descriptorWrapper.rawProps.geolocationEnabled, true);
+          }
+        })
         .mediaPlayGestureAccess(this.descriptorWrapper.rawProps.mediaPlaybackRequiresUserAction)
         .onRenderExited((event: OnRenderExitedEvent) => this.webViewBaseOperate?.onRenderExited(event))
         .onLoadIntercept((event: OnLoadInterceptEvent) => this.onLoadIntercept(event))
