@@ -274,7 +274,17 @@ export struct RNCWebView {
     } else if (uri != undefined && uri != "") {
       this.controller.loadUrl(uri, this.headers);
     } else {
-      this.controller.loadUrl(uri, this.headers);
+      try {
+        this.controller.loadData(
+          "",
+          "text/html",
+          "UTF-8",
+          "",
+          " "
+        );
+      } catch (error) {
+        Logger.error(TAG, "error: " + error)
+      }
     }
     if (!this.hasRegisterJavaScriptProxy) {
       this.registerPostMessage()
@@ -468,12 +478,26 @@ export struct RNCWebView {
           Logger.error(TAG, "error: " + error)
         }
       }
-    } else if (this.source.uri != "" && this.url != this.source.uri) {
-      Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
-      this.url = this.source.uri as string;
-      if (this.controllerAttached) {
-        this.controller.loadUrl(this.descriptorWrapper.rawProps.newSource.uri, this.headers)
+    } else if (this.url != this.source.uri) {
+      if (this.source.uri != "") {
+        Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
+        if (this.controllerAttached) {
+          this.controller.loadUrl(this.descriptorWrapper.rawProps.newSource.uri, this.headers)
+        }
+      } else {
+        try {
+          this.controller.loadData(
+            "",
+            "text/html",
+            "UTF-8",
+            "",
+            " "
+          );
+        } catch (error) {
+          Logger.error(TAG, "error: " + error)
+        }
       }
+      this.url = this.source.uri as string;
     }
     if (this.controllerAttached) {
       this.controller?.setScrollable(this.descriptorWrapper.rawProps.scrollEnabled)
