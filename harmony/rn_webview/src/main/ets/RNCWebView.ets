@@ -250,6 +250,20 @@ export struct RNCWebView {
     this.webViewBaseOperate?.ignoreSilentHardwareSwitchMethods(ignoreSilentHardwareSwitch)
   }
 
+  loadHtmlData(html: string = '', url: string = '') {
+    try {
+      this.controller.loadData(
+        html,
+        "text/html",
+        "UTF-8",
+        url,
+        " "
+      );
+    } catch (error) {
+      Logger.error(TAG, "error:" + error)
+    }
+  }
+
   controllerAttachedInit(): void {
     this.controllerAttached = true;
     this.eventEmitter = new RNC.RNCWebView.EventEmitter(this.ctx.rnInstance, this.tag)
@@ -260,21 +274,11 @@ export struct RNCWebView {
     let baseUrl = this.source.baseUrl
     let uri = this.source.uri
     if (this.source.html != undefined && this.source.html != "") {
-      try {
-        this.controller.loadData(
-          this.source.html,
-          "text/html",
-          "UTF-8",
-          baseUrl,
-          " "
-        );
-      } catch (error) {
-        Logger.error(TAG, "error:" + error)
-      }
+      this.loadHtmlData(this.source.html, baseUrl)
     } else if (uri != undefined && uri != "") {
       this.controller.loadUrl(uri, this.headers);
     } else {
-      this.controller.loadUrl(uri, this.headers);
+      this.loadHtmlData()
     }
     if (!this.hasRegisterJavaScriptProxy) {
       this.registerPostMessage()
@@ -456,24 +460,18 @@ export struct RNCWebView {
       Logger.debug(TAG, "[RNOH] html is update")
       this.html = this.source.html
       if (this.controllerAttached) {
-        try {
-          this.controller.loadData(
-            this.source.html,
-            "text/html",
-            "UTF-8",
-            this.source.baseUrl,
-            " "
-          );
-        } catch (error) {
-          Logger.error(TAG, "error: " + error)
+        this.loadHtmlData(this.source.html, this.source.baseUrl)
+      }
+    } else if (this.url != this.source.uri) {
+      if (this.source.uri != "") {
+        Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
+        if (this.controllerAttached) {
+          this.controller.loadUrl(this.descriptorWrapper.rawProps.newSource.uri, this.headers)
         }
+      } else {
+        this.loadHtmlData()
       }
-    } else if (this.source.uri != "" && this.url != this.source.uri) {
-      Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
       this.url = this.source.uri as string;
-      if (this.controllerAttached) {
-        this.controller.loadUrl(this.descriptorWrapper.rawProps.newSource.uri, this.headers)
-      }
     }
     if (this.controllerAttached) {
       this.controller?.setScrollable(this.descriptorWrapper.rawProps.scrollEnabled)
