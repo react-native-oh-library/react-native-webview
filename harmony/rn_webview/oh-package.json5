@@ -8,6 +8,6 @@
   "main": "index.ets",
   "version": "13.10.3-rc.2",
   "dependencies": {
-    "@rnoh/react-native-openharmony": "0.72.59"
+    "@rnoh/react-native-openharmony": "^0.72.59"
   }
 }

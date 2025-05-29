@@ -456,11 +456,11 @@ export struct RNCWebView {
   private onDescriptorWrapperChange(descriptorWrapper: WebViewDescriptor) {
     this.initVariable()
     this.descriptorWrapper = descriptorWrapper
-    if (this.html != "" && this.html != this.source.html) {
-      Logger.debug(TAG, "[RNOH] html is update")
-      this.html = this.source.html
+    if (this.source.html != "" && this.html != this.source.html) {
       if (this.controllerAttached) {
         this.loadHtmlData(this.source.html, this.source.baseUrl)
+        Logger.debug(TAG, "[RNOH] html is update")
+        this.html = this.source.html
       }
     } else if (this.url != this.source.uri) {
       if (this.source.uri != "") {
@@ -502,7 +502,7 @@ export struct RNCWebView {
         }
       })
     }
-    this.html = this.source.html
+    // this.html = this.source.html
     this.webviewWidth = this.descriptorWrapper.layoutMetrics.frame.size.width
     this.webviewHeight = this.descriptorWrapper.layoutMetrics.frame.size.height
     this.scrollEnabled = this.descriptorWrapper.rawProps.scrollEnabled;
