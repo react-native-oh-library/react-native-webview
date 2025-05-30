@@ -62,3 +62,5 @@ msbuild.binlog
 example/msbuild.binlog
 
 *.tgz
+harmony/rn_webview/oh-package-lock.json5
+harmony/rn_webview/BuildProfile.ets

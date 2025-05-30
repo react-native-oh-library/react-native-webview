@@ -1,6 +1,6 @@
 # @react-native-oh-tpl/react-native-webview
 
-This project is based on [react-native-webview](https://github.com/react-native-webview/react-native-webview)
+This project is based on [react-native-webview@13.10.2](https://github.com/react-native-webview/react-native-webview/tree/v13.10.2)
 
 ## Documentation
 
