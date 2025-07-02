@@ -56,6 +56,7 @@ export struct RNCWebView {
   }
   html: string | undefined = "";
   url: string | Resource = "";
+  body: string | undefined = "";
   controller: webview.WebviewController = new webview.WebviewController();
   javaScriptEnable: boolean = true;
   allowFileAccess: boolean = true;
@@ -95,6 +96,7 @@ export struct RNCWebView {
     try {
       this.initVariable()
       this.getBundleName()
+      this.url = this.source.uri as string;
       this.onDescriptorWrapperChange(this.descriptorWrapper)
       this.unregisterDescriptorChangesListener = this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
         (newDescriptor) => {
@@ -276,12 +278,10 @@ export struct RNCWebView {
     if (this.source.html != undefined && this.source.html != "") {
       this.loadHtmlData(this.source.html, baseUrl)
     } else if (uri != undefined && uri != "") {
-      if (this.source.method && this.source.method.toUpperCase() === 'POST') {
-        if (this.source.body && typeof uri === 'string') {
-          let url = uri as string;
-          let postData = buffer.from(this.source.body);
-          this.controller.postUrl(url, postData?.buffer);
-        }
+      if (this.source.method && this.source.method.toUpperCase() === 'POST' && this.source.body) {
+        let postData = buffer.from(this.source.body);
+        let url = uri as string;
+        this.controller.postUrl(url, postData?.buffer);
       } else {
         this.controller.loadUrl(uri, this.headers);
       }
@@ -464,21 +464,26 @@ export struct RNCWebView {
   private onDescriptorWrapperChange(descriptorWrapper: WebViewDescriptor) {
     this.initVariable()
     this.descriptorWrapper = descriptorWrapper
-    if (this.source.html) {
+    if (this.source.html != "" && this.html != this.source.html) {
       if (this.controllerAttached) {
         this.loadHtmlData(this.source.html, this.source.baseUrl)
         Logger.debug(TAG, "[RNOH] html is update")
+        this.html = this.source.html
       }
-    } else if (this.source.uri) {
+    } else if (this.source.uri && this.source.method && this.source.method.toUpperCase() === 'POST' && this.source.body && (this.source.uri != this.url || this.body != this.source.body)) {
+      if (this.controllerAttached) {
+        let url = this.source.uri as string;
+        this.url = url;
+        this.body = this.source.body;
+        let postData = buffer.from(this.source.body);
+        this.controller.postUrl(url, postData?.buffer);
+      }
+    } else if (this.url != this.source.uri) {
+      if (this.source.uri != "") {
         Logger.debug(TAG, `[RNOH] newDescriptor props update uri: ` + this.source.uri);
-      if (this.source.method && this.source.method.toUpperCase() === 'POST') {
-        if (this.source.body && typeof this.source.uri === 'string') {
-          let url = this.source.uri as string;
-          let postData = buffer.from(this.source.body);
-          this.controller.postUrl(url, postData?.buffer);
-        }
-      } else if (this.controllerAttached) {
+        if (this.controllerAttached) {
           this.controller.loadUrl(this.descriptorWrapper.rawProps.newSource.uri, this.headers)
+        }
       } else {
         this.loadHtmlData()
       }
@@ -506,10 +511,6 @@ export struct RNCWebView {
       baseUrl: this.descriptorWrapper.rawProps.newSource.baseUrl ?? "",
       headers: this.descriptorWrapper.rawProps.newSource.headers ?? []
     }
-
-    this.url = this.source.uri as string;
-    this.html = this.source.html;
-
     if (this.source.headers) {
       this.source.headers.forEach(item => {
         if (item.name && item.value) {
@@ -517,7 +518,7 @@ export struct RNCWebView {
         }
       })
     }
-
+    // this.html = this.source.html
     this.webviewWidth = this.descriptorWrapper.layoutMetrics.frame.size.width
     this.webviewHeight = this.descriptorWrapper.layoutMetrics.frame.size.height
     this.scrollEnabled = this.descriptorWrapper.rawProps.scrollEnabled;
