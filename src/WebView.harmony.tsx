@@ -111,9 +111,9 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps & { scalesPageToFit: boo
     > | null>(null);
 
     const onShouldStartLoadWithRequestCallback = useCallback(
-      (shouldStart: boolean, _url: string, lockIdentifier = 0) => {
+      async (shouldStart: boolean, _url: string, lockIdentifier = 0) => {
         RNCWebViewModule.shouldStartLoadWithLockIdentifier(
-          shouldStart,
+          await shouldStart,
           lockIdentifier
         );
       },
