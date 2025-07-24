@@ -209,6 +209,7 @@ class RNCWebViewProps final : public ViewProps {
   bool showsVerticalScrollIndicator{false};
   folly::dynamic newSource{};
   std::string userAgent{};
+  folly::dynamic schemeList{};
 };
 
 } // namespace react

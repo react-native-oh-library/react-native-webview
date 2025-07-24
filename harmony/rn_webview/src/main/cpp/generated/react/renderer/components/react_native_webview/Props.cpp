@@ -95,7 +95,8 @@ RNCWebViewProps::RNCWebViewProps(
     showsHorizontalScrollIndicator(convertRawProp(context, rawProps, "showsHorizontalScrollIndicator", sourceProps.showsHorizontalScrollIndicator, {false})),
     showsVerticalScrollIndicator(convertRawProp(context, rawProps, "showsVerticalScrollIndicator", sourceProps.showsVerticalScrollIndicator, {false})),
     newSource(convertRawProp(context, rawProps, "newSource", sourceProps.newSource, {})),
-    userAgent(convertRawProp(context, rawProps, "userAgent", sourceProps.userAgent, {}))
+    userAgent(convertRawProp(context, rawProps, "userAgent", sourceProps.userAgent, {})),
+    schemeList(convertRawProp(context, rawProps, "schemeList", sourceProps.schemeList, {}))
       {}
 
 } // namespace react

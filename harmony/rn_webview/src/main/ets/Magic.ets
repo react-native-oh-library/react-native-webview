@@ -64,6 +64,7 @@ export interface WebViewProps extends ViewRawProps {
   geolocationEnabled: boolean
   applicationNameForUserAgent: string
   pullToRefreshEnabled: boolean
+  schemeList: Array<string>
 }
 
 

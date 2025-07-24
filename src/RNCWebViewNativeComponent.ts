@@ -258,6 +258,7 @@ export interface NativeProps extends ViewProps {
     baseUrl?: string;
   }>>;
   userAgent?: string;
+  schemeList?: UnsafeMixed<ReadonlyArray<string>>;
 }
 
 export interface NativeCommands {
