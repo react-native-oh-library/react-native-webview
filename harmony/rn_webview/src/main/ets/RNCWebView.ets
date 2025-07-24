@@ -58,6 +58,7 @@ export struct RNCWebView {
   url: string | Resource = "";
   body: string | undefined = "";
   controller: webview.WebviewController = new webview.WebviewController();
+  schemeHandler: webview.WebSchemeHandler = new webview.WebSchemeHandler();
   javaScriptEnable: boolean = true;
   allowFileAccess: boolean = true;
   forceDark: boolean = true;
@@ -273,6 +274,21 @@ export struct RNCWebView {
     this.webViewBaseOperate.setCustomUserAgent(this.descriptorWrapper.rawProps.userAgent,
       this.descriptorWrapper.rawProps.applicationNameForUserAgent)
     this.webViewBaseOperate.setFraudulentWebsiteWarningEnabled(this.descriptorWrapper.rawProps.fraudulentWebsiteWarningEnabled)
+
+    let schemeList = this.descriptorWrapper.rawProps.schemeList
+    if(schemeList?.length){
+      schemeList.forEach(scheme=>{
+        this.schemeHandler.onRequestStart((request: webview.WebSchemeHandlerRequest, resourceHandler: webview.WebResourceHandler) => {
+          console.log("[schemeHandler] onRequestStart");
+          return true;
+        })
+        this.schemeHandler.onRequestStop((request: webview.WebSchemeHandlerRequest) => {
+          console.log("[schemeHandler] onRequestStop");
+        });
+        this.controller.setWebSchemeHandler(scheme, this.schemeHandler);
+      })
+    }
+
     let baseUrl = this.source.baseUrl
     let uri = this.source.uri
     if (this.source.html != undefined && this.source.html != "") {

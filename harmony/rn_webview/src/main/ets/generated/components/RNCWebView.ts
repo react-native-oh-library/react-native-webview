@@ -95,6 +95,7 @@ export namespace RNCWebView {
     showsVerticalScrollIndicator?: boolean;
     newSource: unknown;
     userAgent?: string;
+    schemeList?: unknown;
   }
   
   export interface Props extends ViewBaseProps {}
@@ -402,6 +403,10 @@ export namespace RNCWebView {
     
     get userAgent() {
       return this.rawProps.userAgent;
+    }
+    
+    get schemeList() {
+      return this.rawProps.schemeList;
     }
     
   

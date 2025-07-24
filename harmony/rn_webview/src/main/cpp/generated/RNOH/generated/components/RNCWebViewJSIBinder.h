@@ -85,6 +85,7 @@ class RNCWebViewJSIBinder : public ViewComponentJSIBinder {
         object.setProperty(rt, "showsVerticalScrollIndicator", true);
         object.setProperty(rt, "newSource", true);
         object.setProperty(rt, "userAgent", true);
+        object.setProperty(rt, "schemeList", true);
         return object;
     }
 
