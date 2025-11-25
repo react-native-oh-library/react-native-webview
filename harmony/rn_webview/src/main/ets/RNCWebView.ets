@@ -309,6 +309,10 @@ export struct RNCWebView {
       })
     }
 
+    if (!this.hasRegisterJavaScriptProxy && this.descriptorWrapper.rawProps.messagingEnabled) {
+      this.registerJavaScriptProxyOnly()
+    }
+
     let baseUrl = this.source.baseUrl
     let uri = this.source.uri
     if (this.source.html != undefined && this.source.html != "") {
@@ -324,6 +328,7 @@ export struct RNCWebView {
     } else {
       this.loadHtmlData()
     }
+    
     if (!this.hasRegisterJavaScriptProxy) {
       this.registerPostMessage()
     }
@@ -579,8 +584,8 @@ export struct RNCWebView {
     }
   }
 
-  private registerPostMessage() {
-    if (this.messagingEnabled == this.descriptorWrapper.rawProps.messagingEnabled) {
+  private registerJavaScriptProxyOnly() {
+    if (this.messagingEnabled == this.descriptorWrapper.rawProps.messagingEnabled && this.hasRegisterJavaScriptProxy) {
       return;
     }
     this.messagingEnabled = this.descriptorWrapper.rawProps.messagingEnabled;
@@ -599,8 +604,43 @@ export struct RNCWebView {
         }
       };
       this.controller.registerJavaScriptProxy(bridge, JAVASCRIPT_INTERFACE, ["postMessage"])
-      this.source.uri ?
-      this.controller.loadUrl(this.source.uri, this.headers) : this.controller.refresh()
+      this.hasRegisterJavaScriptProxy = true
+      Logger.debug(TAG, "[RNOH] JavaScript Proxy registered without reloading page")
+    }
+  }
+
+  private registerPostMessage() {
+    if (this.messagingEnabled == this.descriptorWrapper.rawProps.messagingEnabled) {
+      return;
+    }
+    this.messagingEnabled = this.descriptorWrapper.rawProps.messagingEnabled;
+    if (this.messagingEnabled) {
+      if (this.hasRegisterJavaScriptProxy) {
+        Logger.debug(TAG, "[RNOH] JavaScript Proxy already registered")
+        return
+      }
+      
+      let bridge: RNCWebViewBridge = {
+        postMessage: (data: string) => {
+          Logger.debug(TAG, `[RNOH] bridge postMessage,  ${JSON.stringify(data)}`);
+          if (this.controller != null) {
+            let result: WebViewEventParams = this.createWebViewEvent("onMessage")
+            if (result) {
+              result.data = data.toString()
+              result.lockIdentifier = this.webViewBaseOperate?.getLockIdentifier()
+              this.eventEmitter!.emit("message", result as ResultType);
+            }
+          }
+        }
+      };
+      this.controller.registerJavaScriptProxy(bridge, JAVASCRIPT_INTERFACE, ["postMessage"])
+      if (this.source.uri && !this.source.html) {
+        this.controller.loadUrl(this.source.uri, this.headers)
+      } else if (this.source.html) {
+        Logger.debug(TAG, "[RNOH] JavaScript Proxy registered, HTML content will use it on next load")
+      } else {
+        this.controller.refresh()
+      }
       this.hasRegisterJavaScriptProxy = true
     }
   }
